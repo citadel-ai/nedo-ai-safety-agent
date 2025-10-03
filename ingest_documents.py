@@ -4,9 +4,7 @@
 import argparse
 import asyncio
 import logging
-import os
 from pathlib import Path
-from typing import Any, Dict, List
 
 # Load environment variables from .env file
 from dotenv import load_dotenv
@@ -57,7 +55,7 @@ def extract_text_from_file(file_path: Path) -> str:
         return ""
 
 
-def chunk_text(text: str, chunk_size: int = 1000, overlap: int = 200) -> List[str]:
+def chunk_text(text: str, chunk_size: int = 1000, overlap: int = 200) -> list[str]:
     """Split text into overlapping chunks."""
     if len(text) <= chunk_size:
         return [text]
@@ -91,7 +89,7 @@ def chunk_text(text: str, chunk_size: int = 1000, overlap: int = 200) -> List[st
 
 
 async def ingest_documents(
-    document_paths: List[str], category: str = "user_docs"
+    document_paths: list[str], category: str = "user_docs"
 ) -> None:
     """Ingest documents into the vector database."""
     from app.real_vector_db import get_vector_db

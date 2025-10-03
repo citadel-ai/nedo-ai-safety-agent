@@ -4,19 +4,20 @@ Simplified Japan Helpdesk LangGraph workflow with linear flow to prevent infinit
 
 import time
 import uuid
-from typing import Dict, Any, Literal
-from langgraph.graph import StateGraph, END
-from langgraph.checkpoint.memory import MemorySaver
+from typing import Any, Literal
 
-from app.types import JapanHelpdeskState, HIGH_RISK_CATEGORIES
-from app.utils.observability import observe, get_langfuse_client, flush_langfuse
+from langgraph.checkpoint.memory import MemorySaver
+from langgraph.graph import END, StateGraph
+
 from app.nodes import (
     adversarial_detector_node,
-    scope_checker_node,
     hybrid_search_node,
     legal_checker_node,
     response_synthesizer_node,
+    scope_checker_node,
 )
+from app.types import JapanHelpdeskState
+from app.utils.observability import flush_langfuse, observe
 
 
 def create_simple_workflow():
@@ -54,7 +55,7 @@ def create_simple_workflow():
         if scope_result:
             print(f"🔀 SCOPE ROUTING: is_in_scope = {scope_result.is_in_scope}")
         else:
-            print(f"🔀 SCOPE ROUTING: No scope result found!")
+            print("🔀 SCOPE ROUTING: No scope result found!")
 
         if not scope_result or not scope_result.is_in_scope:
             # Set final response for out-of-scope queries
@@ -68,7 +69,7 @@ def create_simple_workflow():
             )
             print(f"🔀 SCOPE ROUTING: Terminating - {reason}")
             return "END"
-        print(f"🔀 SCOPE ROUTING: Proceeding to hybrid_search")
+        print("🔀 SCOPE ROUTING: Proceeding to hybrid_search")
         return "hybrid_search"
 
     # Add edges - completely linear flow
@@ -104,7 +105,7 @@ class SimpleJapanHelpdeskAgent:
     @observe(name="simple_japan_helpdesk_query")
     async def process_query(
         self, user_input: str, user_id: str, session_id: str = None
-    ) -> Dict[str, Any]:
+    ) -> dict[str, Any]:
         """Process a user query through the simplified workflow."""
 
         start_time = time.time()
@@ -172,7 +173,7 @@ class SimpleJapanHelpdeskAgent:
             # Fallback response with error tracking
             total_time = time.time() - start_time
             error_response = {
-                "response": f"I apologize, but I encountered a technical error: {str(e)}. Please try again or contact support.",
+                "response": f"I apologize, but I encountered a technical error: {e!s}. Please try again or contact support.",
                 "confidence_score": 0.0,
                 "sources": ["error_fallback"],
                 "recommendations": [

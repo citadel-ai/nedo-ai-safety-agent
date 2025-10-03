@@ -3,12 +3,13 @@
 """Legal advice checker node for LangGraph with Langfuse observability."""
 
 import time
-from langchain_google_vertexai import ChatVertexAI
+
 from langchain_core.messages import HumanMessage, SystemMessage
 from langchain_core.output_parsers import PydanticOutputParser
-from app.utils.observability import observe
+from langchain_google_vertexai import ChatVertexAI
 
 from app.types import JapanHelpdeskState, LegalAdviceCheck
+from app.utils.observability import observe
 
 llm = ChatVertexAI(model="gemini-2.5-flash", temperature=0.0, location="us-central1")
 parser = PydanticOutputParser(pydantic_object=LegalAdviceCheck)
@@ -60,7 +61,7 @@ async def legal_checker_node(state: JapanHelpdeskState) -> JapanHelpdeskState:
         return state
 
     except Exception as e:
-        state["errors"].append(f"Legal check failed: {str(e)}")
+        state["errors"].append(f"Legal check failed: {e!s}")
         state["error_count"] += 1
 
         # Assume compliant if check fails

@@ -14,9 +14,9 @@
 
 """Vector database implementation for Japan Helpdesk."""
 
+
 import numpy as np
-import hashlib
-from typing import List, Dict, Any
+
 from app.types import VectorSearchResult
 
 # No sample documents - system starts empty for real testing
@@ -53,7 +53,7 @@ def generate_mock_embedding(text: str) -> np.ndarray:
 
 def mock_vector_search(
     query: str, top_k: int = 5, min_similarity: float = 0.5
-) -> List[VectorSearchResult]:
+) -> list[VectorSearchResult]:
     """Mock vector database search."""
     query_embedding = generate_mock_embedding(query)
 
@@ -81,7 +81,7 @@ def mock_vector_search(
     return results[:top_k]
 
 
-def mock_google_search(query: str) -> List[str]:
+def mock_google_search(query: str) -> list[str]:
     """Mock Google search - returns empty results for real testing."""
     # Return empty results to test real functionality
     return []

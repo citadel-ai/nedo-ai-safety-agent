@@ -14,17 +14,17 @@
 
 """Intake agent node with memory management and Langfuse v3 observability."""
 
+import re
 import time
 import uuid
-from typing import Dict, Any
-import re
-from langchain_google_vertexai import ChatVertexAI
+
 from langchain_core.messages import HumanMessage, SystemMessage
 from langchain_core.output_parsers import PydanticOutputParser
+from langchain_google_vertexai import ChatVertexAI
 
-from app.types import JapanHelpdeskState, IntakeSession
-from app.utils.observability import observe
 from app.intake_suggestions import get_suggestions_for_question
+from app.types import IntakeSession, JapanHelpdeskState
+from app.utils.observability import observe
 
 # Initialize the LLM
 llm = ChatVertexAI(
@@ -61,7 +61,7 @@ def _extract_json_block(text: str) -> str:
 
 
 # In-memory session storage (in production, use proper database)
-session_store: Dict[str, IntakeSession] = {}
+session_store: dict[str, IntakeSession] = {}
 
 AUTONOMOUS_INTAKE_PROMPT = """
 You are an autonomous intake agent for a Japan helpdesk system. Your role is to intelligently analyze ANY user query and determine what contextual information is needed to provide accurate, personalized assistance.
@@ -306,11 +306,11 @@ async def intake_agent_node(state: JapanHelpdeskState) -> JapanHelpdeskState:
         elif not updated_session.is_complete:
             # No questions but not complete - this shouldn't happen, but handle it
             logger.warning(
-                f"🟡 INTAKE AGENT - Incomplete but no questions! Continuing workflow..."
+                "🟡 INTAKE AGENT - Incomplete but no questions! Continuing workflow..."
             )
         else:
             # Complete and no questions - ready for next stage
-            logger.info(f"🟢 INTAKE AGENT - Complete, proceeding to next stage")
+            logger.info("🟢 INTAKE AGENT - Complete, proceeding to next stage")
 
         # Update metadata
         processing_time = time.time() - start_time
@@ -326,7 +326,7 @@ async def intake_agent_node(state: JapanHelpdeskState) -> JapanHelpdeskState:
 
     except Exception as e:
         logger.error(f"🔴 INTAKE AGENT ERROR: {e}", exc_info=True)
-        state["errors"].append(f"Intake agent failed: {str(e)}")
+        state["errors"].append(f"Intake agent failed: {e!s}")
         state["error_count"] += 1
 
         # Determine what context might be needed based on keywords
@@ -387,7 +387,7 @@ async def intake_agent_node(state: JapanHelpdeskState) -> JapanHelpdeskState:
                 f"🟡 INTAKE AGENT FALLBACK - Set fallback question: '{next_question}'"
             )
         else:
-            logger.error(f"🔴 INTAKE AGENT FALLBACK - No fallback question generated!")
+            logger.error("🔴 INTAKE AGENT FALLBACK - No fallback question generated!")
 
         # Langfuse v3 automatically captures exceptions via @observe decorator
 

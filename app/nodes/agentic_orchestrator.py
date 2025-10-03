@@ -6,14 +6,12 @@ following the patterns from: https://www.anthropic.com/engineering/building-effe
 """
 
 import time
-import uuid
-import asyncio
-from typing import Dict, Any, List, Optional
-from langchain_google_vertexai import ChatVertexAI
+
 from langchain_core.messages import HumanMessage, SystemMessage
 from langchain_core.output_parsers import PydanticOutputParser
+from langchain_google_vertexai import ChatVertexAI
 
-from app.types import JapanHelpdeskState, AgentPlan, AgentTodo
+from app.types import AgentPlan, AgentTodo, JapanHelpdeskState
 from app.utils.observability import observe
 
 # Initialize the LLM for planning
@@ -162,9 +160,9 @@ async def create_agent_plan(state: JapanHelpdeskState) -> JapanHelpdeskState:
         return state
 
     except Exception as e:
-        state["errors"].append(f"Agent planning failed: {str(e)}")
+        state["errors"].append(f"Agent planning failed: {e!s}")
         state["agent_reasoning"] = [
-            f"Planning failed, falling back to standard workflow: {str(e)}"
+            f"Planning failed, falling back to standard workflow: {e!s}"
         ]
         return state
 
@@ -221,7 +219,7 @@ async def execute_current_todo(state: JapanHelpdeskState) -> JapanHelpdeskState:
         return state
 
     except Exception as e:
-        state["errors"].append(f"TODO execution failed: {str(e)}")
+        state["errors"].append(f"TODO execution failed: {e!s}")
         return state
 
 
@@ -287,7 +285,7 @@ def _extract_search_query(task: str, state: JapanHelpdeskState) -> str:
     return query
 
 
-def _find_next_todo(active_todos: List[AgentTodo]) -> Optional[AgentTodo]:
+def _find_next_todo(active_todos: list[AgentTodo]) -> AgentTodo | None:
     """Find the next TODO to execute based on priority and dependencies."""
 
     # Filter out TODOs with unmet dependencies

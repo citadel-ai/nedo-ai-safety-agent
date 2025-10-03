@@ -9,11 +9,10 @@ import asyncio
 import logging
 import os
 import re
-from typing import Dict, List, Optional, Any
-from urllib.parse import urljoin, urlparse
+from typing import Any
+from urllib.parse import urlparse
 
 import aiohttp
-import requests
 import trafilatura
 from bs4 import BeautifulSoup
 
@@ -30,7 +29,7 @@ class SearchResult:
         title: str,
         url: str,
         snippet: str,
-        full_content: Optional[str] = None,
+        full_content: str | None = None,
         content_length: int = 0,
         extraction_success: bool = False,
         content_type: str = "unknown",
@@ -52,7 +51,7 @@ class SearchResult:
             return content
         return self.snippet
 
-    def to_dict(self) -> Dict[str, Any]:
+    def to_dict(self) -> dict[str, Any]:
         """Convert to dictionary for logging/debugging."""
         return {
             "title": self.title,
@@ -85,7 +84,7 @@ class EnhancedGoogleSearch(RealGoogleSearch):
         self.allowed_domains = set()  # Empty = allow all
         # self.allowed_domains = {'go.jp', 'ac.jp', 'ed.jp', 'lg.jp', 'or.jp'}
         # Simple in-memory TTL cache
-        self._cache: Dict[str, Any] = {}
+        self._cache: dict[str, Any] = {}
         self._cache_ttl_seconds: int = int(
             os.getenv("ENHANCED_SEARCH_TTL_SECONDS", "900")
         )
@@ -94,9 +93,9 @@ class EnhancedGoogleSearch(RealGoogleSearch):
         self,
         query: str,
         num_results: int = 5,
-        site_filter: Optional[str] = None,
+        site_filter: str | None = None,
         fetch_content: bool = True,
-    ) -> List[SearchResult]:
+    ) -> list[SearchResult]:
         """
         Perform Google search and fetch full content from results.
 
@@ -109,7 +108,7 @@ class EnhancedGoogleSearch(RealGoogleSearch):
         Returns:
             List of SearchResult objects with full content
         """
-        logger.info(f"🔍 ENHANCED SEARCH DEBUG - Starting enhanced search:")
+        logger.info("🔍 ENHANCED SEARCH DEBUG - Starting enhanced search:")
         logger.info(f"   Query: '{query}'")
         logger.info(f"   Num results: {num_results}")
         logger.info(f"   Fetch content: {fetch_content}")
@@ -125,17 +124,17 @@ class EnhancedGoogleSearch(RealGoogleSearch):
             return cached
 
         # Run EN and JA structured searches
-        logger.info(f"🔍 Calling EN search...")
+        logger.info("🔍 Calling EN search...")
         en_results = await self._get_structured_results(enhanced_query, num_results)
         logger.info(f"🔍 EN search returned: {len(en_results)} results")
 
-        logger.info(f"🔍 Calling JA search...")
+        logger.info("🔍 Calling JA search...")
         ja_results = await self._get_structured_results_lang(
             enhanced_query, num_results, hl="ja", lr="lang_ja"
         )
         logger.info(f"🔍 JA search returned: {len(ja_results)} results")
 
-        merged: List[SearchResult] = []
+        merged: list[SearchResult] = []
         seen = set()
         for r in en_results + ja_results:
             host = urlparse(r.url).hostname or ""
@@ -166,7 +165,7 @@ class EnhancedGoogleSearch(RealGoogleSearch):
 
     async def _get_structured_results(
         self, query: str, num_results: int
-    ) -> List[SearchResult]:
+    ) -> list[SearchResult]:
         """Get structured results with URLs and metadata from Google CSE."""
         try:
             if not self.google_api_key or not self.google_cse_id:
@@ -230,7 +229,7 @@ class EnhancedGoogleSearch(RealGoogleSearch):
 
     async def _get_structured_results_lang(
         self, query: str, num_results: int, hl: str = "ja", lr: str = "lang_ja"
-    ) -> List[SearchResult]:
+    ) -> list[SearchResult]:
         """Get structured results with language hints (e.g., Japanese)."""
         try:
             if not self.google_api_key or not self.google_cse_id:
@@ -257,7 +256,7 @@ class EnhancedGoogleSearch(RealGoogleSearch):
                         )
                         return []
                     data = await response.json()
-                    results: List[SearchResult] = []
+                    results: list[SearchResult] = []
                     for item in data.get("items", [])[:num_results]:
                         results.append(
                             SearchResult(
@@ -300,10 +299,10 @@ class EnhancedGoogleSearch(RealGoogleSearch):
                 result.extraction_success = True
                 result.content_length = len(result.full_content)
 
-                logger.info(f"📄 PDF reference created:")
+                logger.info("📄 PDF reference created:")
                 logger.info(f"   Title: {result.title}")
                 logger.info(f"   URL: {result.url}")
-                logger.info(f"   Note: Content should be in vector database")
+                logger.info("   Note: Content should be in vector database")
             else:
                 content = await self._extract_html_content(result.url)
                 result.content_type = "html"
@@ -313,7 +312,7 @@ class EnhancedGoogleSearch(RealGoogleSearch):
                     result.content_length = len(content)
                     result.extraction_success = True
 
-                    logger.info(f"✅ HTML content extracted successfully:")
+                    logger.info("✅ HTML content extracted successfully:")
                     logger.info(f"   Length: {result.content_length} chars")
                     logger.info(f"   Type: {result.content_type}")
                     logger.info(f"   Preview: {content[:200]}...")
@@ -328,7 +327,7 @@ class EnhancedGoogleSearch(RealGoogleSearch):
             result.extraction_success = False
             return result
 
-    async def _extract_html_content(self, url: str) -> Optional[str]:
+    async def _extract_html_content(self, url: str) -> str | None:
         """Extract clean text content from HTML page."""
         try:
             # Use aiohttp for async HTTP request
@@ -380,7 +379,7 @@ class EnhancedGoogleSearch(RealGoogleSearch):
             logger.error(f"Error extracting HTML from {url}: {e}")
             return None
 
-    def _extract_with_beautifulsoup(self, html_content: str) -> Optional[str]:
+    def _extract_with_beautifulsoup(self, html_content: str) -> str | None:
         """Fallback content extraction using BeautifulSoup."""
         try:
             soup = BeautifulSoup(html_content, "html.parser")
@@ -435,7 +434,7 @@ class EnhancedGoogleSearch(RealGoogleSearch):
         except Exception:
             return False
 
-    def _get_from_cache(self, key: str) -> Optional[List[SearchResult]]:
+    def _get_from_cache(self, key: str) -> list[SearchResult] | None:
         entry = self._cache.get(key)
         if not entry:
             return None
@@ -445,7 +444,7 @@ class EnhancedGoogleSearch(RealGoogleSearch):
             return None
         return value
 
-    def _set_cache(self, key: str, value: List[SearchResult]) -> None:
+    def _set_cache(self, key: str, value: list[SearchResult]) -> None:
         expiry = asyncio.get_event_loop().time() + self._cache_ttl_seconds
         self._cache[key] = (value, expiry)
 
@@ -453,7 +452,7 @@ class EnhancedGoogleSearch(RealGoogleSearch):
 
 
 # Global instance
-_enhanced_search_instance: Optional[EnhancedGoogleSearch] = None
+_enhanced_search_instance: EnhancedGoogleSearch | None = None
 
 
 def get_enhanced_google_search() -> EnhancedGoogleSearch:
@@ -468,7 +467,7 @@ def get_enhanced_google_search() -> EnhancedGoogleSearch:
 
 async def enhanced_google_search(
     query: str, num_results: int = 5, fetch_full_content: bool = True
-) -> List[str]:
+) -> list[str]:
     """
     Perform enhanced Google search with full content extraction.
 
@@ -499,7 +498,7 @@ async def enhanced_google_search(
 
 async def get_enhanced_search_results(
     query: str, num_results: int = 5
-) -> List[SearchResult]:
+) -> list[SearchResult]:
     """
     Get enhanced search results as SearchResult objects for detailed analysis.
 

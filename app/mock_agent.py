@@ -5,9 +5,7 @@ Provides basic functionality for testing and demonstration.
 
 import time
 import uuid
-from typing import Dict, Any
-
-from app.deployment_config import get_mock_response
+from typing import Any
 
 
 class MockJapanHelpdeskAgent:
@@ -19,7 +17,7 @@ class MockJapanHelpdeskAgent:
 
     async def process_query(
         self, user_input: str, user_id: str, session_id: str = None
-    ) -> Dict[str, Any]:
+    ) -> dict[str, Any]:
         """Process a user query with mock responses."""
         start_time = time.time()
         session_id = session_id or f"mock_session_{uuid.uuid4().hex[:8]}"

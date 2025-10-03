@@ -16,22 +16,23 @@
 
 import time
 import uuid
-from typing import Dict, Any, Literal
-from langgraph.graph import StateGraph, END
-from langgraph.checkpoint.memory import MemorySaver
+from typing import Any, Literal
 
-from app.types import JapanHelpdeskState, HIGH_RISK_CATEGORIES
-from app.utils.observability import observe, get_langfuse_client, flush_langfuse
+from langgraph.checkpoint.memory import MemorySaver
+from langgraph.graph import END, StateGraph
+
 from app.nodes import (
     adversarial_detector_node,
+    hybrid_search_node,
     intake_agent_node,
+    legal_checker_node,
+    rag_agent_node,
+    response_synthesizer_node,
     scope_checker_node,
     vector_rag_node,
-    hybrid_search_node,
-    rag_agent_node,
-    legal_checker_node,
-    response_synthesizer_node,
 )
+from app.types import HIGH_RISK_CATEGORIES, JapanHelpdeskState
+from app.utils.observability import flush_langfuse, observe
 
 
 def create_japan_helpdesk_workflow() -> StateGraph:
@@ -171,7 +172,7 @@ class JapanHelpdeskLangGraph:
     @observe(name="japan_helpdesk_query")
     async def process_query(
         self, user_input: str, user_id: str, session_id: str = None
-    ) -> Dict[str, Any]:
+    ) -> dict[str, Any]:
         """Process a user query through the LangGraph workflow with full observability."""
 
         start_time = time.time()
@@ -255,7 +256,7 @@ class JapanHelpdeskLangGraph:
         except Exception as e:
             # Fallback response with error tracking
             error_response = {
-                "response": f"I apologize, but I encountered a technical error: {str(e)}. Please try again or contact support.",
+                "response": f"I apologize, but I encountered a technical error: {e!s}. Please try again or contact support.",
                 "confidence_score": 0.0,
                 "sources": ["error_fallback"],
                 "recommendations": [

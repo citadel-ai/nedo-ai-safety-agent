@@ -2,14 +2,14 @@
 
 import asyncio
 import time
-from typing import List, Dict, Any
-from langchain_google_vertexai import ChatVertexAI
-from langchain_core.messages import HumanMessage, SystemMessage
+from typing import Any
 
+from langchain_core.messages import HumanMessage, SystemMessage
+from langchain_google_vertexai import ChatVertexAI
+
+from app.enhanced_google_search import get_enhanced_search_results
 from app.types import JapanHelpdeskState
 from app.utils.observability import observe
-from app.real_vector_db import real_vector_search
-from app.enhanced_google_search import get_enhanced_search_results
 
 # Initialize LLM for query generation
 llm = ChatVertexAI(
@@ -63,8 +63,8 @@ Variants:
 
 @observe(name="generate_query_variants")
 async def generate_query_variants(
-    original_query: str, context: Dict[str, Any]
-) -> List[str]:
+    original_query: str, context: dict[str, Any]
+) -> list[str]:
     """Generate multiple query variants using LLM."""
 
     import logging
@@ -119,7 +119,7 @@ async def generate_query_variants(
         return [original_query]
 
 
-async def enhance_query_for_google(query: str, context: Dict[str, Any]) -> str:
+async def enhance_query_for_google(query: str, context: dict[str, Any]) -> str:
     """Enhance query for Google Search with appropriate handling for Japanese and English queries."""
 
     enhanced = query
@@ -253,13 +253,13 @@ async def agentic_search_orchestrator_node(
                 seen_urls.add(url)
                 unique_google.append(res)
 
-        logger.info(f"✅ AGENTIC SEARCH COMPLETE:")
+        logger.info("✅ AGENTIC SEARCH COMPLETE:")
         logger.info(f"   Vector results: {len(unique_vector)} unique")
         logger.info(f"   Google results: {len(unique_google)} unique")
         logger.info(f"   Total: {len(unique_vector) + len(unique_google)} results")
 
         # DEBUG: Show what we actually found
-        logger.info(f"📊 GOOGLE SEARCH RESULTS DETAIL:")
+        logger.info("📊 GOOGLE SEARCH RESULTS DETAIL:")
         for i, res in enumerate(unique_google[:3], 1):  # Show first 3
             if hasattr(res, "title"):
                 # Call the attribute if it's a method, otherwise just use it
@@ -284,7 +284,7 @@ async def agentic_search_orchestrator_node(
                     f"   {i}. (Unknown type: {type(res).__name__}): {str(res)[:200]}..."
                 )
 
-        logger.info(f"📊 VECTOR SEARCH RESULTS DETAIL:")
+        logger.info("📊 VECTOR SEARCH RESULTS DETAIL:")
         for i, res in enumerate(unique_vector[:3], 1):  # Show first 3
             if hasattr(res, "content"):
                 logger.info(f"   {i}. Content: {res.content[:150]}...")
@@ -367,6 +367,6 @@ async def agentic_search_orchestrator_node(
 
     except Exception as e:
         logger.error(f"🔴 AGENTIC SEARCH ERROR: {e}", exc_info=True)
-        state["errors"].append(f"Agentic search failed: {str(e)}")
+        state["errors"].append(f"Agentic search failed: {e!s}")
         state["error_count"] += 1
         return state

@@ -14,15 +14,15 @@
 
 """Adversarial input detection node with Langfuse v3 observability."""
 
-import time
-from typing import Dict, Any
-import re
 import json
-from langchain_google_vertexai import ChatVertexAI
+import re
+import time
+
 from langchain_core.messages import HumanMessage, SystemMessage
 from langchain_core.output_parsers import PydanticOutputParser
+from langchain_google_vertexai import ChatVertexAI
 
-from app.types import JapanHelpdeskState, AdversarialInputResult
+from app.types import AdversarialInputResult, JapanHelpdeskState
 from app.utils.observability import observe
 
 # Initialize the LLM
@@ -157,7 +157,7 @@ async def adversarial_detector_node(state: JapanHelpdeskState) -> JapanHelpdeskS
         try:
             # First try direct parsing (should work with new prompt)
             result = parser.parse(raw)
-            logger.info(f"🟢 ADV DETECTOR - Successfully parsed JSON directly")
+            logger.info("🟢 ADV DETECTOR - Successfully parsed JSON directly")
         except Exception as parse_err:
             logger.warning(
                 f"🟡 ADV DETECTOR - Direct parse failed, extracting JSON: {parse_err}"
@@ -175,7 +175,7 @@ async def adversarial_detector_node(state: JapanHelpdeskState) -> JapanHelpdeskS
                 data.setdefault("sanitized_query", None)
 
                 result = AdversarialInputResult(**data)
-                logger.info(f"🟢 ADV DETECTOR - Successfully parsed with extraction")
+                logger.info("🟢 ADV DETECTOR - Successfully parsed with extraction")
             except Exception as fallback_err:
                 logger.error(f"🔴 ADV DETECTOR - All parsing failed: {fallback_err}")
                 logger.error(f"🔴 ADV DETECTOR - Raw content: {raw}")
@@ -212,7 +212,7 @@ async def adversarial_detector_node(state: JapanHelpdeskState) -> JapanHelpdeskS
         return state
 
     except Exception as e:
-        state["errors"].append(f"Adversarial detection failed: {str(e)}")
+        state["errors"].append(f"Adversarial detection failed: {e!s}")
         state["error_count"] += 1
 
         # Create fallback result (assume safe if detection fails)

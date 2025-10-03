@@ -1,10 +1,11 @@
 """Circuit Breaker Pattern - Prevent cascading failures in LLM calls."""
 
-import time
 import logging
-from typing import Callable, Any, Optional
-from enum import Enum
+import time
+from collections.abc import Callable
 from dataclasses import dataclass
+from enum import Enum
+from typing import Any
 
 logger = logging.getLogger(__name__)
 
@@ -36,7 +37,7 @@ class CircuitBreaker:
     - HALF_OPEN: Testing if system recovered, allow limited calls
     """
 
-    def __init__(self, name: str, config: Optional[CircuitBreakerConfig] = None):
+    def __init__(self, name: str, config: CircuitBreakerConfig | None = None):
         self.name = name
         self.config = config or CircuitBreakerConfig()
         self.state = CircuitState.CLOSED
@@ -72,7 +73,7 @@ class CircuitBreaker:
             self._on_success()
             return result
 
-        except Exception as e:
+        except Exception:
             self._on_failure()
             raise
 
@@ -150,7 +151,7 @@ _circuit_breakers = {}
 
 
 def get_circuit_breaker(
-    name: str, config: Optional[CircuitBreakerConfig] = None
+    name: str, config: CircuitBreakerConfig | None = None
 ) -> CircuitBreaker:
     """Get or create a circuit breaker."""
     if name not in _circuit_breakers:
@@ -161,7 +162,7 @@ def get_circuit_breaker(
 def protected_llm_call(
     circuit_name: str,
     func: Callable,
-    fallback_func: Optional[Callable] = None,
+    fallback_func: Callable | None = None,
     *args,
     **kwargs,
 ) -> Any:

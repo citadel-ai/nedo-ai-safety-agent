@@ -4,33 +4,35 @@ Working Japan Helpdesk LangGraph workflow with fixed state management.
 
 import time
 import uuid
-from typing import Dict, Any, Literal
-from langgraph.graph import StateGraph, END
-# MemorySaver removed - using stateless workflow for clean execution
+from typing import Any, Literal
 
-from app.types import JapanHelpdeskState, HIGH_RISK_CATEGORIES
-from app.utils.observability import observe, get_langfuse_client, flush_langfuse
-from app.utils.error_diagnostics import (
-    WorkflowDiagnostics,
-    diagnose_intake_failure,
-    diagnose_search_failure,
-    diagnose_llm_truncation,
-    create_detailed_error_response,
-    validate_state_integrity,
-)
+from langgraph.graph import END, StateGraph
+
 from app.nodes import (
     adversarial_detector_node,
-    intake_agent_node,
-    query_synthesizer_node,
-    scope_checker_node,
-    hybrid_search_node,
-    legal_checker_node,
-    response_synthesizer_node,
     agentic_orchestrator_node,
-    evaluator_optimizer_node,
     agentic_search_orchestrator_node,
+    evaluator_optimizer_node,
+    hybrid_search_node,
+    intake_agent_node,
+    legal_checker_node,
     multi_step_procedure_agent_node,
+    query_synthesizer_node,
+    response_synthesizer_node,
+    scope_checker_node,
 )
+
+# MemorySaver removed - using stateless workflow for clean execution
+from app.types import JapanHelpdeskState
+from app.utils.error_diagnostics import (
+    WorkflowDiagnostics,
+    create_detailed_error_response,
+    diagnose_intake_failure,
+    diagnose_llm_truncation,
+    diagnose_search_failure,
+    validate_state_integrity,
+)
+from app.utils.observability import flush_langfuse, observe
 
 
 def create_working_workflow():
@@ -99,7 +101,7 @@ def create_working_workflow():
     ) -> Literal["agentic_search", "END"]:
         """Route after scope check - use agentic search if in scope."""
         scope_result = state.get("scope_check_result")
-        print(f"🔀 SCOPE ROUTING DEBUG:")
+        print("🔀 SCOPE ROUTING DEBUG:")
         print(f"   scope_result: {scope_result}")
         print(f"   state keys: {list(state.keys())}")
 
@@ -119,7 +121,7 @@ def create_working_workflow():
             print(f"   TERMINATING: {final_msg}")
             return "END"
 
-        print(f"   PROCEEDING to agentic_search")
+        print("   PROCEEDING to agentic_search")
         return "agentic_search"
 
     # Add edges - linear flow
@@ -172,7 +174,7 @@ class WorkingJapanHelpdeskAgent:
     @observe(name="working_japan_helpdesk_query")
     async def process_query(
         self, user_input: str, user_id: str, session_id: str = None
-    ) -> Dict[str, Any]:
+    ) -> dict[str, Any]:
         """Process a user query through the working workflow."""
 
         start_time = time.time()
@@ -265,7 +267,7 @@ class WorkingJapanHelpdeskAgent:
 
             # COMPREHENSIVE fallback logic with diagnostics
             if not final_response or len(final_response.strip()) < 10:
-                logger.error(f"🔴 CRITICAL: No valid final_response!")
+                logger.error("🔴 CRITICAL: No valid final_response!")
                 logger.error(
                     f"🔴 Completed steps: {result_state.get('completed_steps', [])}"
                 )
@@ -298,7 +300,7 @@ class WorkingJapanHelpdeskAgent:
                     )
 
                 # Log full state for debugging
-                logger.error(f"🔴 FULL STATE DUMP:")
+                logger.error("🔴 FULL STATE DUMP:")
                 for key, value in result_state.items():
                     if key not in [
                         "_raw_vector_results",
@@ -348,7 +350,7 @@ class WorkingJapanHelpdeskAgent:
             # Fallback response with error tracking
             total_time = time.time() - start_time
             error_response = {
-                "response": f"I apologize, but I encountered a technical error: {str(e)}. Please try again or contact support.",
+                "response": f"I apologize, but I encountered a technical error: {e!s}. Please try again or contact support.",
                 "confidence_score": 0.0,
                 "sources": ["error_fallback"],
                 "recommendations": [

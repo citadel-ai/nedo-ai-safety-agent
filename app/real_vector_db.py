@@ -1,10 +1,9 @@
 """Real vector database implementation using ChromaDB and sentence transformers."""
 
-import os
-import asyncio
 import logging
-from typing import List, Dict, Any, Optional
+import os
 from pathlib import Path
+from typing import Any
 
 # Load environment variables from .env file
 from dotenv import load_dotenv
@@ -13,10 +12,9 @@ load_dotenv()
 
 import chromadb
 from chromadb.config import Settings
-from sentence_transformers import SentenceTransformer
 from langchain_chroma import Chroma
-from langchain_google_genai import GoogleGenerativeAIEmbeddings
 from langchain_core.documents import Document
+from langchain_google_genai import GoogleGenerativeAIEmbeddings
 
 from app.types import VectorSearchResult
 
@@ -134,8 +132,8 @@ class RealVectorDB:
         query: str,
         top_k: int = 5,
         min_similarity: float = 0.5,
-        filter_metadata: Optional[Dict[str, Any]] = None,
-    ) -> List[VectorSearchResult]:
+        filter_metadata: dict[str, Any] | None = None,
+    ) -> list[VectorSearchResult]:
         """Search the vector database."""
         try:
             # Perform similarity search
@@ -180,7 +178,7 @@ class RealVectorDB:
             return []
 
     def add_documents(
-        self, documents: List[str], metadatas: List[Dict[str, Any]], sources: List[str]
+        self, documents: list[str], metadatas: list[dict[str, Any]], sources: list[str]
     ) -> None:
         """Add new documents to the vector database."""
         try:
@@ -188,7 +186,7 @@ class RealVectorDB:
             ids = []
 
             for i, (content, metadata, source) in enumerate(
-                zip(documents, metadatas, sources)
+                zip(documents, metadatas, sources, strict=False)
             ):
                 doc_id = f"custom_doc_{len(self.vectorstore.get()['ids'])}_{i}"
 
@@ -206,7 +204,7 @@ class RealVectorDB:
             logger.error(f"Failed to add documents: {e}")
             raise
 
-    def get_collection_info(self) -> Dict[str, Any]:
+    def get_collection_info(self) -> dict[str, Any]:
         """Get information about the collection."""
         try:
             data = self.vectorstore.get()
@@ -222,7 +220,7 @@ class RealVectorDB:
 
 
 # Global instance
-_vector_db_instance: Optional[RealVectorDB] = None
+_vector_db_instance: RealVectorDB | None = None
 
 
 def get_vector_db() -> RealVectorDB:
@@ -237,7 +235,7 @@ def get_vector_db() -> RealVectorDB:
 
 async def real_vector_search(
     query: str, top_k: int = 5, min_similarity: float = 0.2
-) -> List[VectorSearchResult]:
+) -> list[VectorSearchResult]:
     """Perform real vector search using ChromaDB."""
     vector_db = get_vector_db()
     return await vector_db.search(query, top_k, min_similarity)

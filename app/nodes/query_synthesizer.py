@@ -1,8 +1,9 @@
 """Query Synthesizer Node - Generates intelligent search queries from conversation context."""
 
 import time
-from langchain_google_vertexai import ChatVertexAI
+
 from langchain_core.messages import HumanMessage, SystemMessage
+from langchain_google_vertexai import ChatVertexAI
 
 from app.types import JapanHelpdeskState
 from app.utils.observability import observe
@@ -75,7 +76,7 @@ async def query_synthesizer_node(state: JapanHelpdeskState) -> JapanHelpdeskStat
 
         if not intake_session:
             # No intake session, use original query
-            logger.info(f"🔍 QUERY SYNTHESIS - No intake session, using original query")
+            logger.info("🔍 QUERY SYNTHESIS - No intake session, using original query")
             return state
 
         # Determine original user intent (first user message)
@@ -142,6 +143,6 @@ async def query_synthesizer_node(state: JapanHelpdeskState) -> JapanHelpdeskStat
 
     except Exception as e:
         logger.error(f"🔴 QUERY SYNTHESIS ERROR: {e}", exc_info=True)
-        state["errors"].append(f"Query synthesis failed: {str(e)}")
+        state["errors"].append(f"Query synthesis failed: {e!s}")
         # Fall back to original query
         return state

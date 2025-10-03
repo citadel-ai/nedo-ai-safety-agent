@@ -3,9 +3,8 @@ Deployment configuration for Japan Helpdesk system.
 Handles graceful initialization in containerized environments.
 """
 
-import os
 import logging
-from typing import Optional
+import os
 
 logger = logging.getLogger(__name__)
 

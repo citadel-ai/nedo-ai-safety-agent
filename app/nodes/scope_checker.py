@@ -3,11 +3,12 @@
 """Scope checker node for LangGraph with Langfuse v3 observability."""
 
 import time
-from langchain_google_vertexai import ChatVertexAI
+
 from langchain_core.messages import HumanMessage, SystemMessage
 from langchain_core.output_parsers import PydanticOutputParser
+from langchain_google_vertexai import ChatVertexAI
 
-from app.types import JapanHelpdeskState, ScopeCheckResult, SUPPORTED_CATEGORIES
+from app.types import SUPPORTED_CATEGORIES, JapanHelpdeskState, ScopeCheckResult
 from app.utils.observability import observe
 
 llm = ChatVertexAI(model="gemini-2.5-flash", temperature=0.0, location="us-central1")
@@ -208,7 +209,7 @@ async def scope_checker_node(state: JapanHelpdeskState) -> JapanHelpdeskState:
         return state
 
     except Exception as e:
-        state["errors"].append(f"Scope check failed: {str(e)}")
+        state["errors"].append(f"Scope check failed: {e!s}")
         state["error_count"] += 1
 
         # Assume in scope if check fails

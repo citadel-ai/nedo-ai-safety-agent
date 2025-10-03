@@ -16,18 +16,16 @@ import logging
 import os
 import time
 import uuid
-from typing import Dict, Any
-
-from fastapi import FastAPI, HTTPException, Request
-from fastapi.responses import RedirectResponse
-from fastapi.staticfiles import StaticFiles
-from fastapi.middleware.cors import CORSMiddleware
-import logging
-from google.cloud import logging as google_cloud_logging
-from pydantic import BaseModel
+from typing import Any
 
 # Load environment variables from .env file
 from dotenv import load_dotenv
+from fastapi import FastAPI, HTTPException, Request
+from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import RedirectResponse
+from fastapi.staticfiles import StaticFiles
+from google.cloud import logging as google_cloud_logging
+from pydantic import BaseModel
 
 load_dotenv()
 
@@ -77,11 +75,10 @@ except Exception as e:
 
     agent = SelectedAgent()
     AGENT_TYPE = "mock"
-from app.utils.tracing import CloudTraceLoggingSpanExporter
 from app.utils.observability import (
     get_langfuse_client,
-    score_langfuse_trace,
     is_langfuse_enabled,
+    score_langfuse_trace,
 )
 
 # Initialize FastAPI app and logging
@@ -137,8 +134,6 @@ async def log_requests(request: Request, call_next):
             body = await request.body()
             logger.info(f"Request body: {body.decode('utf-8')}")
             # Re-create request with body for FastAPI to process
-            from fastapi import Request as FastAPIRequest
-            from starlette.requests import Request as StarletteRequest
 
             # Create a new request with the body
             async def receive():
@@ -170,7 +165,7 @@ class ChatResponse(BaseModel):
     errors: list[str]
     processing_time: float
     tokens_used: int
-    metadata: Dict[str, Any]
+    metadata: dict[str, Any]
     suggested_answers: list[str] = []  # Quick-reply suggestions from intake agent
 
 
@@ -236,7 +231,7 @@ def health_check() -> HealthResponse:
 
 
 @app.get("/system-info")
-def system_info_endpoint() -> Dict[str, Any]:
+def system_info_endpoint() -> dict[str, Any]:
     """Get detailed system configuration information."""
     try:
         # Get vector database info
@@ -279,7 +274,7 @@ def system_info_endpoint() -> Dict[str, Any]:
 
 
 @app.get("/debug/circuit-breakers")
-def debug_circuit_breakers() -> Dict[str, Any]:
+def debug_circuit_breakers() -> dict[str, Any]:
     """Get detailed circuit breaker status for debugging."""
     from app.utils.circuit_breaker import (
         get_all_circuit_breaker_status,
@@ -317,7 +312,7 @@ def debug_circuit_breakers() -> Dict[str, Any]:
 
 
 @app.post("/debug/reset-circuit-breaker/{name}")
-def reset_circuit_breaker(name: str) -> Dict[str, str]:
+def reset_circuit_breaker(name: str) -> dict[str, str]:
     """Manually reset a circuit breaker (for debugging/recovery)."""
     from app.utils.circuit_breaker import get_circuit_breaker
 
@@ -373,7 +368,7 @@ async def chat_endpoint(request: ChatRequest) -> ChatResponse:
 
         # Create response object
         response = ChatResponse(**result)
-        logger.info(f"Response object created successfully")
+        logger.info("Response object created successfully")
         logger.info(
             f"ChatResponse.response: {response.response[:200] if response.response else 'None'}..."
         )
@@ -381,16 +376,16 @@ async def chat_endpoint(request: ChatRequest) -> ChatResponse:
         return response
 
     except Exception as e:
-        logger.error(f"Chat endpoint error: {str(e)}")
+        logger.error(f"Chat endpoint error: {e!s}")
         logger.error(f"Error type: {type(e)}")
         import traceback
 
         logger.error(f"Full traceback: {traceback.format_exc()}")
-        raise HTTPException(status_code=500, detail=f"Internal server error: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"Internal server error: {e!s}")
 
 
 @app.get("/workflow/visualization")
-def get_workflow_visualization() -> Dict[str, str]:
+def get_workflow_visualization() -> dict[str, str]:
     """Get workflow visualization for debugging (ASCII)."""
 
     def _draw_ascii() -> str:
@@ -435,7 +430,7 @@ Guardrails:
 
 
 @app.get("/workflow")
-def get_workflow_default() -> Dict[str, str]:
+def get_workflow_default() -> dict[str, str]:
     """Compatibility endpoint for frontend: returns the same visualization payload."""
     try:
         # Reuse the same drawing logic as visualization endpoint
@@ -461,7 +456,7 @@ def get_workflow_default() -> Dict[str, str]:
 
 
 @app.get("/workflow/mermaid")
-def get_workflow_mermaid() -> Dict[str, str]:
+def get_workflow_mermaid() -> dict[str, str]:
     """Return a Mermaid diagram definition if supported, with ASCII fallback."""
     try:
         # Try to obtain a graph object from compiled app
@@ -499,7 +494,7 @@ def get_workflow_mermaid() -> Dict[str, str]:
 
 
 @app.post("/feedback")
-def collect_feedback(feedback: Dict[str, Any]) -> Dict[str, str]:
+def collect_feedback(feedback: dict[str, Any]) -> dict[str, str]:
     """Collect user feedback for continuous improvement.
 
     Args:
@@ -524,7 +519,7 @@ def collect_feedback(feedback: Dict[str, Any]) -> Dict[str, str]:
         return {"status": "success", "message": "Feedback recorded"}
 
     except Exception as e:
-        logger.error(f"Feedback collection error: {str(e)}")
+        logger.error(f"Feedback collection error: {e!s}")
         return {"status": "error", "message": "Failed to record feedback"}
 
 

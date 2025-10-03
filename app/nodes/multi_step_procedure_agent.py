@@ -1,11 +1,11 @@
 """Multi-Step Procedure Agent - Breaks complex procedures into actionable steps."""
 
 import time
-from typing import List, Dict, Any
-from pydantic import BaseModel, Field
-from langchain_google_vertexai import ChatVertexAI
+
 from langchain_core.messages import HumanMessage, SystemMessage
 from langchain_core.output_parsers import PydanticOutputParser
+from langchain_google_vertexai import ChatVertexAI
+from pydantic import BaseModel, Field
 
 from app.types import JapanHelpdeskState
 from app.utils.observability import observe
@@ -28,15 +28,15 @@ class ProcedureStep(BaseModel):
     location: str = Field(
         default="", description="Where to do this (office, online, etc.)"
     )
-    required_documents: List[str] = Field(
+    required_documents: list[str] = Field(
         default_factory=list, description="Documents needed for this step"
     )
     estimated_time: str = Field(default="", description="How long this step takes")
     deadline: str = Field(default="", description="Any deadline for this step")
-    dependencies: List[int] = Field(
+    dependencies: list[int] = Field(
         default_factory=list, description="Step numbers that must be completed first"
     )
-    tips: List[str] = Field(
+    tips: list[str] = Field(
         default_factory=list, description="Helpful tips or common mistakes"
     )
 
@@ -47,13 +47,13 @@ class MultiStepProcedure(BaseModel):
     procedure_name: str = Field(description="Name of the overall procedure")
     is_multi_step: bool = Field(description="Whether this requires multiple steps")
     total_estimated_time: str = Field(description="Total time for all steps")
-    steps: List[ProcedureStep] = Field(
+    steps: list[ProcedureStep] = Field(
         default_factory=list, description="Ordered list of steps"
     )
-    important_notes: List[str] = Field(
+    important_notes: list[str] = Field(
         default_factory=list, description="Critical information to know"
     )
-    common_mistakes: List[str] = Field(
+    common_mistakes: list[str] = Field(
         default_factory=list, description="What people often do wrong"
     )
 
@@ -157,7 +157,7 @@ async def multi_step_procedure_agent_node(
         logger.info(f"📋 Search summary received: {search_summary}")
 
         # DEBUG: Show what raw data is available
-        logger.info(f"📋 ===== MULTI-STEP PROCEDURE INPUT DEBUG =====")
+        logger.info("📋 ===== MULTI-STEP PROCEDURE INPUT DEBUG =====")
 
         if state.get("_raw_vector_results"):
             logger.info(
@@ -171,7 +171,7 @@ async def multi_step_procedure_agent_node(
                 else:
                     logger.info(f"   Vector {i}: {str(res)[:150]}...")
         else:
-            logger.warning(f"📋 ⚠️ No _raw_vector_results in state!")
+            logger.warning("📋 ⚠️ No _raw_vector_results in state!")
 
         if state.get("_raw_google_results"):
             logger.info(
@@ -184,11 +184,11 @@ async def multi_step_procedure_agent_node(
                     logger.info(f"   Google {i} string content (first 300 chars):")
                     logger.info(f"   {res[:300]}")
                     if "Content:" in res:
-                        logger.info(f"   ✅ Has content embedded in string")
+                        logger.info("   ✅ Has content embedded in string")
                     elif "Snippet:" in res:
-                        logger.info(f"   ⚠️ Has snippet but no full content")
+                        logger.info("   ⚠️ Has snippet but no full content")
                     else:
-                        logger.info(f"   ❌ No content or snippet found")
+                        logger.info("   ❌ No content or snippet found")
                 elif hasattr(res, "title"):
                     title = res.title() if callable(res.title) else res.title
                     logger.info(f"   Google {i} title: {title}")
@@ -205,9 +205,9 @@ async def multi_step_procedure_agent_node(
                 else:
                     logger.info(f"   Google {i}: {str(res)[:150]}...")
         else:
-            logger.warning(f"📋 ⚠️ No _raw_google_results in state!")
+            logger.warning("📋 ⚠️ No _raw_google_results in state!")
 
-        logger.info(f"📋 =============================================")
+        logger.info("📋 =============================================")
 
         # Create prompt
         format_instructions = parser.get_format_instructions()
@@ -228,7 +228,7 @@ async def multi_step_procedure_agent_node(
         # Get LLM response
         response = await llm.ainvoke(messages)
 
-        logger.info(f"📋 MULTI-STEP PROCEDURE - Parsing LLM response")
+        logger.info("📋 MULTI-STEP PROCEDURE - Parsing LLM response")
         procedure = parser.parse(response.content)
 
         if procedure.is_multi_step and procedure.steps:
@@ -285,12 +285,12 @@ async def multi_step_procedure_agent_node(
             state["_procedure_breakdown"] = procedure
 
             logger.info(f"📋 Added {len(procedure.steps)} steps to recommendations")
-            logger.info(f"📋 FORMATTED OUTPUT PREVIEW:")
+            logger.info("📋 FORMATTED OUTPUT PREVIEW:")
             for line in recommendations[:10]:  # Show first 10 lines
                 logger.info(f"   {line}")
 
         else:
-            logger.info(f"ℹ️ Single-step query - no procedure breakdown needed")
+            logger.info("ℹ️ Single-step query - no procedure breakdown needed")
 
         # Update metadata
         processing_time = time.time() - start_time
@@ -306,6 +306,6 @@ async def multi_step_procedure_agent_node(
 
     except Exception as e:
         logger.error(f"🔴 MULTI-STEP PROCEDURE ERROR: {e}", exc_info=True)
-        state["errors"].append(f"Multi-step procedure analysis failed: {str(e)}")
+        state["errors"].append(f"Multi-step procedure analysis failed: {e!s}")
         # Not critical, continue workflow
         return state

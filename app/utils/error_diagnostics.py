@@ -2,8 +2,8 @@
 
 import logging
 import traceback
-from typing import Dict, Any, List, Optional
 from datetime import datetime
+from typing import Any
 
 logger = logging.getLogger(__name__)
 
@@ -17,10 +17,10 @@ class WorkflowDiagnostics:
     def log_node_execution(
         self,
         node_name: str,
-        state_before: Dict[str, Any],
-        state_after: Dict[str, Any],
+        state_before: dict[str, Any],
+        state_after: dict[str, Any],
         success: bool,
-        error: Optional[Exception] = None,
+        error: Exception | None = None,
     ):
         """Log detailed node execution information."""
 
@@ -44,8 +44,8 @@ class WorkflowDiagnostics:
             logger.error(f"   Full traceback: {diagnostic['traceback']}")
 
     def _detect_state_changes(
-        self, before: Dict[str, Any], after: Dict[str, Any]
-    ) -> Dict[str, str]:
+        self, before: dict[str, Any], after: dict[str, Any]
+    ) -> dict[str, str]:
         """Detect what changed in state."""
         changes = {}
 
@@ -105,7 +105,7 @@ class WorkflowDiagnostics:
         return "\n".join(report)
 
 
-def diagnose_intake_failure(state: Dict[str, Any]) -> str:
+def diagnose_intake_failure(state: dict[str, Any]) -> str:
     """Diagnose why intake agent might have failed."""
 
     issues = []
@@ -143,7 +143,7 @@ def diagnose_intake_failure(state: Dict[str, Any]) -> str:
     return "\n".join(issues) if issues else "No obvious issues detected"
 
 
-def diagnose_search_failure(state: Dict[str, Any]) -> str:
+def diagnose_search_failure(state: dict[str, Any]) -> str:
     """Diagnose why search might have failed."""
 
     issues = []
@@ -169,7 +169,7 @@ def diagnose_search_failure(state: Dict[str, Any]) -> str:
 
 def diagnose_llm_truncation(
     response_content: str, max_expected: int = 1500
-) -> Optional[str]:
+) -> str | None:
     """Diagnose if LLM response was truncated."""
 
     if len(response_content) < 100:
@@ -200,7 +200,7 @@ def diagnose_llm_truncation(
 
 
 def create_detailed_error_response(
-    state: Dict[str, Any], stage: str, original_error: Optional[Exception] = None
+    state: dict[str, Any], stage: str, original_error: Exception | None = None
 ) -> str:
     """Create a detailed, helpful error response instead of generic apology."""
 
@@ -229,7 +229,7 @@ def create_detailed_error_response(
     if original_error:
         response_parts.append("")
         response_parts.append(
-            f"**Technical Error**: {type(original_error).__name__}: {str(original_error)}"
+            f"**Technical Error**: {type(original_error).__name__}: {original_error!s}"
         )
 
     # State errors
@@ -250,7 +250,7 @@ def create_detailed_error_response(
     return "\n".join(response_parts)
 
 
-def validate_state_integrity(state: Dict[str, Any]) -> List[str]:
+def validate_state_integrity(state: dict[str, Any]) -> list[str]:
     """Validate that state has all required fields and proper structure."""
 
     issues = []

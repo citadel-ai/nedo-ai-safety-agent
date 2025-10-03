@@ -2,18 +2,17 @@
 Test agent with minimal nodes to isolate the issue.
 """
 
-import time
 import uuid
-from typing import Dict, Any, Literal
-from langgraph.graph import StateGraph, END
-from langgraph.checkpoint.memory import MemorySaver
+from typing import Any, Literal
 
-from app.types import JapanHelpdeskState
+from langgraph.graph import END, StateGraph
+
 from app.minimal_nodes import (
     minimal_adversarial_node,
-    minimal_scope_node,
     minimal_response_node,
+    minimal_scope_node,
 )
+from app.types import JapanHelpdeskState
 
 
 def create_test_workflow():
@@ -30,14 +29,14 @@ def create_test_workflow():
 
     # Simple routing with detailed debugging
     def route_after_adversarial(state: JapanHelpdeskState) -> Literal["scope_checker"]:
-        print(f"🔀 ROUTING AFTER ADVERSARIAL CALLED")
+        print("🔀 ROUTING AFTER ADVERSARIAL CALLED")
         print(f"   Steps: {state['completed_steps']}")
         print(f"   Steps count: {len(state['completed_steps'])}")
         print(f"   Step counter: {state.get('step_count', 'N/A')}")
         return "scope_checker"
 
     def route_after_scope(state: JapanHelpdeskState) -> Literal["response_synthesizer"]:
-        print(f"🔀 ROUTING AFTER SCOPE CALLED")
+        print("🔀 ROUTING AFTER SCOPE CALLED")
         print(f"   Steps: {state['completed_steps']}")
         print(f"   Steps count: {len(state['completed_steps'])}")
         print(f"   Step counter: {state.get('step_count', 'N/A')}")
@@ -72,10 +71,10 @@ class TestAgent:
 
     async def process_query(
         self, user_input: str, user_id: str, session_id: str = None
-    ) -> Dict[str, Any]:
+    ) -> dict[str, Any]:
         """Process a query through the test workflow."""
 
-        print(f"\n🚀 STARTING TEST WORKFLOW")
+        print("\n🚀 STARTING TEST WORKFLOW")
         print(f"Input: {user_input}")
 
         session_id = session_id or f"session_{uuid.uuid4().hex[:8]}"
@@ -99,11 +98,11 @@ class TestAgent:
 
         try:
             # Execute the workflow without config since no checkpointer
-            print(f"\n🔄 EXECUTING WORKFLOW...")
+            print("\n🔄 EXECUTING WORKFLOW...")
 
             result_state = await self.agent.ainvoke(initial_state)
 
-            print(f"\n✅ WORKFLOW COMPLETED")
+            print("\n✅ WORKFLOW COMPLETED")
             print(f"Final steps: {result_state['completed_steps']}")
             print(f"Final response: {result_state.get('final_response', 'None')}")
 
@@ -127,7 +126,7 @@ class TestAgent:
             traceback.print_exc()
 
             return {
-                "response": f"Error: {str(e)}",
+                "response": f"Error: {e!s}",
                 "confidence_score": 0.0,
                 "sources": [],
                 "recommendations": [],

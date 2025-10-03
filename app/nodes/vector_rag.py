@@ -3,13 +3,13 @@
 """Vector RAG node for LangGraph with Langfuse observability."""
 
 import time
-from langchain_google_vertexai import ChatVertexAI
-from langchain_core.messages import HumanMessage, SystemMessage
-from langchain_core.output_parsers import PydanticOutputParser
-from app.utils.observability import observe
 
-from app.types import JapanHelpdeskState, MergedSearchResult
+from langchain_core.output_parsers import PydanticOutputParser
+from langchain_google_vertexai import ChatVertexAI
+
 from app.real_vector_db import real_vector_search
+from app.types import JapanHelpdeskState, MergedSearchResult
+from app.utils.observability import observe
 
 llm = ChatVertexAI(model="gemini-2.5-flash", temperature=0.1, location="us-central1")
 parser = PydanticOutputParser(pydantic_object=MergedSearchResult)
@@ -84,7 +84,7 @@ async def vector_rag_node(state: JapanHelpdeskState) -> JapanHelpdeskState:
         return state
 
     except Exception as e:
-        state["errors"].append(f"Vector RAG failed: {str(e)}")
+        state["errors"].append(f"Vector RAG failed: {e!s}")
         state["error_count"] += 1
         # Langfuse v3 automatically captures exceptions via @observe decorator
         return state

@@ -6,10 +6,10 @@ following: https://www.anthropic.com/engineering/building-effective-agents
 """
 
 import time
-from typing import Dict, Any
-from langchain_google_vertexai import ChatVertexAI
+
 from langchain_core.messages import HumanMessage, SystemMessage
 from langchain_core.output_parsers import PydanticOutputParser
+from langchain_google_vertexai import ChatVertexAI
 from pydantic import BaseModel, Field
 
 from app.types import JapanHelpdeskState
@@ -219,7 +219,7 @@ async def evaluate_response(state: JapanHelpdeskState) -> JapanHelpdeskState:
         return state
 
     except Exception as e:
-        state["errors"].append(f"Response evaluation failed: {str(e)}")
+        state["errors"].append(f"Response evaluation failed: {e!s}")
         return state
 
 
@@ -299,7 +299,7 @@ async def optimize_response(state: JapanHelpdeskState) -> JapanHelpdeskState:
         return state
 
     except Exception as e:
-        state["errors"].append(f"Response optimization failed: {str(e)}")
+        state["errors"].append(f"Response optimization failed: {e!s}")
         return state
 
 

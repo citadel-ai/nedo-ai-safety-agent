@@ -3,8 +3,9 @@
 """Response synthesizer node for LangGraph with Langfuse observability."""
 
 import time
-from app.utils.observability import observe
+
 from app.types import JapanHelpdeskState
+from app.utils.observability import observe
 
 
 @observe(name="response_synthesizer_node")
@@ -40,7 +41,7 @@ async def response_synthesizer_node(state: JapanHelpdeskState) -> JapanHelpdeskS
             logger.info(
                 f"🔧 RESPONSE SYNTH - Including {len(state['recommendations'])} recommendation lines"
             )
-            logger.info(f"🔧 RESPONSE SYNTH - First 5 lines:")
+            logger.info("🔧 RESPONSE SYNTH - First 5 lines:")
             for line in state["recommendations"][:5]:
                 logger.info(f"   {line}")
             response_parts.append("\n" + "\n".join(state["recommendations"]))
@@ -108,7 +109,7 @@ Please try rephrasing your question or provide more specific details about your 
         return state
 
     except Exception as e:
-        state["errors"].append(f"Response synthesis failed: {str(e)}")
+        state["errors"].append(f"Response synthesis failed: {e!s}")
         state["error_count"] += 1
 
         # Fallback response

@@ -14,9 +14,10 @@
 
 """Observability utilities with Langfuse v3 and optional fallback."""
 
-import os
 import logging
-from typing import Any, Callable, Optional
+import os
+from collections.abc import Callable
+from typing import Any
 
 logger = logging.getLogger(__name__)
 
@@ -27,7 +28,7 @@ LANGFUSE_ENABLED = os.getenv("LANGFUSE_ENABLED", "true").lower() == "true"
 langfuse_client = None
 if LANGFUSE_ENABLED:
     try:
-        from langfuse import Langfuse, observe, get_client
+        from langfuse import Langfuse, get_client, observe
 
         # Initialize Langfuse client
         langfuse_client = get_client()
@@ -44,7 +45,7 @@ if LANGFUSE_ENABLED:
 
 
 # Fallback decorator when Langfuse is not available
-def observe_fallback(name: Optional[str] = None):
+def observe_fallback(name: str | None = None):
     """Fallback decorator when Langfuse is not available or disabled."""
 
     def decorator(func: Callable) -> Callable:
@@ -79,7 +80,7 @@ def flush_langfuse():
             logger.error(f"Failed to flush Langfuse: {e}")
 
 
-def create_langfuse_trace(name: str, **kwargs) -> Optional[Any]:
+def create_langfuse_trace(name: str, **kwargs) -> Any | None:
     """Create a Langfuse trace if available."""
     if LANGFUSE_ENABLED and langfuse_client:
         try:

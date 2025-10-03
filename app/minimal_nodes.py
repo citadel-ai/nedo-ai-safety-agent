@@ -2,8 +2,7 @@
 Minimal node implementations without Langfuse decorators to test for the root cause.
 """
 
-import time
-from app.types import JapanHelpdeskState, AdversarialInputResult, ScopeCheckResult
+from app.types import AdversarialInputResult, JapanHelpdeskState, ScopeCheckResult
 
 
 async def minimal_adversarial_node(state: JapanHelpdeskState) -> JapanHelpdeskState:
