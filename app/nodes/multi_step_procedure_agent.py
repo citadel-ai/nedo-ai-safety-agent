@@ -7,15 +7,16 @@ from langchain_core.output_parsers import PydanticOutputParser
 from langchain_google_vertexai import ChatVertexAI
 from pydantic import BaseModel, Field
 
+from app.config import MODEL_NAME, VERTEX_AI_LOCATION
 from app.types import JapanHelpdeskState
 from app.utils.observability import observe
 
 # Initialize LLM
 llm = ChatVertexAI(
-    model="gemini-2.5-flash",
+    model=MODEL_NAME,
     temperature=0.3,
     max_tokens=4096,  # Increased for detailed multi-step procedures
-    location="us-central1",
+    location=VERTEX_AI_LOCATION,
 )
 
 

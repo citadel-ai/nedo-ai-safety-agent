@@ -5,15 +5,16 @@ import time
 from langchain_core.messages import HumanMessage, SystemMessage
 from langchain_google_vertexai import ChatVertexAI
 
+from app.config import MODEL_NAME, VERTEX_AI_LOCATION
 from app.types import JapanHelpdeskState
 from app.utils.observability import observe
 
 # Initialize LLM for query synthesis
 llm = ChatVertexAI(
-    model="gemini-2.5-flash",
+    model=MODEL_NAME,
     temperature=0.3,
     max_tokens=256,  # Short queries only
-    location="us-central1",
+    location=VERTEX_AI_LOCATION,
 )
 
 QUERY_SYNTHESIS_PROMPT = """

@@ -22,15 +22,16 @@ from langchain_core.messages import HumanMessage, SystemMessage
 from langchain_core.output_parsers import PydanticOutputParser
 from langchain_google_vertexai import ChatVertexAI
 
+from app.config import MODEL_NAME, VERTEX_AI_LOCATION
 from app.types import AdversarialInputResult, JapanHelpdeskState
 from app.utils.observability import observe
 
 # Initialize the LLM
 llm = ChatVertexAI(
-    model="gemini-2.5-flash",
+    model=MODEL_NAME,
     temperature=0.0,
     max_tokens=2000,  # Enough for complete JSON response (simple yes/no + reason)
-    location="asia-northeast1",
+    location=VERTEX_AI_LOCATION,
 )
 
 # Output parser

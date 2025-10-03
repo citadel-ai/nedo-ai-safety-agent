@@ -10,10 +10,7 @@ from langgraph.graph import END, StateGraph
 
 from app.nodes import (
     adversarial_detector_node,
-    agentic_orchestrator_node,
     agentic_search_orchestrator_node,
-    evaluator_optimizer_node,
-    hybrid_search_node,
     intake_agent_node,
     legal_checker_node,
     multi_step_procedure_agent_node,
@@ -45,19 +42,12 @@ def create_working_workflow():
     workflow.add_node("query_synthesizer", query_synthesizer_node)
     workflow.add_node("scope_checker", scope_checker_node)
 
-    # Agentic search nodes (NEW!)
+    # Agentic search nodes
     workflow.add_node("agentic_search", agentic_search_orchestrator_node)
     workflow.add_node("multi_step_procedure", multi_step_procedure_agent_node)
 
-    # Original search node (kept as fallback)
-    workflow.add_node("hybrid_search", hybrid_search_node)
-
     workflow.add_node("legal_checker", legal_checker_node)
     workflow.add_node("response_synthesizer", response_synthesizer_node)
-
-    # Other agentic nodes (disabled)
-    workflow.add_node("agentic_orchestrator", agentic_orchestrator_node)
-    workflow.add_node("evaluator_optimizer", evaluator_optimizer_node)
 
     # Set entry point
     workflow.set_entry_point("adversarial_detector")
@@ -146,18 +136,12 @@ def create_working_workflow():
         {"agentic_search": "agentic_search", "END": END},
     )
 
-    # New agentic flow:
+    # Agentic flow:
     # agentic_search -> multi_step_procedure -> legal_checker -> response_synthesizer -> END
     workflow.add_edge("agentic_search", "multi_step_procedure")
     workflow.add_edge("multi_step_procedure", "legal_checker")
     workflow.add_edge("legal_checker", "response_synthesizer")
     workflow.add_edge("response_synthesizer", END)
-
-    # TODO: Re-enable agentic nodes once state management is fixed
-    # workflow.add_edge("hybrid_search", "evaluator_optimizer")
-    # workflow.add_edge("evaluator_optimizer", "legal_checker")
-    # workflow.add_edge("scope_checker", "agentic_orchestrator")
-    # workflow.add_edge("agentic_orchestrator", "hybrid_search")
 
     return workflow
 

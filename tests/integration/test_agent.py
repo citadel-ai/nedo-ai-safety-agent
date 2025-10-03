@@ -13,36 +13,32 @@
 # limitations under the License.
 
 # mypy: ignore-errors
-from app.agent import agent
+import pytest
+
+from app.working_agent import WorkingJapanHelpdeskAgent
 
 
-def test_agent_stream() -> None:
+@pytest.mark.asyncio
+async def test_agent_process_query() -> None:
     """
-    Integration test for the agent stream functionality.
-    Tests that the agent returns valid streaming responses.
+    Integration test for the working agent query processing.
+    Tests that the agent returns valid responses.
     """
-    input_dict = {
-        "messages": [
-            {"type": "human", "content": "Hi"},
-            {"type": "ai", "content": "Hi there!"},
-            {"type": "human", "content": "What's the weather in NY?"},
-        ]
-    }
+    agent = WorkingJapanHelpdeskAgent()
+    
+    result = await agent.process_query(
+        user_input="How do I renew my visa in Japan?",
+        user_id="test_user",
+        session_id="test_session"
+    )
 
-    events = [
-        message for message, _ in agent.stream(input_dict, stream_mode="messages")
-    ]
-
-    # Verify we get a reasonable number of messages
-    assert len(events) > 0, "Expected at least one message"
-
-    # First message should be an AI message
-    assert events[0].type == "AIMessageChunk"
-
-    # At least one message should have content
-    has_content = False
-    for event in events:
-        if hasattr(event, "content") and event.content:
-            has_content = True
-            break
-    assert has_content, "Expected at least one message with content"
+    # Verify response structure
+    assert "response" in result
+    assert "confidence_score" in result
+    assert "session_id" in result
+    
+    # Verify we got a response
+    assert len(result["response"]) > 0, "Expected non-empty response"
+    
+    # Verify confidence score is reasonable
+    assert 0.0 <= result["confidence_score"] <= 1.0, "Confidence score should be between 0 and 1"

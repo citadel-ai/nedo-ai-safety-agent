@@ -8,10 +8,11 @@ from langchain_core.messages import HumanMessage, SystemMessage
 from langchain_core.output_parsers import PydanticOutputParser
 from langchain_google_vertexai import ChatVertexAI
 
+from app.config import MODEL_NAME, VERTEX_AI_LOCATION
 from app.types import JapanHelpdeskState, LegalAdviceCheck
 from app.utils.observability import observe
 
-llm = ChatVertexAI(model="gemini-2.5-flash", temperature=0.0, location="us-central1")
+llm = ChatVertexAI(model=MODEL_NAME, temperature=0.0, location=VERTEX_AI_LOCATION)
 parser = PydanticOutputParser(pydantic_object=LegalAdviceCheck)
 
 

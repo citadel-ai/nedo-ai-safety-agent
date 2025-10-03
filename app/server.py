@@ -42,33 +42,16 @@ logger = logging.getLogger(__name__)
 # Import agent with explicit selection of production workflow
 AGENT_IMPLEMENTATION = os.getenv(
     "AGENT_IMPLEMENTATION", "working"
-)  # working | simple | full | mock
+)  # working | mock
 try:
-    if AGENT_IMPLEMENTATION == "simple":
-        from app.simple_agent import SimpleJapanHelpdeskAgent as SelectedAgent
-
-        agent = SelectedAgent()
-        AGENT_TYPE = "simple"
-        logger.info("Initialized simple agent (experimental)")
-    elif AGENT_IMPLEMENTATION == "full":
-        from app.agent import JapanHelpdeskLangGraph as SelectedAgent
-
-        agent = SelectedAgent()
-        AGENT_TYPE = "full"
-        logger.info("Initialized full agent (experimental)")
-    elif AGENT_IMPLEMENTATION == "agentic":
-        from app.working_agent import WorkingJapanHelpdeskAgent as SelectedAgent
-
-        agent = SelectedAgent()
-        AGENT_TYPE = "agentic"
-        logger.info("Initialized agentic working agent (planner + evaluator)")
-    elif AGENT_IMPLEMENTATION == "mock":
+    if AGENT_IMPLEMENTATION == "mock":
         from app.mock_agent import MockJapanHelpdeskAgent as SelectedAgent
 
         agent = SelectedAgent()
         AGENT_TYPE = "mock"
-        logger.info("Initialized mock agent")
+        logger.info("Initialized mock agent (for testing without credentials)")
     else:
+        # Default to production working agent
         from app.working_agent import WorkingJapanHelpdeskAgent as SelectedAgent
 
         agent = SelectedAgent()

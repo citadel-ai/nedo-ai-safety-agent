@@ -21,6 +21,7 @@ from langchain_core.messages import HumanMessage, SystemMessage
 from langchain_core.output_parsers import PydanticOutputParser
 from langchain_google_vertexai import ChatVertexAI
 
+from app.config import MODEL_NAME, VERTEX_AI_LOCATION
 from app.enhanced_google_search import get_enhanced_search_results
 from app.real_vector_db import real_vector_search
 from app.types import JapanHelpdeskState, MergedSearchResult
@@ -28,7 +29,7 @@ from app.utils.observability import observe
 
 # Initialize the LLM
 llm = ChatVertexAI(
-    model="gemini-2.5-flash", temperature=0.2, max_tokens=3072, location="us-central1"
+    model=MODEL_NAME, temperature=0.2, max_tokens=3072, location=VERTEX_AI_LOCATION
 )
 
 # Output parser

@@ -22,16 +22,17 @@ from langchain_core.messages import HumanMessage, SystemMessage
 from langchain_core.output_parsers import PydanticOutputParser
 from langchain_google_vertexai import ChatVertexAI
 
+from app.config import MODEL_NAME, VERTEX_AI_LOCATION
 from app.intake_suggestions import get_suggestions_for_question
 from app.types import IntakeSession, JapanHelpdeskState
 from app.utils.observability import observe
 
 # Initialize the LLM
 llm = ChatVertexAI(
-    model="gemini-2.5-flash",
+    model=MODEL_NAME,
     temperature=0.3,
     max_tokens=2048,  # Increased to handle longer conversation history
-    location="asia-northeast1",
+    location=VERTEX_AI_LOCATION,
 )
 
 # Output parser
