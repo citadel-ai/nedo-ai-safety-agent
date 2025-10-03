@@ -1,0 +1,53 @@
+apiVersion: serving.knative.dev/v1
+kind: Service
+metadata:
+  name: japan-helpdesk
+  annotations:
+    run.googleapis.com/ingress: all
+    run.googleapis.com/execution-environment: gen2
+spec:
+  template:
+    metadata:
+      annotations:
+        run.googleapis.com/cpu-throttling: "false"
+        run.googleapis.com/memory: "2Gi"
+        run.googleapis.com/cpu: "2"
+        run.googleapis.com/timeout: "300s"
+        run.googleapis.com/concurrency: "100"
+        autoscaling.knative.dev/minScale: "0"
+        autoscaling.knative.dev/maxScale: "10"
+    spec:
+      containerConcurrency: 100
+      timeoutSeconds: 300
+      containers:
+      - image: gcr.io/PROJECT_ID/japan-helpdesk:latest
+        ports:
+        - containerPort: 8080
+        env:
+        - name: LANGFUSE_ENABLED
+          value: "false"
+        - name: PORT
+          value: "8080"
+        resources:
+          limits:
+            cpu: "2"
+            memory: "2Gi"
+        startupProbe:
+          httpGet:
+            path: /health
+            port: 8080
+          initialDelaySeconds: 0
+          timeoutSeconds: 240
+          periodSeconds: 240
+          failureThreshold: 1
+        livenessProbe:
+          httpGet:
+            path: /health
+            port: 8080
+          initialDelaySeconds: 0
+          timeoutSeconds: 240
+          periodSeconds: 240
+          failureThreshold: 3
+  traffic:
+  - percent: 100
+    latestRevision: true
