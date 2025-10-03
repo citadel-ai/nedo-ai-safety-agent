@@ -140,7 +140,7 @@ Set is_complete = True when you have enough context to provide:
 """
 
 
-def get_or_create_session(user_id: str, session_id: str = None) -> IntakeSession:
+def get_or_create_session(user_id: str, session_id: str | None = None) -> IntakeSession:
     """Get existing session or create new one."""
     if session_id and session_id in session_store:
         return session_store[session_id]

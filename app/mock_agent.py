@@ -16,7 +16,7 @@ class MockJapanHelpdeskAgent:
         self.version = "1.0.0-mock"
 
     async def process_query(
-        self, user_input: str, user_id: str, session_id: str = None
+        self, user_input: str, user_id: str, session_id: str | None = None
     ) -> dict[str, Any]:
         """Process a user query with mock responses."""
         start_time = time.time()
@@ -153,7 +153,7 @@ Thank you for your question about: "{user_input}"
 I'm here to help with information about living in Japan, including:
 - Visa and immigration matters
 - Work and employment
-- Healthcare and insurance  
+- Healthcare and insurance
 - Housing and daily life
 - Government procedures
 - Cultural guidance

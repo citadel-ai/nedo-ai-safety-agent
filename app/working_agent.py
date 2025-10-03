@@ -173,7 +173,7 @@ class WorkingJapanHelpdeskAgent:
 
     @observe(name="working_japan_helpdesk_query")
     async def process_query(
-        self, user_input: str, user_id: str, session_id: str = None
+        self, user_input: str, user_id: str, session_id: str | None = None
     ) -> dict[str, Any]:
         """Process a user query through the working workflow."""
 

@@ -29,9 +29,9 @@ async def rag_agent_node(state: JapanHelpdeskState) -> JapanHelpdeskState:
         prompt = f"""
         Provide general guidance for this Japan administrative query.
         Focus on official procedures and requirements.
-        
+
         {format_instructions}
-        
+
         Query: "{query}"
         """
 

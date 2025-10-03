@@ -57,7 +57,7 @@ DOCUMENT_TYPES = [
 LANGUAGES = ["English", "Japanese", "Both", "Other"]
 
 
-def get_suggestions_for_question(question: str, context: dict = None) -> list:
+def get_suggestions_for_question(question: str, context: dict | None = None) -> list:
     """
     Analyze the question and return appropriate quick-reply suggestions.
 

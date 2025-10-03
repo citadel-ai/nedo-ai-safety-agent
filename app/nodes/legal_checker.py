@@ -35,9 +35,9 @@ async def legal_checker_node(state: JapanHelpdeskState) -> JapanHelpdeskState:
         format_instructions = parser.get_format_instructions()
         prompt = f"""
         Check if this response contains unauthorized legal advice.
-        
+
         {format_instructions}
-        
+
         Response to check: "{response_content}"
         """
 

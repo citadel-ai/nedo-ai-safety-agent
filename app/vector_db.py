@@ -14,7 +14,6 @@
 
 """Vector database implementation for Japan Helpdesk."""
 
-
 import numpy as np
 
 from app.types import VectorSearchResult

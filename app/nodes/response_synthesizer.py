@@ -81,7 +81,7 @@ async def response_synthesizer_node(state: JapanHelpdeskState) -> JapanHelpdeskS
             )
 
         else:
-            final_response = """I apologize, but I couldn't find specific information for your query. 
+            final_response = """I apologize, but I couldn't find specific information for your query.
 
 **General Guidance:**
 - Visit the relevant government office website (.go.jp domains)

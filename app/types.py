@@ -24,9 +24,7 @@ class AdversarialInputResult(BaseModel):
     """Result of adversarial input detection."""
 
     is_adversarial: bool = Field(description="True if input is adversarial/malicious")
-    threat_type: str | None = Field(
-        default=None, description="Type of threat detected"
-    )
+    threat_type: str | None = Field(default=None, description="Type of threat detected")
     confidence: float = Field(description="Confidence score (0.0 to 1.0)")
     reason: str = Field(description="Explanation of why input was flagged or approved")
     sanitized_query: str | None = Field(

@@ -52,7 +52,7 @@ Variants:
 5. konin todoke ward office procedure
 6. marriage registration documents required
 
-**IMPORTANT**: 
+**IMPORTANT**:
 - At least 2-3 queries MUST be in Japanese (using kanji and hiragana)
 - Japanese queries should use official terminology (入管, 在留資格, 市役所, etc.)
 - Official Japanese government sites have the most accurate information

@@ -413,7 +413,7 @@ def get_workflow_visualization() -> dict[str, str]:
 Japan Helpdesk LangGraph Workflow:
 
 1. adversarial_detector → [intake_agent | END (BLOCKED)]
-2. intake_agent → [intake_agent (loop ≤3) | scope_checker]  
+2. intake_agent → [intake_agent (loop ≤3) | scope_checker]
 3. scope_checker → [vector_rag | hybrid_search | END (OUT_OF_SCOPE)]
 4. vector_rag/hybrid_search → [rag_agent | legal_checker]
 5. legal_checker → [response_synthesizer | rag_agent (≤2 revisions)]
@@ -421,7 +421,7 @@ Japan Helpdesk LangGraph Workflow:
 
 Guardrails:
 - Adversarial inputs: HARD STOP
-- Out-of-scope: Terminated  
+- Out-of-scope: Terminated
 - High-risk categories: Enhanced search
 - Legal advice: Auto-revision
 - Loop limits: Prevent infinite loops

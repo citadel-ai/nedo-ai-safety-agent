@@ -33,8 +33,8 @@ def is_deployment_environment() -> bool:
 
 def get_mock_response() -> str:
     """Get a mock response for deployment environments without credentials."""
-    return """I'm currently running in deployment mode without proper Google Cloud credentials configured. 
-    
+    return """I'm currently running in deployment mode without proper Google Cloud credentials configured.
+
 To fully activate the Japan Helpdesk system, please:
 1. Set up Google Cloud authentication
 2. Configure the GOOGLE_CLOUD_PROJECT environment variable
@@ -49,7 +49,7 @@ def should_use_mock_responses() -> bool:
         # Try to check if we have valid credentials
         import google.auth
 
-        credentials, project = google.auth.default()
+        _credentials, _project = google.auth.default()
         return False
     except Exception:
         logger.warning("No valid Google Cloud credentials found, using mock responses")
