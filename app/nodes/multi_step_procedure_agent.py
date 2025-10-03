@@ -290,7 +290,7 @@ async def multi_step_procedure_agent_node(
                 logger.info(f"   {line}")
 
         else:
-            logger.info("ℹ️ Single-step query - no procedure breakdown needed")
+            logger.info("📋 Single-step query - no procedure breakdown needed")
 
         # Update metadata
         processing_time = time.time() - start_time

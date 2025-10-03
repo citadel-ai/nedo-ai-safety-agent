@@ -27,6 +27,12 @@ from fastapi.staticfiles import StaticFiles
 from google.cloud import logging as google_cloud_logging
 from pydantic import BaseModel
 
+from app.utils.observability import (
+    get_langfuse_client,
+    is_langfuse_enabled,
+    score_langfuse_trace,
+)
+
 load_dotenv()
 
 # Set up logging first
@@ -75,11 +81,6 @@ except Exception as e:
 
     agent = SelectedAgent()
     AGENT_TYPE = "mock"
-from app.utils.observability import (
-    get_langfuse_client,
-    is_langfuse_enabled,
-    score_langfuse_trace,
-)
 
 # Initialize FastAPI app and logging
 app = FastAPI(
@@ -381,7 +382,9 @@ async def chat_endpoint(request: ChatRequest) -> ChatResponse:
         import traceback
 
         logger.error(f"Full traceback: {traceback.format_exc()}")
-        raise HTTPException(status_code=500, detail=f"Internal server error: {e!s}")
+        raise HTTPException(
+            status_code=500, detail=f"Internal server error: {e!s}"
+        ) from e
 
 
 @app.get("/workflow/visualization")

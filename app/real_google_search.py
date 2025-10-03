@@ -239,10 +239,10 @@ class RealGoogleSearch:
 
         except ImportError as e:
             logger.error(f"🔍 GOOGLESEARCH-PYTHON DEBUG - Import error: {e}")
-            raise ValueError("googlesearch-python package not installed")
+            raise ValueError("googlesearch-python package not installed") from e
         except Exception as e:
             logger.error(f"🔍 GOOGLESEARCH-PYTHON DEBUG - Search error: {e}")
-            raise Exception(f"googlesearch-python search failed: {e}")
+            raise Exception(f"googlesearch-python search failed: {e}") from e
 
     async def _fallback_to_mock(self, query: str, num_results: int) -> list[str]:
         """Fallback to mock search results."""

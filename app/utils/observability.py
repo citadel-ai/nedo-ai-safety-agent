@@ -28,7 +28,7 @@ LANGFUSE_ENABLED = os.getenv("LANGFUSE_ENABLED", "true").lower() == "true"
 langfuse_client = None
 if LANGFUSE_ENABLED:
     try:
-        from langfuse import Langfuse, get_client, observe
+        from langfuse import get_client, observe
 
         # Initialize Langfuse client
         langfuse_client = get_client()

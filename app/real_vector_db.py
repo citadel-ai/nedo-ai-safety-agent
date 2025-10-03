@@ -5,18 +5,18 @@ import os
 from pathlib import Path
 from typing import Any
 
-# Load environment variables from .env file
-from dotenv import load_dotenv
-
-load_dotenv()
-
 import chromadb
 from chromadb.config import Settings
+
+# Load environment variables from .env file
+from dotenv import load_dotenv
 from langchain_chroma import Chroma
 from langchain_core.documents import Document
 from langchain_google_genai import GoogleGenerativeAIEmbeddings
 
 from app.types import VectorSearchResult
+
+load_dotenv()
 
 logger = logging.getLogger(__name__)
 

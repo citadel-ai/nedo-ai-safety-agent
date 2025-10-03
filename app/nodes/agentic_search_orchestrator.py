@@ -215,12 +215,10 @@ async def agentic_search_orchestrator_node(
         vector_results = []
         google_results = []
 
-        for i, (source_type, query, result) in enumerate(
-            [
-                (search_tasks[j][0], search_tasks[j][1], results[j])
-                for j in range(len(search_tasks))
-            ]
-        ):
+        for source_type, query, result in [
+            (search_tasks[j][0], search_tasks[j][1], results[j])
+            for j in range(len(search_tasks))
+        ]:
             if isinstance(result, Exception):
                 logger.warning(f"⚠️ Search failed for '{query}': {result}")
                 continue
