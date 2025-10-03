@@ -90,14 +90,17 @@ def create_working_workflow():
         state: JapanHelpdeskState,
     ) -> Literal["agentic_search", "END"]:
         """Route after scope check - use agentic search if in scope."""
+        import logging
+
+        logger = logging.getLogger(__name__)
         scope_result = state.get("scope_check_result")
-        print("🔀 SCOPE ROUTING DEBUG:")
-        print(f"   scope_result: {scope_result}")
-        print(f"   state keys: {list(state.keys())}")
+        logger.info("🔀 SCOPE ROUTING DEBUG:")
+        logger.info(f"   scope_result: {scope_result}")
+        logger.info(f"   state keys: {list(state.keys())}")
 
         if scope_result:
-            print(f"   is_in_scope: {scope_result.is_in_scope}")
-            print(f"   category: {scope_result.category}")
+            logger.info(f"   is_in_scope: {scope_result.is_in_scope}")
+            logger.info(f"   category: {scope_result.category}")
 
         if not scope_result or not scope_result.is_in_scope:
             # Set final response for out-of-scope queries
@@ -108,10 +111,10 @@ def create_working_workflow():
             )
             final_msg = f"I'm sorry, but your query is outside my scope. {reason}"
             state["final_response"] = final_msg
-            print(f"   TERMINATING: {final_msg}")
+            logger.info(f"   TERMINATING: {final_msg}")
             return "END"
 
-        print("   PROCEEDING to agentic_search")
+        logger.info("   PROCEEDING to agentic_search")
         return "agentic_search"
 
     # Add edges - linear flow

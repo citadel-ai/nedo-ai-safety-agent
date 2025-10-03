@@ -27,16 +27,12 @@ from fastapi.staticfiles import StaticFiles
 from google.cloud import logging as google_cloud_logging
 from pydantic import BaseModel
 
-from app.utils.observability import (
-    get_langfuse_client,
-    is_langfuse_enabled,
-    score_langfuse_trace,
-)
+from app.utils.logging_config import initialize_logging
 
 load_dotenv()
 
-# Set up logging first
-logging.basicConfig(level=logging.INFO)
+# Set up logging first (before importing modules that may log)
+initialize_logging()
 logger = logging.getLogger(__name__)
 
 # Import agent with explicit selection of production workflow
@@ -96,6 +92,13 @@ try:
         logger.info("Google Cloud logging skipped (no valid project configured)")
 except Exception as e:
     logger.warning(f"Google Cloud logging not available: {e}")
+
+# Import observability now that logging is initialized
+from app.utils.observability import (
+    get_langfuse_client,
+    is_langfuse_enabled,
+    score_langfuse_trace,
+)
 
 # Get Langfuse client from observability utility
 langfuse = get_langfuse_client()

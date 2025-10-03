@@ -83,7 +83,7 @@ class CloudTraceLoggingSpanExporter(CloudTraceSpanExporter):
             )
 
             if self.debug:
-                print(span_dict)
+                logging.getLogger(__name__).debug(span_dict)
 
             # Log the span data to Google Cloud Logging
             self.logger.log_struct(span_dict, severity="INFO")
