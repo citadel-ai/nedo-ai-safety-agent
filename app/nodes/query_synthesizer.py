@@ -12,7 +12,7 @@ llm = ChatVertexAI(
     model="gemini-2.5-flash",
     temperature=0.3,
     max_tokens=256,  # Short queries only
-    location="us-central1"
+    location="us-central1",
 )
 
 QUERY_SYNTHESIS_PROMPT = """
@@ -58,24 +58,26 @@ Generate a SHORT, focused search query (3-10 words) that will find relevant offi
 Return ONLY the search query, nothing else. No explanations, no punctuation at the end.
 """
 
+
 @observe(name="query_synthesizer_node")
 async def query_synthesizer_node(state: JapanHelpdeskState) -> JapanHelpdeskState:
     """Synthesize an intelligent search query from conversation context."""
-    
+
     import logging
+
     logger = logging.getLogger(__name__)
-    
+
     start_time = time.time()
-    
+
     try:
         # Get intake session for context
         intake_session = state.get("intake_session")
-        
+
         if not intake_session:
             # No intake session, use original query
             logger.info(f"🔍 QUERY SYNTHESIS - No intake session, using original query")
             return state
-        
+
         # Determine original user intent (first user message)
         original_query = state["user_input"]
         if intake_session.conversation_history:
@@ -84,7 +86,7 @@ async def query_synthesizer_node(state: JapanHelpdeskState) -> JapanHelpdeskStat
                 if msg.startswith("User:"):
                     original_query = msg.replace("User:", "").strip()
                     break
-        
+
         # Build collected context string
         collected_context = {}
         if intake_session.visa_type:
@@ -95,48 +97,51 @@ async def query_synthesizer_node(state: JapanHelpdeskState) -> JapanHelpdeskStat
             collected_context["timeline"] = intake_session.timeline
         if intake_session.urgency_level:
             collected_context["urgency"] = intake_session.urgency_level
-        
+
         # Format conversation history (last 5 messages)
         conversation_summary = "\n".join(intake_session.conversation_history[-5:])
-        
-        logger.info(f"🔍 QUERY SYNTHESIS - Original: '{original_query}', Latest: '{state['user_input']}'")
+
+        logger.info(
+            f"🔍 QUERY SYNTHESIS - Original: '{original_query}', Latest: '{state['user_input']}'"
+        )
         logger.info(f"🔍 QUERY SYNTHESIS - Context: {collected_context}")
-        
+
         # Create synthesis prompt
         prompt = QUERY_SYNTHESIS_PROMPT.format(
             original_query=original_query,
             latest_message=state["user_input"],
-            collected_context=collected_context if collected_context else "No context collected yet",
-            conversation_history=conversation_summary
+            collected_context=collected_context
+            if collected_context
+            else "No context collected yet",
+            conversation_history=conversation_summary,
         )
-        
+
         messages = [
             SystemMessage(content="You are a query synthesis expert."),
-            HumanMessage(content=prompt)
+            HumanMessage(content=prompt),
         ]
-        
+
         # Get synthesized query
         response = await llm.ainvoke(messages)
         synthesized_query = response.content.strip()
-        
+
         # Clean up the query (remove quotes, extra punctuation)
-        synthesized_query = synthesized_query.strip('"\'.,!?')
-        
+        synthesized_query = synthesized_query.strip("\"'.,!?")
+
         logger.info(f"🔍 QUERY SYNTHESIS - Synthesized query: '{synthesized_query}'")
-        
+
         # Store/overwrite synthesized query in state for search nodes to use
         state["synthesized_search_query"] = synthesized_query
-        
+
         # Update metadata
         processing_time = time.time() - start_time
         state["processing_time"] += processing_time
         state["tokens_used"] += len(response.content.split())
-        
+
         return state
-        
+
     except Exception as e:
         logger.error(f"🔴 QUERY SYNTHESIS ERROR: {e}", exc_info=True)
         state["errors"].append(f"Query synthesis failed: {str(e)}")
         # Fall back to original query
         return state
-

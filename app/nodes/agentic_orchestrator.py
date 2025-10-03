@@ -21,7 +21,7 @@ planning_llm = ChatVertexAI(
     model="gemini-2.5-flash",
     temperature=0.7,  # Higher temperature for creative planning
     max_tokens=2048,
-    location="us-central1"
+    location="us-central1",
 )
 
 # Output parsers
@@ -96,16 +96,17 @@ EXECUTION GUIDELINES:
 Execute this TODO and report results with clear reasoning.
 """
 
+
 @observe(name="agentic_planning")
 async def create_agent_plan(state: JapanHelpdeskState) -> JapanHelpdeskState:
     """Create an autonomous agent plan for handling the user query."""
     start_time = time.time()
-    
+
     try:
         # Extract context for planning
         user_input = state["user_input"]
         collected_context = {}
-        
+
         # Gather context from intake session
         if state.get("intake_session"):
             intake = state["intake_session"]
@@ -114,18 +115,18 @@ async def create_agent_plan(state: JapanHelpdeskState) -> JapanHelpdeskState:
                 "visa_type": intake.visa_type,
                 "timeline": intake.timeline,
                 "urgency": intake.urgency_level,
-                "previous_attempts": intake.previous_attempts
+                "previous_attempts": intake.previous_attempts,
             }
-        
+
         # Define available tools
         available_tools = [
             "vector_search - Search document database for official procedures",
             "google_search - Find current information from web",
             "office_lookup - Find local government offices by location",
             "legal_screening - Check if response contains legal advice",
-            "response_synthesis - Combine information into helpful response"
+            "response_synthesis - Combine information into helpful response",
         ]
-        
+
         # Create planning prompt
         format_instructions = plan_parser.get_format_instructions()
         prompt = AGENTIC_PLANNING_PROMPT.format(
@@ -133,72 +134,77 @@ async def create_agent_plan(state: JapanHelpdeskState) -> JapanHelpdeskState:
             collected_context=collected_context,
             available_tools=available_tools,
             completed_steps=state.get("completed_steps", []),
-            format_instructions=format_instructions
+            format_instructions=format_instructions,
         )
-        
+
         # Generate plan
         messages = [
             SystemMessage(content="You are an autonomous agent planner."),
-            HumanMessage(content=prompt)
+            HumanMessage(content=prompt),
         ]
-        
+
         response = await planning_llm.ainvoke(messages)
         plan: AgentPlan = plan_parser.parse(response.content)
-        
+
         # Add plan to state
         state["agent_plan"] = plan
         state["active_todos"] = plan.todos
         state["agent_reasoning"] = [f"Created plan: {plan.strategy}"]
-        
+
         # Set first TODO as current
         if plan.todos:
             plan.current_todo_id = plan.todos[0].id
             plan.todos[0].status = "in_progress"
-        
+
         processing_time = time.time() - start_time
         state["processing_time"] += processing_time
-        
+
         return state
-        
+
     except Exception as e:
         state["errors"].append(f"Agent planning failed: {str(e)}")
-        state["agent_reasoning"] = [f"Planning failed, falling back to standard workflow: {str(e)}"]
+        state["agent_reasoning"] = [
+            f"Planning failed, falling back to standard workflow: {str(e)}"
+        ]
         return state
+
 
 @observe(name="autonomous_execution")
 async def execute_current_todo(state: JapanHelpdeskState) -> JapanHelpdeskState:
     """Execute the current TODO autonomously."""
     start_time = time.time()
-    
+
     try:
         plan = state.get("agent_plan")
         if not plan or not plan.current_todo_id:
             return state
-        
+
         # Find current TODO
         current_todo = None
         for todo in state["active_todos"]:
             if todo.id == plan.current_todo_id:
                 current_todo = todo
                 break
-        
+
         if not current_todo:
             return state
-        
+
         # Log execution attempt
         state["agent_reasoning"].append(f"Executing TODO: {current_todo.task}")
-        
+
         # Execute TODO based on its requirements
         result = await _execute_todo_with_tools(current_todo, state)
-        
+
         # Update TODO with result
         current_todo.result = result
         current_todo.status = "completed"
-        
+
         # Move to completed todos
         state["completed_todos"].append(current_todo)
-        state["active_todos"] = [t for t in state["active_todos"] if t.id != current_todo.id]
-        
+        state["active_todos"] = [
+            t for t in state["active_todos"] if t.id != current_todo.id
+        ]
+
         # Find next TODO
         next_todo = _find_next_todo(state["active_todos"])
         if next_todo:
@@ -208,60 +214,68 @@ async def execute_current_todo(state: JapanHelpdeskState) -> JapanHelpdeskState:
         else:
             plan.plan_status = "completed"
             state["agent_reasoning"].append("All TODOs completed")
-        
+
         processing_time = time.time() - start_time
         state["processing_time"] += processing_time
-        
+
         return state
-        
+
     except Exception as e:
         state["errors"].append(f"TODO execution failed: {str(e)}")
         return state
 
+
 async def _execute_todo_with_tools(todo: AgentTodo, state: JapanHelpdeskState) -> str:
     """Execute a TODO using appropriate tools."""
-    
+
     # Determine which tools to use based on TODO content
     task_lower = todo.task.lower()
-    
+
     if "vector" in task_lower or "document" in task_lower:
         # Use vector search
         from app.real_vector_db import real_vector_search
+
         query = _extract_search_query(todo.task, state)
         results = await real_vector_search(query)
         return f"Vector search completed: {len(results)} results found"
-    
+
     elif "google" in task_lower or "web" in task_lower or "current" in task_lower:
         # Use Google search
         from app.enhanced_google_search import enhanced_google_search
+
         query = _extract_search_query(todo.task, state)
         results = await enhanced_google_search(query, num_results=3)
         return f"Google search completed: {len(results)} results found"
-    
+
     elif "office" in task_lower or "location" in task_lower:
         # Office lookup based on user location
         location = state.get("intake_session", {}).get("user_location", "Tokyo")
-        return f"Office lookup for {location}: Immigration office contact info retrieved"
-    
+        return (
+            f"Office lookup for {location}: Immigration office contact info retrieved"
+        )
+
     elif "legal" in task_lower or "screening" in task_lower:
         # Legal advice screening
         return "Legal screening completed: No legal advice detected"
-    
+
     elif "synthesis" in task_lower or "combine" in task_lower:
         # Response synthesis
-        return "Response synthesis completed: Information combined into helpful response"
-    
+        return (
+            "Response synthesis completed: Information combined into helpful response"
+        )
+
     else:
         # Generic task execution
         return f"Task executed: {todo.task}"
 
+
 def _extract_search_query(task: str, state: JapanHelpdeskState) -> str:
     """Extract search query from TODO task and user context."""
     user_input = state.get("user_input", "")
-    
+
     # Use user's original query as base
     query = user_input
-    
+
     # Add context if available
     if state.get("intake_session"):
         intake = state["intake_session"]
@@ -269,30 +283,32 @@ def _extract_search_query(task: str, state: JapanHelpdeskState) -> str:
             query += f" {intake.visa_type} visa"
         if intake.user_location:
             query += f" {intake.user_location}"
-    
+
     return query
+
 
 def _find_next_todo(active_todos: List[AgentTodo]) -> Optional[AgentTodo]:
     """Find the next TODO to execute based on priority and dependencies."""
-    
+
     # Filter out TODOs with unmet dependencies
     available_todos = []
     for todo in active_todos:
         if todo.status == "pending":
             # Check if all dependencies are met (simplified)
             available_todos.append(todo)
-    
+
     if not available_todos:
         return None
-    
+
     # Sort by priority (1 = highest priority)
     available_todos.sort(key=lambda t: t.priority)
     return available_todos[0]
 
+
 @observe(name="agentic_orchestrator")
 async def agentic_orchestrator_node(state: JapanHelpdeskState) -> JapanHelpdeskState:
     """Main orchestrator node that implements agentic behavior."""
-    
+
     # Initialize agentic fields if not present
     if "agent_plan" not in state:
         state["agent_plan"] = None
@@ -304,14 +320,13 @@ async def agentic_orchestrator_node(state: JapanHelpdeskState) -> JapanHelpdeskS
         state["agent_reasoning"] = []
     if "tool_usage_log" not in state:
         state["tool_usage_log"] = []
-    
+
     # Create plan if none exists
     if not state["agent_plan"]:
         state = await create_agent_plan(state)
-    
+
     # Execute current TODO if plan exists
     if state["agent_plan"] and state["agent_plan"].plan_status == "active":
         state = await execute_current_todo(state)
-    
-    return state
 
+    return state

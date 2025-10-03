@@ -9,6 +9,7 @@ from typing import Optional
 
 logger = logging.getLogger(__name__)
 
+
 def get_vertex_ai_config() -> dict:
     """Get Vertex AI configuration for deployment."""
     config = {
@@ -17,17 +18,19 @@ def get_vertex_ai_config() -> dict:
         "temperature": 0.1,
         "max_tokens": 2048,
     }
-    
+
     # Only add project if it's explicitly set
     project_id = os.getenv("GOOGLE_CLOUD_PROJECT")
     if project_id and project_id != "test":
         config["project"] = project_id
-    
+
     return config
+
 
 def is_deployment_environment() -> bool:
     """Check if we're running in a deployment environment."""
     return os.getenv("DEPLOYMENT_ENV") == "true" or os.getenv("PORT") is not None
+
 
 def get_mock_response() -> str:
     """Get a mock response for deployment environments without credentials."""
@@ -40,11 +43,13 @@ To fully activate the Japan Helpdesk system, please:
 
 For now, I can provide general information about living in Japan, but I cannot access the full AI-powered assistance."""
 
+
 def should_use_mock_responses() -> bool:
     """Determine if we should use mock responses instead of real AI."""
     try:
         # Try to check if we have valid credentials
         import google.auth
+
         credentials, project = google.auth.default()
         return False
     except Exception:

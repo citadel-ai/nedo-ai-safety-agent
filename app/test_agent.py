@@ -9,20 +9,25 @@ from langgraph.graph import StateGraph, END
 from langgraph.checkpoint.memory import MemorySaver
 
 from app.types import JapanHelpdeskState
-from app.minimal_nodes import minimal_adversarial_node, minimal_scope_node, minimal_response_node
+from app.minimal_nodes import (
+    minimal_adversarial_node,
+    minimal_scope_node,
+    minimal_response_node,
+)
+
 
 def create_test_workflow():
     """Create a test workflow with minimal nodes."""
     workflow = StateGraph(JapanHelpdeskState)
-    
+
     # Add minimal nodes
     workflow.add_node("adversarial_detector", minimal_adversarial_node)
     workflow.add_node("scope_checker", minimal_scope_node)
     workflow.add_node("response_synthesizer", minimal_response_node)
-    
+
     # Set entry point
     workflow.set_entry_point("adversarial_detector")
-    
+
     # Simple routing with detailed debugging
     def route_after_adversarial(state: JapanHelpdeskState) -> Literal["scope_checker"]:
         print(f"🔀 ROUTING AFTER ADVERSARIAL CALLED")
@@ -30,30 +35,31 @@ def create_test_workflow():
         print(f"   Steps count: {len(state['completed_steps'])}")
         print(f"   Step counter: {state.get('step_count', 'N/A')}")
         return "scope_checker"
-    
+
     def route_after_scope(state: JapanHelpdeskState) -> Literal["response_synthesizer"]:
         print(f"🔀 ROUTING AFTER SCOPE CALLED")
         print(f"   Steps: {state['completed_steps']}")
         print(f"   Steps count: {len(state['completed_steps'])}")
         print(f"   Step counter: {state.get('step_count', 'N/A')}")
         return "response_synthesizer"
-    
+
     # Add edges
     workflow.add_conditional_edges(
         "adversarial_detector",
         route_after_adversarial,
-        {"scope_checker": "scope_checker"}
+        {"scope_checker": "scope_checker"},
     )
-    
+
     workflow.add_conditional_edges(
         "scope_checker",
         route_after_scope,
-        {"response_synthesizer": "response_synthesizer"}
+        {"response_synthesizer": "response_synthesizer"},
     )
-    
+
     workflow.add_edge("response_synthesizer", END)
-    
+
     return workflow
+
 
 class TestAgent:
     """Test agent with minimal workflow."""
@@ -64,12 +70,14 @@ class TestAgent:
         # Try without checkpointer to see if that's causing the issue
         self.agent = self.workflow.compile()
 
-    async def process_query(self, user_input: str, user_id: str, session_id: str = None) -> Dict[str, Any]:
+    async def process_query(
+        self, user_input: str, user_id: str, session_id: str = None
+    ) -> Dict[str, Any]:
         """Process a query through the test workflow."""
-        
+
         print(f"\n🚀 STARTING TEST WORKFLOW")
         print(f"Input: {user_input}")
-        
+
         session_id = session_id or f"session_{uuid.uuid4().hex[:8]}"
 
         # Initialize state
@@ -84,17 +92,17 @@ class TestAgent:
             processing_time=0.0,
             tokens_used=0,
             langfuse_trace_id=None,
-            step_count=0  # Add step counter
+            step_count=0,  # Add step counter
         )
-        
+
         print(f"Initial state steps: {initial_state['completed_steps']}")
 
         try:
             # Execute the workflow without config since no checkpointer
             print(f"\n🔄 EXECUTING WORKFLOW...")
-            
+
             result_state = await self.agent.ainvoke(initial_state)
-            
+
             print(f"\n✅ WORKFLOW COMPLETED")
             print(f"Final steps: {result_state['completed_steps']}")
             print(f"Final response: {result_state.get('final_response', 'None')}")
@@ -109,14 +117,15 @@ class TestAgent:
                 "errors": result_state.get("errors", []),
                 "processing_time": 0.0,
                 "tokens_used": 0,
-                "metadata": {"workflow_type": "test"}
+                "metadata": {"workflow_type": "test"},
             }
 
         except Exception as e:
             print(f"❌ WORKFLOW ERROR: {e}")
             import traceback
+
             traceback.print_exc()
-            
+
             return {
                 "response": f"Error: {str(e)}",
                 "confidence_score": 0.0,
@@ -127,8 +136,9 @@ class TestAgent:
                 "errors": [str(e)],
                 "processing_time": 0.0,
                 "tokens_used": 0,
-                "metadata": {"workflow_type": "test"}
+                "metadata": {"workflow_type": "test"},
             }
+
 
 # Create test instance
 test_agent = TestAgent()

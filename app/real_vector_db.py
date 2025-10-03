@@ -8,6 +8,7 @@ from pathlib import Path
 
 # Load environment variables from .env file
 from dotenv import load_dotenv
+
 load_dotenv()
 
 import chromadb
@@ -21,38 +22,41 @@ from app.types import VectorSearchResult
 
 logger = logging.getLogger(__name__)
 
+
 class RealVectorDB:
     """Real vector database using ChromaDB with sentence transformers."""
-    
+
     def __init__(
-        self, 
+        self,
         collection_name: str = "japan_helpdesk_docs",
         embedding_model: str = "sentence-transformers/all-MiniLM-L6-v2",
-        persist_directory: str = "./chroma_db"
+        persist_directory: str = "./chroma_db",
     ):
         self.collection_name = collection_name
         self.persist_directory = persist_directory
         self.embedding_model_name = embedding_model
-        
+
         # Initialize embedding model
         self._init_embedding_model()
-        
+
         # Initialize ChromaDB
         self._init_chromadb()
-        
+
         # Check and log collection status
         self._check_collection_status()
-    
+
     def _init_embedding_model(self):
         """Initialize the embedding model."""
-        embedding_provider = os.getenv("EMBEDDING_PROVIDER", "sentence_transformers").lower()
-        
+        embedding_provider = os.getenv(
+            "EMBEDDING_PROVIDER", "sentence_transformers"
+        ).lower()
+
         if embedding_provider == "google" and os.getenv("GOOGLE_API_KEY"):
             # Use Google's text-embedding model
             try:
                 self.embeddings = GoogleGenerativeAIEmbeddings(
                     model="models/text-embedding-004",
-                    google_api_key=os.getenv("GOOGLE_API_KEY")
+                    google_api_key=os.getenv("GOOGLE_API_KEY"),
                 )
                 logger.info("Using Google Generative AI embeddings")
             except Exception as e:
@@ -60,13 +64,14 @@ class RealVectorDB:
                 self._fallback_to_sentence_transformers()
         else:
             self._fallback_to_sentence_transformers()
-    
+
     def _fallback_to_sentence_transformers(self):
         """Fallback to sentence transformers."""
         try:
             # Try the newer langchain-huggingface package first
             try:
                 from langchain_huggingface import HuggingFaceEmbeddings
+
                 self.embeddings = HuggingFaceEmbeddings(
                     model_name=self.embedding_model_name
                 )
@@ -74,57 +79,62 @@ class RealVectorDB:
             except ImportError:
                 # Fallback to community package
                 from langchain_community.embeddings import SentenceTransformerEmbeddings
+
                 self.embeddings = SentenceTransformerEmbeddings(
                     model_name=self.embedding_model_name
                 )
-                logger.info(f"Using SentenceTransformer embeddings: {self.embedding_model_name}")
+                logger.info(
+                    f"Using SentenceTransformer embeddings: {self.embedding_model_name}"
+                )
         except Exception as e:
             logger.error(f"Failed to initialize embeddings: {e}")
             raise
-    
+
     def _init_chromadb(self):
         """Initialize ChromaDB client and collection."""
         try:
             # Create persist directory
             Path(self.persist_directory).mkdir(parents=True, exist_ok=True)
-            
+
             # Initialize ChromaDB client
             self.chroma_client = chromadb.PersistentClient(
                 path=self.persist_directory,
-                settings=Settings(anonymized_telemetry=False)
+                settings=Settings(anonymized_telemetry=False),
             )
-            
+
             # Initialize Langchain Chroma wrapper
             self.vectorstore = Chroma(
                 client=self.chroma_client,
                 collection_name=self.collection_name,
                 embedding_function=self.embeddings,
-                persist_directory=self.persist_directory
+                persist_directory=self.persist_directory,
             )
-            
+
             logger.info(f"ChromaDB initialized with collection: {self.collection_name}")
-            
+
         except Exception as e:
             logger.error(f"Failed to initialize ChromaDB: {e}")
             raise
-    
+
     def _check_collection_status(self):
         """Check and log the current collection status."""
         try:
-            collection_count = len(self.vectorstore.get()['ids'])
+            collection_count = len(self.vectorstore.get()["ids"])
             if collection_count == 0:
-                logger.info("Vector database is empty. Use ingest_documents.py to add your documents.")
+                logger.info(
+                    "Vector database is empty. Use ingest_documents.py to add your documents."
+                )
             else:
                 logger.info(f"Vector database contains {collection_count} documents")
         except Exception as e:
             logger.warning(f"Could not check collection size: {e}")
-    
+
     async def search(
-        self, 
-        query: str, 
-        top_k: int = 5, 
+        self,
+        query: str,
+        top_k: int = 5,
         min_similarity: float = 0.5,
-        filter_metadata: Optional[Dict[str, Any]] = None
+        filter_metadata: Optional[Dict[str, Any]] = None,
     ) -> List[VectorSearchResult]:
         """Search the vector database."""
         try:
@@ -132,13 +142,12 @@ class RealVectorDB:
             search_kwargs = {"k": top_k}
             if filter_metadata:
                 search_kwargs["filter"] = filter_metadata
-            
+
             # Use similarity_search_with_score for similarity scores
             results = self.vectorstore.similarity_search_with_score(
-                query=query,
-                **search_kwargs
+                query=query, **search_kwargs
             )
-            
+
             # Convert to VectorSearchResult format
             vector_results = []
             for doc, score in results:
@@ -150,65 +159,62 @@ class RealVectorDB:
                 else:
                     # For euclidean distance, use inverse relationship
                     similarity = max(0.0, 1.0 / (1.0 + score))
-                
+
                 if similarity >= min_similarity:
                     result = VectorSearchResult(
                         content=doc.page_content,
                         metadata=doc.metadata,
                         similarity_score=similarity,
-                        source=doc.metadata.get("source", "unknown")
+                        source=doc.metadata.get("source", "unknown"),
                     )
                     vector_results.append(result)
-            
-            logger.info(f"Vector search returned {len(vector_results)} results for query: {query[:50]}...")
+
+            logger.info(
+                f"Vector search returned {len(vector_results)} results for query: {query[:50]}..."
+            )
             return vector_results
-            
+
         except Exception as e:
             logger.error(f"Vector search failed: {e}")
             # Fallback to empty results
             return []
-    
+
     def add_documents(
-        self, 
-        documents: List[str], 
-        metadatas: List[Dict[str, Any]], 
-        sources: List[str]
+        self, documents: List[str], metadatas: List[Dict[str, Any]], sources: List[str]
     ) -> None:
         """Add new documents to the vector database."""
         try:
             docs = []
             ids = []
-            
-            for i, (content, metadata, source) in enumerate(zip(documents, metadatas, sources)):
+
+            for i, (content, metadata, source) in enumerate(
+                zip(documents, metadatas, sources)
+            ):
                 doc_id = f"custom_doc_{len(self.vectorstore.get()['ids'])}_{i}"
-                
+
                 doc = Document(
                     page_content=content,
-                    metadata={
-                        **metadata,
-                        "source": source,
-                        "doc_id": doc_id
-                    }
+                    metadata={**metadata, "source": source, "doc_id": doc_id},
                 )
                 docs.append(doc)
                 ids.append(doc_id)
-            
+
             self.vectorstore.add_documents(documents=docs, ids=ids)
             logger.info(f"Added {len(docs)} new documents to vector database")
-            
+
         except Exception as e:
             logger.error(f"Failed to add documents: {e}")
             raise
-    
+
     def get_collection_info(self) -> Dict[str, Any]:
         """Get information about the collection."""
         try:
             data = self.vectorstore.get()
             return {
                 "collection_name": self.collection_name,
-                "document_count": len(data['ids']),
+                "document_count": len(data["ids"]),
                 "embedding_model": self.embedding_model_name,
-                "persist_directory": self.persist_directory
+                "persist_directory": self.persist_directory,
             }
         except Exception as e:
             logger.error(f"Failed to get collection info: {e}")
@@ -218,19 +224,19 @@ class RealVectorDB:
 # Global instance
 _vector_db_instance: Optional[RealVectorDB] = None
 
+
 def get_vector_db() -> RealVectorDB:
     """Get or create the global vector database instance."""
     global _vector_db_instance
-    
+
     if _vector_db_instance is None:
         _vector_db_instance = RealVectorDB()
-    
+
     return _vector_db_instance
 
+
 async def real_vector_search(
-    query: str, 
-    top_k: int = 5, 
-    min_similarity: float = 0.2
+    query: str, top_k: int = 5, min_similarity: float = 0.2
 ) -> List[VectorSearchResult]:
     """Perform real vector search using ChromaDB."""
     vector_db = get_vector_db()

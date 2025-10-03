@@ -31,7 +31,7 @@ llm = ChatVertexAI(
     model="gemini-2.5-flash",
     temperature=0.3,
     max_tokens=2048,  # Increased to handle longer conversation history
-    location="asia-northeast1"
+    location="asia-northeast1",
 )
 
 # Output parser
@@ -54,10 +54,11 @@ def _extract_json_block(text: str) -> str:
         start = text.find("{")
         end = text.rfind("}")
         if start != -1 and end != -1 and end > start:
-            return text[start:end + 1].strip()
+            return text[start : end + 1].strip()
     except Exception:
         pass
     return text
+
 
 # In-memory session storage (in production, use proper database)
 session_store: Dict[str, IntakeSession] = {}
@@ -138,11 +139,12 @@ Set is_complete = True when you have enough context to provide:
 **THINK AUTONOMOUSLY**: Don't just match keywords. Analyze what the user is actually trying to accomplish and what context would make your response genuinely helpful vs generic.
 """
 
+
 def get_or_create_session(user_id: str, session_id: str = None) -> IntakeSession:
     """Get existing session or create new one."""
     if session_id and session_id in session_store:
         return session_store[session_id]
-    
+
     # Create new session
     new_session_id = session_id or f"sess_{uuid.uuid4().hex[:8]}"
     new_session = IntakeSession(
@@ -153,46 +155,49 @@ def get_or_create_session(user_id: str, session_id: str = None) -> IntakeSession
         current_step="initial",
         completed_steps=[],
         needs_clarification=[],
-        is_complete=False
+        is_complete=False,
     )
     session_store[new_session_id] = new_session
     return new_session
 
+
 @observe(name="intake_agent_node")
 async def intake_agent_node(state: JapanHelpdeskState) -> JapanHelpdeskState:
     """Intake agent node for systematic information gathering."""
-    
+
     import logging
+
     logger = logging.getLogger(__name__)
-    
+
     start_time = time.time()
-    
+
     logger.info(f"🔵 INTAKE AGENT START - Input: '{state['user_input']}'")
-    
+
     try:
         # Get or create session
-        session = get_or_create_session(
-            state["user_id"], 
-            state.get("session_id")
-        )
-        
+        session = get_or_create_session(state["user_id"], state.get("session_id"))
+
         # Update session with new input
         session.conversation_history.append(f"User: {state['user_input']}")
-        
+
         # CRITICAL: Set main_request on first interaction if not already set
         if not session.collected_info or "main_request" not in session.collected_info:
             if not session.collected_info:
                 session.collected_info = {}
             session.collected_info["main_request"] = state["user_input"]
-            logger.info(f"🔵 INTAKE AGENT - Set initial main_request: '{state['user_input']}'")
-        
+            logger.info(
+                f"🔵 INTAKE AGENT - Set initial main_request: '{state['user_input']}'"
+            )
+
         # Maintain a rolling conversation summary (last ~10 exchanges)
         try:
             recent = "\n".join(session.conversation_history[-10:])
-            session.conversation_summary = recent if len(recent) < 1200 else recent[-1200:]
+            session.conversation_summary = (
+                recent if len(recent) < 1200 else recent[-1200:]
+            )
         except Exception:
             pass
-        
+
         # Prepare the prompt with session context
         format_instructions = parser.get_format_instructions()
         prompt = AUTONOMOUS_INTAKE_PROMPT.format(
@@ -200,47 +205,61 @@ async def intake_agent_node(state: JapanHelpdeskState) -> JapanHelpdeskState:
             user_id=session.user_id,
             current_step=session.current_step,
             completed_steps=", ".join(session.completed_steps),
-            conversation_history=session.conversation_summary or "\n".join(session.conversation_history[-10:]),
+            conversation_history=session.conversation_summary
+            or "\n".join(session.conversation_history[-10:]),
             collected_info=session.collected_info,
             user_input=state["user_input"],
-            format_instructions=format_instructions
+            format_instructions=format_instructions,
         )
-        
+
         # Create messages
         messages = [
-            SystemMessage(content="You are an intake agent for systematic information gathering."),
-            HumanMessage(content=prompt)
+            SystemMessage(
+                content="You are an intake agent for systematic information gathering."
+            ),
+            HumanMessage(content=prompt),
         ]
-        
+
         # Get LLM response
         response = await llm.ainvoke(messages)
         content = response.content or ""
         logger.info(f"🔵 INTAKE AGENT - LLM response length: {len(content)} chars")
-        logger.info(f"🔵 INTAKE AGENT - LLM preview: {content[:300]}{'...' if len(content) > 300 else ''}")
+        logger.info(
+            f"🔵 INTAKE AGENT - LLM preview: {content[:300]}{'...' if len(content) > 300 else ''}"
+        )
 
         # Extract robust JSON and parse
         json_text = _extract_json_block(content)
         try:
             updated_session = parser.parse(json_text)
         except Exception as parse_err:
-            logger.warning(f"🟡 INTAKE AGENT - Primary parse failed, attempting direct Pydantic parse: {parse_err}")
+            logger.warning(
+                f"🟡 INTAKE AGENT - Primary parse failed, attempting direct Pydantic parse: {parse_err}"
+            )
             from pydantic import ValidationError
+
             try:
                 updated_session = IntakeSession.model_validate_json(json_text)
             except ValidationError as ve:
                 logger.error(f"🔴 INTAKE AGENT - JSON validation failed: {ve}")
                 raise
-        
-        logger.info(f"🔵 INTAKE AGENT - Parsed session: is_complete={updated_session.is_complete}, next_questions={len(updated_session.next_questions)}")
+
+        logger.info(
+            f"🔵 INTAKE AGENT - Parsed session: is_complete={updated_session.is_complete}, next_questions={len(updated_session.next_questions)}"
+        )
         if updated_session.next_questions:
-            logger.info(f"🔵 INTAKE AGENT - Questions: {updated_session.next_questions}")
+            logger.info(
+                f"🔵 INTAKE AGENT - Questions: {updated_session.next_questions}"
+            )
         else:
-            logger.warning(f"🟡 INTAKE AGENT - next_questions is empty! Required fields: {updated_session.required_context_fields}")
-        
+            logger.warning(
+                f"🟡 INTAKE AGENT - next_questions is empty! Required fields: {updated_session.required_context_fields}"
+            )
+
         # Ensure correct session and user IDs
         updated_session.session_id = session.session_id
         updated_session.user_id = session.user_id
-        
+
         # CRITICAL: Preserve main_request from original session if it exists
         # The LLM might not always include it in collected_info when processing follow-ups
         if session.collected_info and "main_request" in session.collected_info:
@@ -248,63 +267,82 @@ async def intake_agent_node(state: JapanHelpdeskState) -> JapanHelpdeskState:
                 updated_session.collected_info = {}
             # Only preserve if the LLM didn't explicitly update it
             if "main_request" not in updated_session.collected_info:
-                updated_session.collected_info["main_request"] = session.collected_info["main_request"]
-                logger.info(f"🔵 INTAKE AGENT - Preserved main_request: '{session.collected_info['main_request']}'")
-        
+                updated_session.collected_info["main_request"] = session.collected_info[
+                    "main_request"
+                ]
+                logger.info(
+                    f"🔵 INTAKE AGENT - Preserved main_request: '{session.collected_info['main_request']}'"
+                )
+
         # Update session store
         session_store[updated_session.session_id] = updated_session
-        
+
         # Update state
         state["intake_session"] = updated_session
         state["session_id"] = updated_session.session_id
         state["completed_steps"].append("intake")
-        
+
         # Set final_response based on completion and questions
         if updated_session.next_questions:
             # Has questions to ask (either clarifying questions OR rejection message)
             question = updated_session.next_questions[0]
             state["final_response"] = question
-            logger.info(f"🔵 INTAKE AGENT - Set final_response from next_questions: '{question[:100]}...'")
-            
+            logger.info(
+                f"🔵 INTAKE AGENT - Set final_response from next_questions: '{question[:100]}...'"
+            )
+
             # Generate quick-reply suggestions for this question
-            suggestions = get_suggestions_for_question(question, updated_session.collected_info)
+            suggestions = get_suggestions_for_question(
+                question, updated_session.collected_info
+            )
             updated_session.suggested_answers = suggestions
-            logger.info(f"🔵 INTAKE AGENT - Generated {len(suggestions)} quick-reply suggestions")
-            
+            logger.info(
+                f"🔵 INTAKE AGENT - Generated {len(suggestions)} quick-reply suggestions"
+            )
+
             # Add to conversation history
             updated_session.conversation_history.append(f"Agent: {question}")
             session_store[updated_session.session_id] = updated_session
         elif not updated_session.is_complete:
             # No questions but not complete - this shouldn't happen, but handle it
-            logger.warning(f"🟡 INTAKE AGENT - Incomplete but no questions! Continuing workflow...")
+            logger.warning(
+                f"🟡 INTAKE AGENT - Incomplete but no questions! Continuing workflow..."
+            )
         else:
             # Complete and no questions - ready for next stage
             logger.info(f"🟢 INTAKE AGENT - Complete, proceeding to next stage")
-        
+
         # Update metadata
         processing_time = time.time() - start_time
         state["processing_time"] += processing_time
         state["tokens_used"] += len(response.content.split())
-        
+
         # Langfuse v3 automatically captures input/output and timing via @observe decorator
-        logger.info(f"🔵 INTAKE AGENT END - final_response length: {len(state.get('final_response', '')) if state.get('final_response') else 0}")
-        
+        logger.info(
+            f"🔵 INTAKE AGENT END - final_response length: {len(state.get('final_response', '')) if state.get('final_response') else 0}"
+        )
+
         return state
-        
+
     except Exception as e:
         logger.error(f"🔴 INTAKE AGENT ERROR: {e}", exc_info=True)
         state["errors"].append(f"Intake agent failed: {str(e)}")
         state["error_count"] += 1
-        
+
         # Determine what context might be needed based on keywords
         user_input_lower = state["user_input"].lower()
         next_question = None
         required_fields = []
-        
-        if any(word in user_input_lower for word in ["visa", "extend", "renew", "immigration"]):
+
+        if any(
+            word in user_input_lower
+            for word in ["visa", "extend", "renew", "immigration"]
+        ):
             next_question = "To help you with your visa question, could you tell me: What type of visa are you currently on, and when does it expire?"
             required_fields = ["visa_type", "timeline"]
-        elif any(word in user_input_lower for word in ["office", "where", "which", "contact"]):
+        elif any(
+            word in user_input_lower for word in ["office", "where", "which", "contact"]
+        ):
             next_question = "To direct you to the right office, which city or prefecture in Japan are you located in?"
             required_fields = ["user_location"]
         elif any(word in user_input_lower for word in ["work", "job", "employment"]):
@@ -317,11 +355,13 @@ async def intake_agent_node(state: JapanHelpdeskState) -> JapanHelpdeskState:
             # Generic fallback question
             next_question = "To provide you with accurate information, could you tell me: What type of visa are you on, and which city in Japan are you located in?"
             required_fields = ["visa_type", "user_location"]
-        
-        # Create fallback session with helpful question
+
+            # Create fallback session with helpful question
             # Generate suggestions for the fallback question
-            suggestions = get_suggestions_for_question(next_question) if next_question else []
-            
+            suggestions = (
+                get_suggestions_for_question(next_question) if next_question else []
+            )
+
             fallback_session = IntakeSession(
                 session_id=state.get("session_id", f"fallback_{uuid.uuid4().hex[:8]}"),
                 user_id=state["user_id"],
@@ -334,19 +374,21 @@ async def intake_agent_node(state: JapanHelpdeskState) -> JapanHelpdeskState:
                 required_context_fields=required_fields,
                 missing_context_fields=required_fields,
                 next_questions=[next_question] if next_question else [],
-                suggested_answers=suggestions
+                suggested_answers=suggestions,
             )
-        
+
         state["intake_session"] = fallback_session
         state["session_id"] = fallback_session.session_id
-        
+
         # Set the fallback question as final response
         if next_question:
             state["final_response"] = next_question
-            logger.info(f"🟡 INTAKE AGENT FALLBACK - Set fallback question: '{next_question}'")
+            logger.info(
+                f"🟡 INTAKE AGENT FALLBACK - Set fallback question: '{next_question}'"
+            )
         else:
             logger.error(f"🔴 INTAKE AGENT FALLBACK - No fallback question generated!")
-        
+
         # Langfuse v3 automatically captures exceptions via @observe decorator
-        
+
         return state

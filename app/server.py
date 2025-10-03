@@ -28,6 +28,7 @@ from pydantic import BaseModel
 
 # Load environment variables from .env file
 from dotenv import load_dotenv
+
 load_dotenv()
 
 # Set up logging first
@@ -35,30 +36,37 @@ logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
 # Import agent with explicit selection of production workflow
-AGENT_IMPLEMENTATION = os.getenv("AGENT_IMPLEMENTATION", "working")  # working | simple | full | mock
+AGENT_IMPLEMENTATION = os.getenv(
+    "AGENT_IMPLEMENTATION", "working"
+)  # working | simple | full | mock
 try:
     if AGENT_IMPLEMENTATION == "simple":
         from app.simple_agent import SimpleJapanHelpdeskAgent as SelectedAgent
+
         agent = SelectedAgent()
         AGENT_TYPE = "simple"
         logger.info("Initialized simple agent (experimental)")
     elif AGENT_IMPLEMENTATION == "full":
         from app.agent import JapanHelpdeskLangGraph as SelectedAgent
+
         agent = SelectedAgent()
         AGENT_TYPE = "full"
         logger.info("Initialized full agent (experimental)")
     elif AGENT_IMPLEMENTATION == "agentic":
         from app.working_agent import WorkingJapanHelpdeskAgent as SelectedAgent
+
         agent = SelectedAgent()
         AGENT_TYPE = "agentic"
         logger.info("Initialized agentic working agent (planner + evaluator)")
     elif AGENT_IMPLEMENTATION == "mock":
         from app.mock_agent import MockJapanHelpdeskAgent as SelectedAgent
+
         agent = SelectedAgent()
         AGENT_TYPE = "mock"
         logger.info("Initialized mock agent")
     else:
         from app.working_agent import WorkingJapanHelpdeskAgent as SelectedAgent
+
         agent = SelectedAgent()
         AGENT_TYPE = "working"
         logger.info("Initialized working agent (production)")
@@ -66,16 +74,21 @@ except Exception as e:
     logger.warning(f"Failed to initialize selected agent '{AGENT_IMPLEMENTATION}': {e}")
     logger.info("Falling back to mock agent")
     from app.mock_agent import MockJapanHelpdeskAgent as SelectedAgent
+
     agent = SelectedAgent()
     AGENT_TYPE = "mock"
 from app.utils.tracing import CloudTraceLoggingSpanExporter
-from app.utils.observability import get_langfuse_client, score_langfuse_trace, is_langfuse_enabled
+from app.utils.observability import (
+    get_langfuse_client,
+    score_langfuse_trace,
+    is_langfuse_enabled,
+)
 
 # Initialize FastAPI app and logging
 app = FastAPI(
     title="Japan Helpdesk - LangGraph + Langfuse",
     description="AI-powered helpdesk for foreigners in Japan with comprehensive observability and guardrails",
-    version="1.0.0"
+    version="1.0.0",
 )
 
 # Add CORS middleware for React frontend
@@ -91,7 +104,10 @@ app.add_middleware(
 
 # Initialize Google Cloud logging if available (optional for development)
 try:
-    if os.getenv("GOOGLE_CLOUD_PROJECT") and os.getenv("GOOGLE_CLOUD_PROJECT") != "test":
+    if (
+        os.getenv("GOOGLE_CLOUD_PROJECT")
+        and os.getenv("GOOGLE_CLOUD_PROJECT") != "test"
+    ):
         logging_client = google_cloud_logging.Client()
         logging_client.setup_logging()
         logger.info("Google Cloud logging initialized")
@@ -107,13 +123,14 @@ if is_langfuse_enabled():
 else:
     logger.info("🔍 Langfuse observability: DISABLED (running in fallback mode)")
 
+
 # Add request logging middleware for debugging
 @app.middleware("http")
 async def log_requests(request: Request, call_next):
     """Log all incoming requests for debugging."""
     logger.info(f"Incoming request: {request.method} {request.url}")
     logger.info(f"Headers: {dict(request.headers)}")
-    
+
     # For POST requests, try to log the body
     if request.method == "POST":
         try:
@@ -122,15 +139,15 @@ async def log_requests(request: Request, call_next):
             # Re-create request with body for FastAPI to process
             from fastapi import Request as FastAPIRequest
             from starlette.requests import Request as StarletteRequest
-            
+
             # Create a new request with the body
             async def receive():
                 return {"type": "http.request", "body": body}
-            
+
             request._receive = receive
         except Exception as e:
             logger.error(f"Error reading request body: {e}")
-    
+
     response = await call_next(request)
     logger.info(f"Response status: {response.status_code}")
     return response
@@ -141,6 +158,7 @@ class ChatRequest(BaseModel):
     message: str
     user_id: str = "anonymous"
     session_id: str | None = None
+
 
 class ChatResponse(BaseModel):
     response: str
@@ -154,6 +172,7 @@ class ChatResponse(BaseModel):
     tokens_used: int
     metadata: Dict[str, Any]
     suggested_answers: list[str] = []  # Quick-reply suggestions from intake agent
+
 
 class HealthResponse(BaseModel):
     status: str
@@ -169,19 +188,21 @@ if os.path.exists(static_dir):
     assets_dir = os.path.join(static_dir, "assets")
     if os.path.exists(assets_dir):
         app.mount("/assets", StaticFiles(directory=assets_dir), name="assets")
-    
+
     # Mount the entire static directory at /static for other files
     app.mount("/static", StaticFiles(directory=static_dir), name="static")
-    
+
     @app.get("/")
     def serve_frontend():
         """Serve the React frontend in production."""
         from fastapi.responses import FileResponse
+
         index_file = os.path.join(static_dir, "index.html")
         if os.path.exists(index_file):
             return FileResponse(index_file)
         return RedirectResponse(url="/docs")
 else:
+
     @app.get("/", response_class=RedirectResponse)
     def redirect_root_to_docs() -> RedirectResponse:
         """Redirect the root URL to the API documentation (development mode)."""
@@ -192,21 +213,25 @@ else:
 def health_check() -> HealthResponse:
     """Comprehensive health check endpoint with diagnostics."""
     from app.utils.circuit_breaker import get_all_circuit_breaker_status
-    
+
     status = "healthy"
-    
+
     # Check if any circuit breakers are open
     breakers_status = get_all_circuit_breaker_status()
-    open_breakers = [name for name, status_dict in breakers_status.items() if status_dict["state"] == "open"]
-    
+    open_breakers = [
+        name
+        for name, status_dict in breakers_status.items()
+        if status_dict["state"] == "open"
+    ]
+
     if open_breakers:
         status = "degraded"
-        logger.warning(f"⚠️ System degraded - Circuit breakers open: {', '.join(open_breakers)}")
-    
+        logger.warning(
+            f"⚠️ System degraded - Circuit breakers open: {', '.join(open_breakers)}"
+        )
+
     return HealthResponse(
-        status=status,
-        version="1.0.0",
-        workflow_type=f"langgraph-{AGENT_TYPE}"
+        status=status, version="1.0.0", workflow_type=f"langgraph-{AGENT_TYPE}"
     )
 
 
@@ -218,19 +243,21 @@ def system_info_endpoint() -> Dict[str, Any]:
         vector_info = {}
         try:
             from app.real_vector_db import get_vector_db
+
             vector_db = get_vector_db()
             vector_info = vector_db.get_collection_info()
         except Exception as e:
             vector_info = {"error": f"Vector DB not available: {e}"}
-        
+
         # Get search configuration
         search_info = {}
         try:
             from app.real_google_search import get_search_config
+
             search_info = get_search_config()
         except Exception as e:
             search_info = {"error": f"Search config not available: {e}"}
-        
+
         return {
             "status": "success",
             "agent_type": f"langgraph-{AGENT_TYPE}",
@@ -239,24 +266,28 @@ def system_info_endpoint() -> Dict[str, Any]:
             "features": {
                 "real_vector_search": "error" not in vector_info,
                 "real_google_search": "error" not in search_info,
-                "langfuse_observability": os.getenv("LANGFUSE_ENABLED", "false").lower() == "true"
-            }
+                "langfuse_observability": os.getenv("LANGFUSE_ENABLED", "false").lower()
+                == "true",
+            },
         }
     except Exception as e:
         return {
-            "status": "error", 
+            "status": "error",
             "error": str(e),
-            "fallback": "Using basic system information"
+            "fallback": "Using basic system information",
         }
 
 
 @app.get("/debug/circuit-breakers")
 def debug_circuit_breakers() -> Dict[str, Any]:
     """Get detailed circuit breaker status for debugging."""
-    from app.utils.circuit_breaker import get_all_circuit_breaker_status, get_circuit_breaker
-    
+    from app.utils.circuit_breaker import (
+        get_all_circuit_breaker_status,
+        get_circuit_breaker,
+    )
+
     breakers = get_all_circuit_breaker_status()
-    
+
     # Add more detailed info
     detailed = {}
     for name, status in breakers.items():
@@ -266,20 +297,22 @@ def debug_circuit_breakers() -> Dict[str, Any]:
             "config": {
                 "failure_threshold": breaker.config.failure_threshold,
                 "success_threshold": breaker.config.success_threshold,
-                "timeout_seconds": breaker.config.timeout
+                "timeout_seconds": breaker.config.timeout,
             },
-            "last_failure_time": breaker.last_failure_time
+            "last_failure_time": breaker.last_failure_time,
         }
-    
+
     return {
         "timestamp": time.time(),
         "circuit_breakers": detailed,
         "summary": {
             "total": len(breakers),
             "open": len([s for s in breakers.values() if s["state"] == "open"]),
-            "half_open": len([s for s in breakers.values() if s["state"] == "half_open"]),
-            "closed": len([s for s in breakers.values() if s["state"] == "closed"])
-        }
+            "half_open": len(
+                [s for s in breakers.values() if s["state"] == "half_open"]
+            ),
+            "closed": len([s for s in breakers.values() if s["state"] == "closed"]),
+        },
     }
 
 
@@ -287,11 +320,14 @@ def debug_circuit_breakers() -> Dict[str, Any]:
 def reset_circuit_breaker(name: str) -> Dict[str, str]:
     """Manually reset a circuit breaker (for debugging/recovery)."""
     from app.utils.circuit_breaker import get_circuit_breaker
-    
+
     try:
         breaker = get_circuit_breaker(name)
         breaker.reset()
-        return {"status": "success", "message": f"Circuit breaker '{name}' has been reset"}
+        return {
+            "status": "success",
+            "message": f"Circuit breaker '{name}' has been reset",
+        }
     except Exception as e:
         return {"status": "error", "error": str(e)}
 
@@ -299,47 +335,56 @@ def reset_circuit_breaker(name: str) -> Dict[str, str]:
 @app.post("/chat", response_model=ChatResponse)
 async def chat_endpoint(request: ChatRequest) -> ChatResponse:
     """Main chat endpoint for Japan Helpdesk with full observability.
-    
+
     Args:
         request: Chat request with message and user info
-        
+
     Returns:
         Comprehensive chat response with observability data
     """
     try:
         # Log the incoming request for debugging
         logger.info(f"Received chat request: {request}")
-        logger.info(f"Request data - message: '{request.message}', user_id: '{request.user_id}', session_id: {request.session_id}")
-        
+        logger.info(
+            f"Request data - message: '{request.message}', user_id: '{request.user_id}', session_id: {request.session_id}"
+        )
+
         # Generate session ID if not provided
         session_id = request.session_id or f"session_{uuid.uuid4().hex[:8]}"
-        
+
         # Log request processing
-        logger.info(f"Processing chat request from user {request.user_id}, session {session_id}")
-        
+        logger.info(
+            f"Processing chat request from user {request.user_id}, session {session_id}"
+        )
+
         # Process query through LangGraph workflow
         result = await agent.process_query(
-            user_input=request.message,
-            user_id=request.user_id,
-            session_id=session_id
+            user_input=request.message, user_id=request.user_id, session_id=session_id
         )
-        
+
         # Log response
-        logger.info(f"Chat response generated for session {session_id}, confidence: {result['confidence_score']}")
-        logger.info(f"Response text: {result.get('response', 'N/A')[:200]}...")  # Log first 200 chars
+        logger.info(
+            f"Chat response generated for session {session_id}, confidence: {result['confidence_score']}"
+        )
+        logger.info(
+            f"Response text: {result.get('response', 'N/A')[:200]}..."
+        )  # Log first 200 chars
         logger.info(f"Response length: {len(result.get('response', ''))} characters")
-        
+
         # Create response object
         response = ChatResponse(**result)
         logger.info(f"Response object created successfully")
-        logger.info(f"ChatResponse.response: {response.response[:200] if response.response else 'None'}...")
-        
+        logger.info(
+            f"ChatResponse.response: {response.response[:200] if response.response else 'None'}..."
+        )
+
         return response
-        
+
     except Exception as e:
         logger.error(f"Chat endpoint error: {str(e)}")
         logger.error(f"Error type: {type(e)}")
         import traceback
+
         logger.error(f"Full traceback: {traceback.format_exc()}")
         raise HTTPException(status_code=500, detail=f"Internal server error: {str(e)}")
 
@@ -347,6 +392,7 @@ async def chat_endpoint(request: ChatRequest) -> ChatResponse:
 @app.get("/workflow/visualization")
 def get_workflow_visualization() -> Dict[str, str]:
     """Get workflow visualization for debugging (ASCII)."""
+
     def _draw_ascii() -> str:
         try:
             # Preferred: compiled app's graph
@@ -365,6 +411,7 @@ def get_workflow_visualization() -> Dict[str, str]:
         except Exception as e:
             return f"Workflow visualization unavailable: {e}"
         return "Workflow visualization unavailable: unsupported LangGraph version"
+
     return {
         "workflow": _draw_ascii(),
         "description": """
@@ -383,7 +430,7 @@ Guardrails:
 - High-risk categories: Enhanced search
 - Legal advice: Auto-revision
 - Loop limits: Prevent infinite loops
-"""
+""",
     }
 
 
@@ -398,8 +445,10 @@ def get_workflow_default() -> Dict[str, str]:
             ascii_graph = agent.agent.draw_ascii()  # type: ignore[attr-defined]
         elif hasattr(agent, "workflow") and hasattr(agent.workflow, "compile"):
             temp_app = agent.workflow.compile()  # type: ignore[attr-defined]
-            ascii_graph = temp_app.get_graph().draw_ascii() if hasattr(temp_app, "get_graph") else (
-                temp_app.draw_ascii() if hasattr(temp_app, "draw_ascii") else ""
+            ascii_graph = (
+                temp_app.get_graph().draw_ascii()
+                if hasattr(temp_app, "get_graph")
+                else (temp_app.draw_ascii() if hasattr(temp_app, "draw_ascii") else "")
             )
         else:
             ascii_graph = ""
@@ -423,7 +472,7 @@ def get_workflow_mermaid() -> Dict[str, str]:
             temp_app = agent.workflow.compile()  # type: ignore[attr-defined]
             if hasattr(temp_app, "get_graph"):
                 graph = temp_app.get_graph()
-        
+
         if graph is None:
             return {
                 "mermaid": "",
@@ -436,7 +485,11 @@ def get_workflow_mermaid() -> Dict[str, str]:
             return {"mermaid": mermaid}
         # Fallback: provide ASCII and a hint
         fallback_ascii = graph.draw_ascii() if hasattr(graph, "draw_ascii") else ""
-        return {"mermaid": "", "fallback_ascii": fallback_ascii, "note": "Mermaid export not supported by current LangGraph version"}
+        return {
+            "mermaid": "",
+            "fallback_ascii": fallback_ascii,
+            "note": "Mermaid export not supported by current LangGraph version",
+        }
     except Exception as e:
         return {
             "mermaid": "",
@@ -448,28 +501,28 @@ def get_workflow_mermaid() -> Dict[str, str]:
 @app.post("/feedback")
 def collect_feedback(feedback: Dict[str, Any]) -> Dict[str, str]:
     """Collect user feedback for continuous improvement.
-    
+
     Args:
         feedback: Feedback data including rating, comments, session_id
-        
+
     Returns:
         Success confirmation
     """
     try:
         # Log feedback with structured data
         logger.info(f"User feedback received: {feedback}")
-        
+
         # Send to Langfuse if available
         if is_langfuse_enabled():
             score_langfuse_trace(
                 trace_id=feedback.get("trace_id"),
                 name="user_feedback",
                 value=feedback.get("rating", 0),
-                comment=feedback.get("comment", "")
+                comment=feedback.get("comment", ""),
             )
-        
+
         return {"status": "success", "message": "Feedback recorded"}
-        
+
     except Exception as e:
         logger.error(f"Feedback collection error: {str(e)}")
         return {"status": "error", "message": "Failed to record feedback"}

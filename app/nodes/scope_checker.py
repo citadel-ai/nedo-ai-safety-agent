@@ -37,19 +37,22 @@ Context: {context}
 Evaluated Query: "{query}"
 """
 
+
 @observe(name="scope_checker_node")
 async def scope_checker_node(state: JapanHelpdeskState) -> JapanHelpdeskState:
     """Check if query is within supported scope."""
     start_time = time.time()
-    
+
     # Langfuse v3 automatically captures function context via @observe decorator
-    
+
     try:
         # Build an evaluated query using synthesized intent and intake context
         intake = state.get("intake_session")
         collected = getattr(intake, "collected_info", {}) if intake else {}
         main_request = collected.get("main_request")
-        location = collected.get("location") or (getattr(intake, "user_location", None) if intake else None)
+        location = collected.get("location") or (
+            getattr(intake, "user_location", None) if intake else None
+        )
         visa_type = getattr(intake, "visa_type", None) if intake else None
         latest = state["user_input"]
         synthesized = state.get("synthesized_search_query")
@@ -57,28 +60,50 @@ async def scope_checker_node(state: JapanHelpdeskState) -> JapanHelpdeskState:
         # Start with synthesized or main request, fallback to latest
         evaluated_query = synthesized or main_request or latest
         # If latest looks like a short context answer, incorporate it as context
-        if main_request and latest and len(latest.split()) <= 3 and latest.lower() not in {"yes", "no"}:
+        if (
+            main_request
+            and latest
+            and len(latest.split()) <= 3
+            and latest.lower() not in {"yes", "no"}
+        ):
             if not location:
                 location = latest
 
         # Deterministic override: short context reply with clear main intent → mark in-scope
         def _classify_category(text: str) -> str:
             text_l = (text or "").lower()
-            if any(k in text_l for k in ["visa", "immigration", "residence card", "status of residence"]):
+            if any(
+                k in text_l
+                for k in [
+                    "visa",
+                    "immigration",
+                    "residence card",
+                    "status of residence",
+                ]
+            ):
                 return "visa"
             if any(k in text_l for k in ["housing", "rental", "apartment", "lease"]):
                 return "housing"
             if any(k in text_l for k in ["tax", "taxes", "withholding", "my number"]):
                 return "tax"
-            if any(k in text_l for k in ["work", "employment", "job", "part-time", "baito"]):
+            if any(
+                k in text_l for k in ["work", "employment", "job", "part-time", "baito"]
+            ):
                 return "employment"
-            if any(k in text_l for k in ["health", "insurance", "clinic", "hospital", "nhis"]):
+            if any(
+                k in text_l
+                for k in ["health", "insurance", "clinic", "hospital", "nhis"]
+            ):
                 return "healthcare"
             if any(k in text_l for k in ["bank", "account", "atm", "transfer"]):
                 return "banking"
-            if any(k in text_l for k in ["school", "education", "university", "enrollment"]):
+            if any(
+                k in text_l for k in ["school", "education", "university", "enrollment"]
+            ):
                 return "education"
-            if any(k in text_l for k in ["marriage", "divorce", "koseki", "registration"]):
+            if any(
+                k in text_l for k in ["marriage", "divorce", "koseki", "registration"]
+            ):
                 return "marriage"
             if any(k in text_l for k in ["license", "driving", "jaf", "convert"]):
                 return "driving_license"
@@ -86,20 +111,22 @@ async def scope_checker_node(state: JapanHelpdeskState) -> JapanHelpdeskState:
                 return "pension"
             if any(k in text_l for k in ["insurance", "national health", "kokumin"]):
                 return "insurance"
-            if any(k in text_l for k in ["business", "company", "registration", "incorporate"]):
+            if any(
+                k in text_l
+                for k in ["business", "company", "registration", "incorporate"]
+            ):
                 return "business_registration"
             return "general_procedures"
 
-        is_short_context_reply = latest and len(latest.split()) <= 3 and latest.lower() not in {"yes", "no"}
+        is_short_context_reply = (
+            latest and len(latest.split()) <= 3 and latest.lower() not in {"yes", "no"}
+        )
         if (synthesized or main_request) and is_short_context_reply:
             category = _classify_category(synthesized or main_request)
             # Only override if category is supported
             if category in SUPPORTED_CATEGORIES:
                 result = ScopeCheckResult(
-                    is_in_scope=True,
-                    category=category,
-                    reason=None,
-                    confidence=0.9
+                    is_in_scope=True, category=category, reason=None, confidence=0.9
                 )
                 state["scope_check_result"] = result
                 state["completed_steps"].append("scope_check")
@@ -118,6 +145,7 @@ async def scope_checker_node(state: JapanHelpdeskState) -> JapanHelpdeskState:
 
         # Deterministic illegal/unethical intent filter (fail-closed)
         import re
+
         combined_text = f"{evaluated_query} {latest}".lower()
         phrase_hits = [
             "tax evasion",
@@ -134,13 +162,15 @@ async def scope_checker_node(state: JapanHelpdeskState) -> JapanHelpdeskState:
             r"\bdodg(e|ing|ed)\s+tax(es)?\b",
             r"\bcheat(ing)?\s+tax(es)?\b",
         ]
-        illegal_match = any(p in combined_text for p in phrase_hits) or any(re.search(rx, combined_text) for rx in regex_hits)
+        illegal_match = any(p in combined_text for p in phrase_hits) or any(
+            re.search(rx, combined_text) for rx in regex_hits
+        )
         if illegal_match:
             result = ScopeCheckResult(
                 is_in_scope=False,
                 category=None,
                 reason="Request appears to seek illegal activity (e.g., tax evasion), which is out of scope.",
-                confidence=0.95
+                confidence=0.95,
             )
             state["scope_check_result"] = result
             state["completed_steps"].append("scope_check")
@@ -150,42 +180,41 @@ async def scope_checker_node(state: JapanHelpdeskState) -> JapanHelpdeskState:
         prompt = SCOPE_CHECK_PROMPT.format(
             query=evaluated_query,
             context=context,
-            format_instructions=format_instructions
+            format_instructions=format_instructions,
         )
-        
+
         messages = [
             SystemMessage(content="You are a scope checking system."),
-            HumanMessage(content=prompt)
+            HumanMessage(content=prompt),
         ]
-        
+
         response = await llm.ainvoke(messages)
         result = parser.parse(response.content)
-        
+
         state["scope_check_result"] = result
         state["completed_steps"].append("scope_check")
-        
+
         if not result.is_in_scope:
-            state["final_response"] = f"I'm sorry, but your query is outside my scope. {result.reason}"
-        
+            state["final_response"] = (
+                f"I'm sorry, but your query is outside my scope. {result.reason}"
+            )
+
         processing_time = time.time() - start_time
         state["processing_time"] += processing_time
         state["tokens_used"] += len(response.content.split())
-        
+
         # Langfuse v3 automatically captures output via @observe decorator
-        
+
         return state
-        
+
     except Exception as e:
         state["errors"].append(f"Scope check failed: {str(e)}")
         state["error_count"] += 1
-        
+
         # Assume in scope if check fails
         state["scope_check_result"] = ScopeCheckResult(
-            is_in_scope=True,
-            category="general",
-            reason=None,
-            confidence=0.5
+            is_in_scope=True, category="general", reason=None, confidence=0.5
         )
-        
+
         # Langfuse v3 automatically captures exceptions via @observe decorator
         return state

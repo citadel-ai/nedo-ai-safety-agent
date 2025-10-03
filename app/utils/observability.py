@@ -28,24 +28,30 @@ langfuse_client = None
 if LANGFUSE_ENABLED:
     try:
         from langfuse import Langfuse, observe, get_client
-        
+
         # Initialize Langfuse client
         langfuse_client = get_client()
         logger.info("Langfuse v3 initialized successfully")
-        
+
     except ImportError as e:
         logger.warning(f"Langfuse not available: {e}. Running without observability.")
         LANGFUSE_ENABLED = False
     except Exception as e:
-        logger.error(f"Failed to initialize Langfuse: {e}. Running without observability.")
+        logger.error(
+            f"Failed to initialize Langfuse: {e}. Running without observability."
+        )
         LANGFUSE_ENABLED = False
+
 
 # Fallback decorator when Langfuse is not available
 def observe_fallback(name: Optional[str] = None):
     """Fallback decorator when Langfuse is not available or disabled."""
+
     def decorator(func: Callable) -> Callable:
         return func
+
     return decorator
+
 
 # Export the observe decorator (either real or fallback)
 if LANGFUSE_ENABLED:
@@ -53,13 +59,16 @@ if LANGFUSE_ENABLED:
 else:
     observe = observe_fallback
 
+
 def get_langfuse_client():
     """Get Langfuse client if available, None otherwise."""
     return langfuse_client if LANGFUSE_ENABLED else None
 
+
 def is_langfuse_enabled() -> bool:
     """Check if Langfuse is enabled and available."""
     return LANGFUSE_ENABLED
+
 
 def flush_langfuse():
     """Flush Langfuse events if available."""
@@ -68,6 +77,7 @@ def flush_langfuse():
             langfuse_client.flush()
         except Exception as e:
             logger.error(f"Failed to flush Langfuse: {e}")
+
 
 def create_langfuse_trace(name: str, **kwargs) -> Optional[Any]:
     """Create a Langfuse trace if available."""
@@ -78,18 +88,15 @@ def create_langfuse_trace(name: str, **kwargs) -> Optional[Any]:
             logger.error(f"Failed to create Langfuse trace: {e}")
     return None
 
+
 def score_langfuse_trace(trace_id: str, name: str, value: float, **kwargs):
     """Score a Langfuse trace if available."""
     if LANGFUSE_ENABLED and langfuse_client:
         try:
-            langfuse_client.score(
-                trace_id=trace_id,
-                name=name,
-                value=value,
-                **kwargs
-            )
+            langfuse_client.score(trace_id=trace_id, name=name, value=value, **kwargs)
         except Exception as e:
             logger.error(f"Failed to score Langfuse trace: {e}")
+
 
 # Log the observability status
 if LANGFUSE_ENABLED:

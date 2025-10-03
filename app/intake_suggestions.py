@@ -14,7 +14,7 @@ VISA_TYPES = [
     "Business Manager (経営・管理)",
     "Highly Skilled Professional (高度専門職)",
     "Engineer/Specialist (技術・人文知識・国際業務)",
-    "Other"
+    "Other",
 ]
 
 # Major cities in Japan
@@ -27,7 +27,7 @@ MAJOR_CITIES = [
     "Sapporo (札幌)",
     "Fukuoka (福岡)",
     "Kobe (神戸)",
-    "Other"
+    "Other",
 ]
 
 # Common timeline/urgency options
@@ -36,7 +36,7 @@ TIMELINES = [
     "Soon (within 1 month)",
     "Normal (1-3 months)",
     "Long-term (3+ months)",
-    "No specific deadline"
+    "No specific deadline",
 ]
 
 # Yes/No for binary questions
@@ -50,55 +50,85 @@ DOCUMENT_TYPES = [
     "Work permit",
     "Birth certificate",
     "Marriage certificate",
-    "Other"
+    "Other",
 ]
 
 # Language preferences
-LANGUAGES = [
-    "English",
-    "Japanese",
-    "Both",
-    "Other"
-]
+LANGUAGES = ["English", "Japanese", "Both", "Other"]
 
 
 def get_suggestions_for_question(question: str, context: dict = None) -> list:
     """
     Analyze the question and return appropriate quick-reply suggestions.
-    
+
     Args:
         question: The question being asked
         context: Additional context from the intake session
-        
+
     Returns:
         List of suggested quick-reply options
     """
     question_lower = question.lower()
-    
+
     # Visa type questions
-    if any(keyword in question_lower for keyword in ["visa type", "what type of visa", "visa status", "status of residence"]):
+    if any(
+        keyword in question_lower
+        for keyword in [
+            "visa type",
+            "what type of visa",
+            "visa status",
+            "status of residence",
+        ]
+    ):
         return VISA_TYPES
-    
+
     # Location questions
-    if any(keyword in question_lower for keyword in ["city", "location", "where", "prefecture", "municipality", "live", "residing"]):
+    if any(
+        keyword in question_lower
+        for keyword in [
+            "city",
+            "location",
+            "where",
+            "prefecture",
+            "municipality",
+            "live",
+            "residing",
+        ]
+    ):
         return MAJOR_CITIES
-    
+
     # Timeline/urgency questions
-    if any(keyword in question_lower for keyword in ["when", "timeline", "urgency", "deadline", "how soon", "by when"]):
+    if any(
+        keyword in question_lower
+        for keyword in [
+            "when",
+            "timeline",
+            "urgency",
+            "deadline",
+            "how soon",
+            "by when",
+        ]
+    ):
         return TIMELINES
-    
+
     # Binary questions (yes/no)
-    if any(keyword in question_lower for keyword in ["have you", "did you", "do you", "are you", "is it", "can you"]):
+    if any(
+        keyword in question_lower
+        for keyword in ["have you", "did you", "do you", "are you", "is it", "can you"]
+    ):
         return YES_NO
-    
+
     # Document questions
-    if any(keyword in question_lower for keyword in ["document", "paper", "certificate", "proof"]):
+    if any(
+        keyword in question_lower
+        for keyword in ["document", "paper", "certificate", "proof"]
+    ):
         return DOCUMENT_TYPES
-    
+
     # Language questions
     if any(keyword in question_lower for keyword in ["language", "speak", "prefer"]):
         return LANGUAGES
-    
+
     # Default: no suggestions (free-form answer)
     return []
 
@@ -115,28 +145,57 @@ def format_suggestion_for_display(suggestion: str) -> str:
 # This can be expanded for more sophisticated matching
 QUESTION_PATTERNS = {
     "visa_type": {
-        "keywords": ["visa type", "what type of visa", "visa status", "status of residence", "what visa"],
-        "suggestions": VISA_TYPES
+        "keywords": [
+            "visa type",
+            "what type of visa",
+            "visa status",
+            "status of residence",
+            "what visa",
+        ],
+        "suggestions": VISA_TYPES,
     },
     "location": {
-        "keywords": ["city", "location", "where", "prefecture", "live", "residing", "which city"],
-        "suggestions": MAJOR_CITIES
+        "keywords": [
+            "city",
+            "location",
+            "where",
+            "prefecture",
+            "live",
+            "residing",
+            "which city",
+        ],
+        "suggestions": MAJOR_CITIES,
     },
     "timeline": {
-        "keywords": ["when", "timeline", "urgency", "deadline", "how soon", "by when", "expires"],
-        "suggestions": TIMELINES
+        "keywords": [
+            "when",
+            "timeline",
+            "urgency",
+            "deadline",
+            "how soon",
+            "by when",
+            "expires",
+        ],
+        "suggestions": TIMELINES,
     },
     "binary": {
-        "keywords": ["have you", "did you", "do you", "are you", "is it", "can you", "already"],
-        "suggestions": YES_NO
+        "keywords": [
+            "have you",
+            "did you",
+            "do you",
+            "are you",
+            "is it",
+            "can you",
+            "already",
+        ],
+        "suggestions": YES_NO,
     },
     "documents": {
         "keywords": ["document", "paper", "certificate", "proof", "have your"],
-        "suggestions": DOCUMENT_TYPES
+        "suggestions": DOCUMENT_TYPES,
     },
     "language": {
         "keywords": ["language", "speak", "prefer", "understand"],
-        "suggestions": LANGUAGES
-    }
+        "suggestions": LANGUAGES,
+    },
 }
-

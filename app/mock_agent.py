@@ -9,31 +9,29 @@ from typing import Dict, Any
 
 from app.deployment_config import get_mock_response
 
+
 class MockJapanHelpdeskAgent:
     """Mock agent that provides sample responses without requiring AI services."""
-    
+
     def __init__(self):
         self.name = "Mock Japan Helpdesk Agent"
         self.version = "1.0.0-mock"
-    
+
     async def process_query(
-        self,
-        user_input: str,
-        user_id: str,
-        session_id: str = None
+        self, user_input: str, user_id: str, session_id: str = None
     ) -> Dict[str, Any]:
         """Process a user query with mock responses."""
         start_time = time.time()
         session_id = session_id or f"mock_session_{uuid.uuid4().hex[:8]}"
-        
+
         # Simulate processing time
         await self._simulate_processing()
-        
+
         # Generate mock response based on input
         response_text = self._generate_mock_response(user_input)
-        
+
         processing_time = time.time() - start_time
-        
+
         return {
             "response": response_text,
             "confidence_score": 0.8,
@@ -41,7 +39,7 @@ class MockJapanHelpdeskAgent:
             "recommendations": [
                 "Visit the official immigration website for the most current information",
                 "Contact your local city hall for personalized assistance",
-                "Consider consulting with an immigration lawyer for complex cases"
+                "Consider consulting with an immigration lawyer for complex cases",
             ],
             "session_id": session_id,
             "completed_steps": ["mock_processing", "response_generation"],
@@ -53,20 +51,23 @@ class MockJapanHelpdeskAgent:
                 "error_count": 0,
                 "fallback_used": True,
                 "langfuse_trace_id": None,
-                "deployment_mode": True
-            }
+                "deployment_mode": True,
+            },
         }
-    
+
     async def _simulate_processing(self):
         """Simulate AI processing time."""
         import asyncio
+
         await asyncio.sleep(0.5)  # Simulate 500ms processing
-    
+
     def _generate_mock_response(self, user_input: str) -> str:
         """Generate a contextual mock response based on user input."""
         input_lower = user_input.lower()
-        
-        if any(keyword in input_lower for keyword in ["visa", "renew", "renewal", "extend"]):
+
+        if any(
+            keyword in input_lower for keyword in ["visa", "renew", "renewal", "extend"]
+        ):
             return """**Visa Renewal Information**
 
 To renew your visa in Japan, you typically need to:
@@ -93,8 +94,11 @@ To renew your visa in Japan, you typically need to:
 - This is general guidance only and not legal advice
 
 *Note: This system is currently running in demo mode. For personalized assistance, please ensure proper Google Cloud configuration.*"""
-        
-        elif any(keyword in input_lower for keyword in ["work", "job", "employment", "バイト"]):
+
+        elif any(
+            keyword in input_lower
+            for keyword in ["work", "job", "employment", "バイト"]
+        ):
             return """**Working in Japan Information**
 
 **For Students:**
@@ -114,8 +118,11 @@ To renew your visa in Japan, you typically need to:
 - Hello Work (public employment service) offers free support
 
 *Note: This system is currently running in demo mode. For personalized assistance, please ensure proper Google Cloud configuration.*"""
-        
-        elif any(keyword in input_lower for keyword in ["health", "insurance", "hospital", "医療"]):
+
+        elif any(
+            keyword in input_lower
+            for keyword in ["health", "insurance", "hospital", "医療"]
+        ):
             return """**Healthcare in Japan**
 
 **Health Insurance:**
@@ -139,7 +146,7 @@ To renew your visa in Japan, you typically need to:
 - Translation apps can help with basic communication
 
 *Note: This system is currently running in demo mode. For personalized assistance, please ensure proper Google Cloud configuration.*"""
-        
+
         else:
             return f"""**Japan Living Assistance**
 
@@ -163,6 +170,7 @@ I'm here to help with information about living in Japan, including:
 Please feel free to ask more specific questions about any aspect of life in Japan!
 
 *Note: This is general guidance only and not legal advice.*"""
+
 
 # Create a global instance for easy import
 mock_agent = MockJapanHelpdeskAgent()

@@ -13,10 +13,7 @@ from app.enhanced_google_search import get_enhanced_search_results
 
 # Initialize LLM for query generation
 llm = ChatVertexAI(
-    model="gemini-2.5-flash",
-    temperature=0.3,
-    max_tokens=512,
-    location="us-central1"
+    model="gemini-2.5-flash", temperature=0.3, max_tokens=512, location="us-central1"
 )
 
 QUERY_VARIANT_PROMPT = """
@@ -63,50 +60,59 @@ Variants:
 **Return ONLY the query variants, one per line, numbered. No explanations.**
 """
 
+
 @observe(name="generate_query_variants")
-async def generate_query_variants(original_query: str, context: Dict[str, Any]) -> List[str]:
+async def generate_query_variants(
+    original_query: str, context: Dict[str, Any]
+) -> List[str]:
     """Generate multiple query variants using LLM."""
-    
+
     import logging
+
     logger = logging.getLogger(__name__)
-    
+
     try:
         # Format context
-        context_str = ", ".join([f"{k}: {v}" for k, v in context.items()]) if context else "No context"
-        
-        prompt = QUERY_VARIANT_PROMPT.format(
-            original_query=original_query,
-            context=context_str
+        context_str = (
+            ", ".join([f"{k}: {v}" for k, v in context.items()])
+            if context
+            else "No context"
         )
-        
+
+        prompt = QUERY_VARIANT_PROMPT.format(
+            original_query=original_query, context=context_str
+        )
+
         messages = [
             SystemMessage(content="You are a search query expert."),
-            HumanMessage(content=prompt)
+            HumanMessage(content=prompt),
         ]
-        
+
         response = await llm.ainvoke(messages)
-        
+
         # Parse variants (one per line, numbered)
-        lines = response.content.strip().split('\n')
+        lines = response.content.strip().split("\n")
         variants = []
         for line in lines:
             # Remove numbering (1., 2., etc.) and clean
             clean = line.strip()
             if clean and any(c.isalpha() for c in clean):
                 # Remove leading numbers and dots
-                clean = clean.lstrip('0123456789. ')
+                clean = clean.lstrip("0123456789. ")
                 if clean:
                     variants.append(clean)
-        
+
         # Always include original query as fallback
         if original_query not in variants:
             variants.insert(0, original_query)
-        
-        logger.info(f"🔍 Generated {len(variants)} query variants (English + Japanese):")
+
+        logger.info(
+            f"🔍 Generated {len(variants)} query variants (English + Japanese):"
+        )
         for i, variant in enumerate(variants, 1):
             logger.info(f"   {i}. {variant}")
         return variants[:6]  # Max 6 variants (3 English + 3 Japanese)
-        
+
     except Exception as e:
         logger.error(f"🔴 Query variant generation failed: {e}")
         # Fallback to original query
@@ -115,92 +121,110 @@ async def generate_query_variants(original_query: str, context: Dict[str, Any]) 
 
 async def enhance_query_for_google(query: str, context: Dict[str, Any]) -> str:
     """Enhance query for Google Search with appropriate handling for Japanese and English queries."""
-    
+
     enhanced = query
-    
+
     # Detect if query is primarily Japanese
-    has_japanese = any('\u3040' <= char <= '\u30ff' or '\u4e00' <= char <= '\u9faf' for char in query)
-    
+    has_japanese = any(
+        "\u3040" <= char <= "\u30ff" or "\u4e00" <= char <= "\u9faf" for char in query
+    )
+
     # Add location if available and not already in query
-    location = context.get('location')
+    location = context.get("location")
     if location and location.lower() not in query.lower():
         if has_japanese:
             enhanced = f"{enhanced} {location}"
         else:
             enhanced = f"{enhanced} {location}"
-    
+
     # For English queries, add Japan context
     # For Japanese queries, it's already implicit
-    if not has_japanese and 'japan' not in enhanced.lower() and '日本' not in enhanced:
+    if not has_japanese and "japan" not in enhanced.lower() and "日本" not in enhanced:
         enhanced = f"{enhanced} Japan"
-    
+
     return enhanced
 
 
 @observe(name="agentic_search_orchestrator_node")
-async def agentic_search_orchestrator_node(state: JapanHelpdeskState) -> JapanHelpdeskState:
+async def agentic_search_orchestrator_node(
+    state: JapanHelpdeskState,
+) -> JapanHelpdeskState:
     """
     Agentic search orchestrator with multi-query strategy.
     Generates multiple query variants and executes parallel searches for comprehensive results.
     """
-    
+
     import logging
+
     logger = logging.getLogger(__name__)
-    
+
     start_time = time.time()
-    
+
     try:
         # Get the synthesized query (or fall back to user input)
         base_query = state.get("synthesized_search_query") or state["user_input"]
-        
+
         # Build context from intake session
         context = {}
         intake = state.get("intake_session")
         if intake:
-            if hasattr(intake, 'visa_type') and intake.visa_type:
-                context['visa_type'] = intake.visa_type
-            if hasattr(intake, 'user_location') and intake.user_location:
-                context['location'] = intake.user_location
-            if hasattr(intake, 'timeline') and intake.timeline:
-                context['timeline'] = intake.timeline
-        
+            if hasattr(intake, "visa_type") and intake.visa_type:
+                context["visa_type"] = intake.visa_type
+            if hasattr(intake, "user_location") and intake.user_location:
+                context["location"] = intake.user_location
+            if hasattr(intake, "timeline") and intake.timeline:
+                context["timeline"] = intake.timeline
+
         logger.info(f"🔍 AGENTIC SEARCH - Base query: '{base_query}'")
         logger.info(f"🔍 AGENTIC SEARCH - Context: {context}")
-        
+
         # Generate multiple query variants
         query_variants = await generate_query_variants(base_query, context)
         logger.info(f"🔍 AGENTIC SEARCH - Generated {len(query_variants)} variants")
-        
+
         # Execute parallel searches for each variant
         search_tasks = []
-        
+
         # Use up to 4 variants (mix of English and Japanese)
         # TEMP: Disabled vector search for debugging
         for i, query in enumerate(query_variants[:4], 1):
             logger.info(f"🔍 Variant {i}: '{query}'")
-            
+
             # Vector DB search - TEMPORARILY DISABLED
             # search_tasks.append(("vector", query, real_vector_search(query)))
-            
+
             # Google search (enhanced, but don't add site restrictions for Japanese queries)
             # Let enhance_query_for_google handle it appropriately
             google_query = await enhance_query_for_google(query, context)
             logger.info(f"🌐 Google variant {i}: '{google_query}'")
-            search_tasks.append(("google", google_query, get_enhanced_search_results(google_query, num_results=4)))
-        
+            search_tasks.append(
+                (
+                    "google",
+                    google_query,
+                    get_enhanced_search_results(google_query, num_results=4),
+                )
+            )
+
         # Execute all searches in parallel
         logger.info(f"⚡ Executing {len(search_tasks)} parallel searches...")
-        results = await asyncio.gather(*[task[2] for task in search_tasks], return_exceptions=True)
-        
+        results = await asyncio.gather(
+            *[task[2] for task in search_tasks], return_exceptions=True
+        )
+
         # Organize results by source
         vector_results = []
         google_results = []
-        
-        for i, (source_type, query, result) in enumerate([(search_tasks[j][0], search_tasks[j][1], results[j]) for j in range(len(search_tasks))]):
+
+        for i, (source_type, query, result) in enumerate(
+            [
+                (search_tasks[j][0], search_tasks[j][1], results[j])
+                for j in range(len(search_tasks))
+            ]
+        ):
             if isinstance(result, Exception):
                 logger.warning(f"⚠️ Search failed for '{query}': {result}")
                 continue
-                
+
             if source_type == "vector":
                 if result:
                     vector_results.extend(result)
@@ -209,125 +233,140 @@ async def agentic_search_orchestrator_node(state: JapanHelpdeskState) -> JapanHe
                 if result:
                     google_results.extend(result)
                     logger.info(f"🌐 Google search '{query}': {len(result)} results")
-        
+
         # Deduplicate results (by content/URL)
         unique_vector = []
         seen_contents = set()
         for res in vector_results:
             # VectorSearchResult is a Pydantic model, use attribute access
-            content = res.content if hasattr(res, 'content') else str(res)
+            content = res.content if hasattr(res, "content") else str(res)
             content_hash = hash(content[:100])
             if content_hash not in seen_contents:
                 seen_contents.add(content_hash)
                 unique_vector.append(res)
-        
+
         unique_google = []
         seen_urls = set()
         for res in google_results:
-            url = getattr(res, 'url', '') if hasattr(res, 'url') else str(res)
+            url = getattr(res, "url", "") if hasattr(res, "url") else str(res)
             if url and url not in seen_urls:
                 seen_urls.add(url)
                 unique_google.append(res)
-        
+
         logger.info(f"✅ AGENTIC SEARCH COMPLETE:")
         logger.info(f"   Vector results: {len(unique_vector)} unique")
         logger.info(f"   Google results: {len(unique_google)} unique")
         logger.info(f"   Total: {len(unique_vector) + len(unique_google)} results")
-        
+
         # DEBUG: Show what we actually found
         logger.info(f"📊 GOOGLE SEARCH RESULTS DETAIL:")
         for i, res in enumerate(unique_google[:3], 1):  # Show first 3
-            if hasattr(res, 'title'):
+            if hasattr(res, "title"):
                 # Call the attribute if it's a method, otherwise just use it
                 title = res.title() if callable(res.title) else res.title
-                url = res.url() if callable(getattr(res, 'url', None)) else getattr(res, 'url', 'N/A')
-                content = res.content() if callable(getattr(res, 'content', None)) else getattr(res, 'content', 'N/A')
+                url = (
+                    res.url()
+                    if callable(getattr(res, "url", None))
+                    else getattr(res, "url", "N/A")
+                )
+                content = (
+                    res.content()
+                    if callable(getattr(res, "content", None))
+                    else getattr(res, "content", "N/A")
+                )
                 logger.info(f"   {i}. Title: {title}")
                 logger.info(f"      URL: {url}")
                 logger.info(f"      Content preview: {str(content)[:200]}...")
             elif isinstance(res, str):
                 logger.info(f"   {i}. (String result): {res[:200]}...")
             else:
-                logger.info(f"   {i}. (Unknown type: {type(res).__name__}): {str(res)[:200]}...")
-        
+                logger.info(
+                    f"   {i}. (Unknown type: {type(res).__name__}): {str(res)[:200]}..."
+                )
+
         logger.info(f"📊 VECTOR SEARCH RESULTS DETAIL:")
         for i, res in enumerate(unique_vector[:3], 1):  # Show first 3
-            if hasattr(res, 'content'):
+            if hasattr(res, "content"):
                 logger.info(f"   {i}. Content: {res.content[:150]}...")
                 logger.info(f"      Source: {getattr(res, 'source', 'N/A')}")
                 logger.info(f"      Score: {getattr(res, 'similarity_score', 'N/A')}")
             else:
                 logger.info(f"   {i}. {str(res)[:200]}...")
-        
+
         # Store results in state
         # We'll create a merged result structure
         from app.types import MergedSearchResult
-        
+
         # Extract sources from results
         sources = []
         for res in unique_vector:
-            if hasattr(res, 'source'):
+            if hasattr(res, "source"):
                 sources.append(res.source)
         for res in unique_google:
-            if hasattr(res, 'url'):
+            if hasattr(res, "url"):
                 sources.append(res.url)
             elif isinstance(res, str):
                 sources.append(res)
-        
+
         # Convert google results to strings with content for the schema
         google_results_str = []
         for res in unique_google:
-            if hasattr(res, 'title'):
+            if hasattr(res, "title"):
                 # Build a rich string with title, URL, and full_content
                 title = res.title if isinstance(res.title, str) else str(res.title)
                 url = res.url if isinstance(res.url, str) else str(res.url)
-                snippet = res.snippet if isinstance(res.snippet, str) else str(res.snippet)
-                full_content = getattr(res, 'full_content', None)
-                
+                snippet = (
+                    res.snippet if isinstance(res.snippet, str) else str(res.snippet)
+                )
+                full_content = getattr(res, "full_content", None)
+
                 # Build rich string with all available info
                 result_str = f"Title: {title}\nURL: {url}\n"
                 if full_content and len(full_content) > 100:
                     result_str += f"Content: {full_content[:2000]}...\n"  # First 2000 chars of full content
                 elif snippet:
                     result_str += f"Snippet: {snippet}\n"
-                
+
                 google_results_str.append(result_str)
-                logger.info(f"📊 Converted Google result to string ({len(result_str)} chars, has_full_content: {bool(full_content)})")
+                logger.info(
+                    f"📊 Converted Google result to string ({len(result_str)} chars, has_full_content: {bool(full_content)})"
+                )
             elif isinstance(res, str):
                 google_results_str.append(res)
             else:
                 google_results_str.append(str(res))
-        
+
         merged_result = MergedSearchResult(
             vector_results=unique_vector,
             google_results=google_results_str,
             merged_summary=f"Found {len(unique_vector) + len(unique_google)} results from multi-query bilingual search (English + Japanese)",
             confidence_score=0.8 if (unique_vector or unique_google) else 0.2,
             sources=sources[:10],  # Limit to top 10 sources
-            recommendations=[]
+            recommendations=[],
         )
-        
+
         state["hybrid_results"] = merged_result
         state["vector_results"] = merged_result  # For compatibility
-        
+
         # Store results for downstream agents
         # Vector: raw SearchResult objects (they have .content attribute)
         # Google: formatted strings with content (for multi-step agent)
         state["_raw_vector_results"] = unique_vector
-        state["_raw_google_results"] = google_results_str  # Use formatted strings with content!
-        
+        state["_raw_google_results"] = (
+            google_results_str  # Use formatted strings with content!
+        )
+
         # Update metadata
         processing_time = time.time() - start_time
         state["processing_time"] += processing_time
         state["completed_steps"].append("agentic_search")
-        
+
         logger.info(f"⏱️ Agentic search completed in {processing_time:.2f}s")
-        
+
         return state
-        
+
     except Exception as e:
         logger.error(f"🔴 AGENTIC SEARCH ERROR: {e}", exc_info=True)
         state["errors"].append(f"Agentic search failed: {str(e)}")
         state["error_count"] += 1
         return state
-
