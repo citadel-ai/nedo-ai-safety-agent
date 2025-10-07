@@ -1,127 +1,128 @@
-# Copyright 2025 Google LLC
-#
-# Licensed under the Apache License, Version 2.0 (the "License");
-# you may not use this file except in compliance with the License.
-# You may obtain a copy of the License at
-#
-#     http://www.apache.org/licenses/LICENSE-2.0
-#
-# Unless required by applicable law or agreed to in writing, software
-# distributed under the License is distributed on an "AS IS" BASIS,
-# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-# See the License for the specific language governing permissions and
-# limitations under the License.
-
-"""Japan Helpdesk LangGraph workflow with Langfuse v3 observability and guardrails."""
+"""
+Japan Helpdesk LangGraph production workflow.
+"""
 
 import time
 import uuid
 from typing import Any, Literal
 
-from langgraph.checkpoint.memory import MemorySaver
 from langgraph.graph import END, StateGraph
 
 from app.nodes import (
     adversarial_detector_node,
+    agentic_orchestrator_node,
+    agentic_search_orchestrator_node,
+    evaluator_optimizer_node,
     hybrid_search_node,
     intake_agent_node,
     legal_checker_node,
-    rag_agent_node,
+    multi_step_procedure_agent_node,
+    query_synthesizer_node,
     response_synthesizer_node,
     scope_checker_node,
-    vector_rag_node,
 )
-from app.types import HIGH_RISK_CATEGORIES, JapanHelpdeskState
+from app.types import JapanHelpdeskState
+from app.utils.error_diagnostics import (
+    WorkflowDiagnostics,
+    create_detailed_error_response,
+    diagnose_intake_failure,
+    diagnose_llm_truncation,
+    diagnose_search_failure,
+    validate_state_integrity,
+)
 from app.utils.observability import flush_langfuse, observe
 
 
-def create_japan_helpdesk_workflow() -> StateGraph:
-    """Create the LangGraph workflow for Japan Helpdesk with comprehensive guardrails."""
-
-    # Initialize the state graph
+def create_japan_helpdesk_workflow():
+    """Create the Japan Helpdesk workflow with proper routing."""
     workflow = StateGraph(JapanHelpdeskState)
 
-    # Add nodes
+    # Add essential nodes
     workflow.add_node("adversarial_detector", adversarial_detector_node)
     workflow.add_node("intake_agent", intake_agent_node)
+    workflow.add_node("query_synthesizer", query_synthesizer_node)
     workflow.add_node("scope_checker", scope_checker_node)
-    workflow.add_node("vector_rag", vector_rag_node)
+
+    # Agentic search nodes (NEW!)
+    workflow.add_node("agentic_search", agentic_search_orchestrator_node)
+    workflow.add_node("multi_step_procedure", multi_step_procedure_agent_node)
+
+    # Original search node (kept as fallback)
     workflow.add_node("hybrid_search", hybrid_search_node)
-    workflow.add_node("rag_agent", rag_agent_node)
+
     workflow.add_node("legal_checker", legal_checker_node)
     workflow.add_node("response_synthesizer", response_synthesizer_node)
+
+    # Other agentic nodes (disabled)
+    workflow.add_node("agentic_orchestrator", agentic_orchestrator_node)
+    workflow.add_node("evaluator_optimizer", evaluator_optimizer_node)
 
     # Set entry point
     workflow.set_entry_point("adversarial_detector")
 
-    # Define conditional routing functions with comprehensive guardrails
+    # Working routing functions
     def route_after_adversarial(
         state: JapanHelpdeskState,
     ) -> Literal["intake_agent", "END"]:
-        """Route after adversarial detection - HARD STOP for malicious inputs."""
+        """Route after adversarial detection - block malicious inputs."""
         adversarial_result = state.get("adversarial_result")
         if adversarial_result and adversarial_result.is_adversarial:
-            return "END"  # Block adversarial inputs - cannot proceed
+            # Set final response for adversarial inputs
+            state["final_response"] = (
+                f"I'm sorry, but your request has been flagged as potentially inappropriate: {adversarial_result.reason}. I cannot process this request."
+            )
+            return "END"
         return "intake_agent"
 
     def route_after_intake(
         state: JapanHelpdeskState,
-    ) -> Literal["scope_checker", "END"]:
-        """Route after intake - END if more info needed, continue if complete."""
+    ) -> Literal["query_synthesizer", "END"]:
+        """Route after intake.
+        - If intake produced follow-up questions, END to await user reply.
+        - Otherwise proceed to query synthesis even if intake isn't marked complete.
+        """
         intake_session = state.get("intake_session")
 
-        # If intake is not complete, END workflow and return question to user
-        if intake_session and not intake_session.is_complete:
-            return "END"  # User needs to provide more information
+        if intake_session:
+            # If there are questions to ask, stop and wait for the user
+            if getattr(intake_session, "next_questions", None):
+                return "END"
 
-        return "scope_checker"  # Intake complete, proceed to scope check
+            # If no questions (possibly incomplete), proceed to synthesis
+            return "query_synthesizer"
+
+        # No intake session available, proceed defensively
+        return "query_synthesizer"
 
     def route_after_scope(
         state: JapanHelpdeskState,
-    ) -> Literal["vector_rag", "hybrid_search", "END"]:
-        """Route after scope check based on query type and risk level."""
-        scope_result = state.get(
-            "scope_check_result"
-        )  # Fixed: correct state variable name
+    ) -> Literal["agentic_search", "END"]:
+        """Route after scope check - use agentic search if in scope."""
+        scope_result = state.get("scope_check_result")
+        print("🔀 SCOPE ROUTING DEBUG:")
+        print(f"   scope_result: {scope_result}")
+        print(f"   state keys: {list(state.keys())}")
+
+        if scope_result:
+            print(f"   is_in_scope: {scope_result.is_in_scope}")
+            print(f"   category: {scope_result.category}")
+
         if not scope_result or not scope_result.is_in_scope:
-            return "END"  # Out of scope - terminate
+            # Set final response for out-of-scope queries
+            reason = (
+                scope_result.reason
+                if scope_result
+                else "Please ask about Japanese administrative procedures for foreigners."
+            )
+            final_msg = f"I'm sorry, but your query is outside my scope. {reason}"
+            state["final_response"] = final_msg
+            print(f"   TERMINATING: {final_msg}")
+            return "END"
 
-        # Route based on query category and risk assessment
-        category = scope_result.category
-        user_input = state.get("user_input", "").lower()
+        print("   PROCEEDING to agentic_search")
+        return "agentic_search"
 
-        # Use hybrid search for current/time-sensitive queries or high-risk categories
-        if any(
-            keyword in user_input
-            for keyword in ["current", "latest", "news", "today", "now"]
-        ):
-            return "hybrid_search"
-        elif category in HIGH_RISK_CATEGORIES:
-            return "hybrid_search"
-        else:
-            return "vector_rag"  # Standard procedures use vector RAG
-
-    def route_after_search(state: JapanHelpdeskState) -> Literal["legal_checker"]:
-        """Route after search directly to legal checker - no more branching."""
-        return "legal_checker"  # Always go to legal checker after search
-
-    def route_after_legal(
-        state: JapanHelpdeskState,
-    ) -> Literal["response_synthesizer", "rag_agent"]:
-        """Route after legal check - revise if legal advice detected."""
-        legal_result = state.get("legal_check_result")
-        legal_revision_count = state["completed_steps"].count("legal_check")
-
-        # Limit legal revisions to prevent infinite loops
-        if legal_revision_count >= 2:
-            return "response_synthesizer"  # Force progression after 2 attempts
-
-        if legal_result and legal_result.contains_legal_advice:
-            return "rag_agent"  # Need revision
-
-        return "response_synthesizer"  # Legal check passed
-
-    # Add conditional edges with guardrails
+    # Add edges - linear flow
     workflow.add_conditional_edges(
         "adversarial_detector",
         route_after_adversarial,
@@ -131,49 +132,48 @@ def create_japan_helpdesk_workflow() -> StateGraph:
     workflow.add_conditional_edges(
         "intake_agent",
         route_after_intake,
-        {
-            "intake_agent": "intake_agent",  # Loop for more info
-            "scope_checker": "scope_checker",
-        },
+        {"query_synthesizer": "query_synthesizer", "END": END},
     )
+
+    # Query synthesizer goes to scope checker
+    workflow.add_edge("query_synthesizer", "scope_checker")
 
     workflow.add_conditional_edges(
         "scope_checker",
         route_after_scope,
-        {"vector_rag": "vector_rag", "hybrid_search": "hybrid_search", "END": END},
+        {"agentic_search": "agentic_search", "END": END},
     )
 
-    # Simplified: both search nodes go directly to legal checker
-    workflow.add_edge("vector_rag", "legal_checker")
-    workflow.add_edge("hybrid_search", "legal_checker")
-
-    workflow.add_conditional_edges(
-        "legal_checker",
-        route_after_legal,
-        {"response_synthesizer": "response_synthesizer", "rag_agent": "rag_agent"},
-    )
-
-    # Simple edges
-    workflow.add_edge("rag_agent", "legal_checker")
+    # New agentic flow:
+    # agentic_search -> multi_step_procedure -> legal_checker -> response_synthesizer -> END
+    workflow.add_edge("agentic_search", "multi_step_procedure")
+    workflow.add_edge("multi_step_procedure", "legal_checker")
+    workflow.add_edge("legal_checker", "response_synthesizer")
     workflow.add_edge("response_synthesizer", END)
+
+    # TODO: Re-enable agentic nodes once state management is fixed
+    # workflow.add_edge("hybrid_search", "evaluator_optimizer")
+    # workflow.add_edge("evaluator_optimizer", "legal_checker")
+    # workflow.add_edge("scope_checker", "agentic_orchestrator")
+    # workflow.add_edge("agentic_orchestrator", "hybrid_search")
 
     return workflow
 
 
-class JapanHelpdeskLangGraph:
-    """Main class for the LangGraph Japan Helpdesk system with observability."""
+class JapanHelpdeskAgent:
+    """Japan Helpdesk production agent."""
 
     def __init__(self):
-        """Initialize the LangGraph workflow with memory and observability."""
+        """Initialize the production workflow."""
         self.workflow = create_japan_helpdesk_workflow()
-        self.memory = MemorySaver()
-        self.agent = self.workflow.compile(checkpointer=self.memory)
+        # No checkpointer - each request is stateless for clean execution
+        self.agent = self.workflow.compile()
 
     @observe(name="japan_helpdesk_query")
     async def process_query(
         self, user_input: str, user_id: str, session_id: str | None = None
     ) -> dict[str, Any]:
-        """Process a user query through the LangGraph workflow with full observability."""
+        """Process a user query through the production workflow."""
 
         start_time = time.time()
         session_id = session_id or f"session_{uuid.uuid4().hex[:8]}"
@@ -189,12 +189,13 @@ class JapanHelpdeskLangGraph:
         except Exception:
             pass
 
-        # Initialize state
+        # Initialize state with all required fields
         initial_state = JapanHelpdeskState(
             user_input=user_input,
             user_id=user_id,
             session_id=session_id,
-            current_step="adversarial_detection",
+            synthesized_search_query=None,
+            current_step="start",
             completed_steps=[],
             error_count=0,
             adversarial_result=None,
@@ -204,6 +205,11 @@ class JapanHelpdeskLangGraph:
             hybrid_results=None,
             rag_results=None,
             legal_check_result=None,
+            agent_plan=None,
+            active_todos=[],
+            completed_todos=[],
+            agent_reasoning=[],
+            tool_usage_log=[],
             final_response=None,
             confidence_score=0.0,
             sources=[],
@@ -212,25 +218,109 @@ class JapanHelpdeskLangGraph:
             fallback_used=False,
             processing_time=0.0,
             tokens_used=0,
-            langfuse_trace_id=None,  # Langfuse v3 handles trace IDs automatically
+            langfuse_trace_id=None,
+            _raw_vector_results=None,
+            _raw_google_results=None,
+            _procedure_breakdown=None,
         )
 
-        try:
-            # Execute the workflow
-            config = {"configurable": {"thread_id": session_id}}
+        # Create diagnostics tracker
+        diagnostics = WorkflowDiagnostics()
 
-            # Use ainvoke for simpler execution
-            result_state = await self.agent.ainvoke(initial_state, config)
+        try:
+            # Validate initial state
+            state_issues = validate_state_integrity(initial_state)
+            if state_issues:
+                import logging
+
+                logger = logging.getLogger(__name__)
+                logger.warning(f"⚠️ Initial state validation issues: {state_issues}")
+
+            # Execute the workflow (no config needed without checkpointer)
+            result_state = await self.agent.ainvoke(initial_state)
+
+            # Validate final state
+            final_state_issues = validate_state_integrity(result_state)
+            if final_state_issues:
+                logger.warning(f"⚠️ Final state validation issues: {final_state_issues}")
 
             # Calculate total processing time
             total_time = time.time() - start_time
 
-            # Prepare response
+            # Prepare response with COMPREHENSIVE fallback diagnostics
+            import logging
+
+            logger = logging.getLogger(__name__)
+
+            final_response = result_state.get("final_response")
+            logger.info(
+                f"🟢 WORKING AGENT - final_response from workflow: '{final_response}'"
+            )
+
+            # Check for LLM truncation issues
+            if final_response:
+                truncation_issue = diagnose_llm_truncation(final_response)
+                if truncation_issue:
+                    logger.error(truncation_issue)
+
+            # COMPREHENSIVE fallback logic with diagnostics
+            if not final_response or len(final_response.strip()) < 10:
+                logger.error("🔴 CRITICAL: No valid final_response!")
+                logger.error(
+                    f"🔴 Completed steps: {result_state.get('completed_steps', [])}"
+                )
+                logger.error(f"🔴 Errors in state: {result_state.get('errors', [])}")
+
+                # Diagnose what went wrong
+                current_step = result_state.get("current_step", "unknown")
+                logger.error(f"🔴 Current step: {current_step}")
+
+                # Stage-specific diagnostics
+                if "intake" in current_step or not result_state.get("intake_session"):
+                    logger.error("🔴 INTAKE FAILURE DIAGNOSIS:")
+                    logger.error(diagnose_intake_failure(result_state))
+                    final_response = create_detailed_error_response(
+                        result_state, "intake"
+                    )
+
+                elif "search" in current_step:
+                    logger.error("🔴 SEARCH FAILURE DIAGNOSIS:")
+                    logger.error(diagnose_search_failure(result_state))
+                    final_response = create_detailed_error_response(
+                        result_state, "search"
+                    )
+
+                else:
+                    # Generic but informative error
+                    logger.error("🔴 UNKNOWN FAILURE POINT")
+                    final_response = create_detailed_error_response(
+                        result_state, current_step
+                    )
+
+                # Log full state for debugging
+                logger.error("🔴 FULL STATE DUMP:")
+                for key, value in result_state.items():
+                    if key not in [
+                        "_raw_vector_results",
+                        "_raw_google_results",
+                    ]:  # Skip large data
+                        logger.error(f"   {key}: {str(value)[:200]}")
+
+            logger.info(
+                f"🟢 WORKING AGENT - Final response to send: length={len(final_response)}, text='{final_response[:100]}...'"
+            )
+
+            # Extract suggested_answers from intake_session if available
+            suggested_answers = []
+            intake_session = result_state.get("intake_session")
+            if intake_session and hasattr(intake_session, "suggested_answers"):
+                suggested_answers = intake_session.suggested_answers or []
+                logger.info(
+                    f"🔵 WORKING AGENT - Extracted {len(suggested_answers)} suggested answers from intake_session"
+                )
+
             response = {
-                "response": result_state.get(
-                    "final_response",
-                    "I apologize, but I couldn't process your request.",
-                ),
+                "response": final_response,
                 "confidence_score": result_state.get("confidence_score", 0.0),
                 "sources": result_state.get("sources", []),
                 "recommendations": result_state.get("recommendations", []),
@@ -239,22 +329,24 @@ class JapanHelpdeskLangGraph:
                 "errors": result_state.get("errors", []),
                 "processing_time": total_time,
                 "tokens_used": result_state.get("tokens_used", 0),
+                "suggested_answers": suggested_answers,
                 "metadata": {
-                    "workflow_type": "langgraph",
-                    "error_count": result_state.get("error_count", 0),
+                    "workflow_type": "working_langgraph",
+                    "error_count": len(result_state.get("errors", [])),
                     "fallback_used": result_state.get("fallback_used", False),
-                    "langfuse_trace_id": result_state.get("langfuse_trace_id"),
+                    "langfuse_trace_id": None,
+                    "diagnostics": diagnostics.get_failure_report()
+                    if diagnostics.diagnostics
+                    else None,
                 },
             }
 
-            # Langfuse v3 automatically captures output and usage via @observe decorator
-            # Flush events for immediate visibility
             flush_langfuse()
-
             return response
 
         except Exception as e:
             # Fallback response with error tracking
+            total_time = time.time() - start_time
             error_response = {
                 "response": f"I apologize, but I encountered a technical error: {e!s}. Please try again or contact support.",
                 "confidence_score": 0.0,
@@ -266,21 +358,20 @@ class JapanHelpdeskLangGraph:
                 "session_id": session_id,
                 "completed_steps": ["error"],
                 "errors": [str(e)],
-                "processing_time": time.time() - start_time,
+                "processing_time": total_time,
                 "tokens_used": 0,
+                "suggested_answers": [],
                 "metadata": {
-                    "workflow_type": "langgraph",
+                    "workflow_type": "working_langgraph",
                     "error_count": 1,
                     "fallback_used": True,
-                    "langfuse_trace_id": None,  # Langfuse v3 handles trace IDs automatically
+                    "langfuse_trace_id": None,
                 },
             }
 
-            # Langfuse v3 automatically captures exceptions via @observe decorator
             flush_langfuse()
-
             return error_response
 
 
 # Create global instance
-agent = JapanHelpdeskLangGraph()
+agent = JapanHelpdeskAgent()

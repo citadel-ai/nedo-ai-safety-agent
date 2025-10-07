@@ -13,7 +13,9 @@
 # limitations under the License.
 
 # mypy: ignore-errors
-from app.agent import agent
+from app.agent import JapanHelpdeskAgent
+
+agent = JapanHelpdeskAgent().agent
 
 
 def test_agent_stream() -> None:

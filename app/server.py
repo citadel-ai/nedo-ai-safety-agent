@@ -41,8 +41,8 @@ logger = logging.getLogger(__name__)
 
 # Import agent with explicit selection of production workflow
 AGENT_IMPLEMENTATION = os.getenv(
-    "AGENT_IMPLEMENTATION", "working"
-)  # working | simple | full | mock
+    "AGENT_IMPLEMENTATION", "production"
+)  # production | simple | mock
 try:
     if AGENT_IMPLEMENTATION == "simple":
         from app.simple_agent import SimpleJapanHelpdeskAgent as SelectedAgent
@@ -50,18 +50,6 @@ try:
         agent = SelectedAgent()
         AGENT_TYPE = "simple"
         logger.info("Initialized simple agent (experimental)")
-    elif AGENT_IMPLEMENTATION == "full":
-        from app.agent import JapanHelpdeskLangGraph as SelectedAgent
-
-        agent = SelectedAgent()
-        AGENT_TYPE = "full"
-        logger.info("Initialized full agent (experimental)")
-    elif AGENT_IMPLEMENTATION == "agentic":
-        from app.working_agent import WorkingJapanHelpdeskAgent as SelectedAgent
-
-        agent = SelectedAgent()
-        AGENT_TYPE = "agentic"
-        logger.info("Initialized agentic working agent (planner + evaluator)")
     elif AGENT_IMPLEMENTATION == "mock":
         from app.mock_agent import MockJapanHelpdeskAgent as SelectedAgent
 
@@ -69,11 +57,11 @@ try:
         AGENT_TYPE = "mock"
         logger.info("Initialized mock agent")
     else:
-        from app.working_agent import WorkingJapanHelpdeskAgent as SelectedAgent
+        from app.agent import JapanHelpdeskAgent as SelectedAgent
 
         agent = SelectedAgent()
-        AGENT_TYPE = "working"
-        logger.info("Initialized working agent (production)")
+        AGENT_TYPE = "production"
+        logger.info("Initialized production agent")
 except Exception as e:
     logger.warning(f"Failed to initialize selected agent '{AGENT_IMPLEMENTATION}': {e}")
     logger.info("Falling back to mock agent")
