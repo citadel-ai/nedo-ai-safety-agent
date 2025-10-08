@@ -15,6 +15,7 @@
 """Adversarial input detection node with Langfuse v3 observability."""
 
 import json
+import logging
 import re
 import time
 
@@ -22,8 +23,11 @@ from langchain_core.messages import HumanMessage, SystemMessage
 from langchain_core.output_parsers import PydanticOutputParser
 from langchain_google_vertexai import ChatVertexAI
 
+from app.nodes.intake_agent import session_store
 from app.types import AdversarialInputResult, JapanHelpdeskState
 from app.utils.observability import observe
+
+logger = logging.getLogger(__name__)
 
 # Initialize the LLM
 llm = ChatVertexAI(
@@ -79,9 +83,6 @@ async def adversarial_detector_node(state: JapanHelpdeskState) -> JapanHelpdeskS
         session_id = state.get("session_id")
 
         if session_id:
-            # Import session_store from intake_agent
-            from app.nodes.intake_agent import session_store
-
             intake = session_store.get(session_id)
 
             if intake:
@@ -118,9 +119,6 @@ async def adversarial_detector_node(state: JapanHelpdeskState) -> JapanHelpdeskS
         response = await llm.ainvoke(messages)
 
         # Debug logging
-        import logging
-
-        logger = logging.getLogger(__name__)
         raw = response.content or ""
         logger.info(f"🛡️ ADV DETECTOR - input: '{state['user_input']}'")
         logger.info(f"🛡️ ADV DETECTOR - context: {context}")

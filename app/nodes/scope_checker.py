@@ -2,6 +2,7 @@
 
 """Scope checker node for LangGraph with Langfuse v3 observability."""
 
+import re
 import time
 
 from langchain_core.messages import HumanMessage, SystemMessage
@@ -145,8 +146,6 @@ async def scope_checker_node(state: JapanHelpdeskState) -> JapanHelpdeskState:
         }
 
         # Deterministic illegal/unethical intent filter (fail-closed)
-        import re
-
         combined_text = f"{evaluated_query} {latest}".lower()
         phrase_hits = [
             "tax evasion",

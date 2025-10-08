@@ -11,6 +11,8 @@ from langchain_core.messages import HumanMessage, SystemMessage
 from langchain_core.output_parsers import PydanticOutputParser
 from langchain_google_vertexai import ChatVertexAI
 
+from app.enhanced_google_search import enhanced_google_search
+from app.real_vector_db import real_vector_search
 from app.types import AgentPlan, AgentTodo, JapanHelpdeskState
 from app.utils.observability import observe
 
@@ -231,16 +233,12 @@ async def _execute_todo_with_tools(todo: AgentTodo, state: JapanHelpdeskState) -
 
     if "vector" in task_lower or "document" in task_lower:
         # Use vector search
-        from app.real_vector_db import real_vector_search
-
         query = _extract_search_query(todo.task, state)
         results = await real_vector_search(query)
         return f"Vector search completed: {len(results)} results found"
 
     elif "google" in task_lower or "web" in task_lower or "current" in task_lower:
         # Use Google search
-        from app.enhanced_google_search import enhanced_google_search
-
         query = _extract_search_query(todo.task, state)
         results = await enhanced_google_search(query, num_results=3)
         return f"Google search completed: {len(results)} results found"

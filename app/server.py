@@ -9,11 +9,16 @@ import uvicorn
 from dotenv import load_dotenv
 from fastapi import FastAPI, HTTPException, Request
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import RedirectResponse
+from fastapi.responses import FileResponse, RedirectResponse
 from fastapi.staticfiles import StaticFiles
 from google.cloud import logging as google_cloud_logging
 from pydantic import BaseModel
 
+from app.agent import JapanHelpdeskAgent
+from app.mock_agent import MockJapanHelpdeskAgent
+from app.real_google_search import get_search_config
+from app.real_vector_db import get_vector_db
+from app.simple_agent import SimpleJapanHelpdeskAgent
 from app.utils.observability import (
     get_langfuse_client,
     is_langfuse_enabled,
@@ -26,35 +31,27 @@ load_dotenv()
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
-# Import agent with explicit selection of production workflow
+# Initialize agent based on configuration
 AGENT_IMPLEMENTATION = os.getenv(
     "AGENT_IMPLEMENTATION", "production"
 )  # production | simple | mock
 try:
     if AGENT_IMPLEMENTATION == "simple":
-        from app.simple_agent import SimpleJapanHelpdeskAgent as SelectedAgent
-
-        agent = SelectedAgent()
+        agent = SimpleJapanHelpdeskAgent()
         AGENT_TYPE = "simple"
         logger.info("Initialized simple agent (experimental)")
     elif AGENT_IMPLEMENTATION == "mock":
-        from app.mock_agent import MockJapanHelpdeskAgent as SelectedAgent
-
-        agent = SelectedAgent()
+        agent = MockJapanHelpdeskAgent()
         AGENT_TYPE = "mock"
         logger.info("Initialized mock agent")
     else:
-        from app.agent import JapanHelpdeskAgent as SelectedAgent
-
-        agent = SelectedAgent()
+        agent = JapanHelpdeskAgent()
         AGENT_TYPE = "production"
         logger.info("Initialized production agent")
 except Exception as e:
     logger.warning(f"Failed to initialize selected agent '{AGENT_IMPLEMENTATION}': {e}")
     logger.info("Falling back to mock agent")
-    from app.mock_agent import MockJapanHelpdeskAgent as SelectedAgent
-
-    agent = SelectedAgent()
+    agent = MockJapanHelpdeskAgent()
     AGENT_TYPE = "mock"
 
 # Initialize FastAPI app and logging
@@ -164,8 +161,6 @@ if os.path.exists(static_dir):
     @app.get("/")
     def serve_frontend():
         """Serve the React frontend in production."""
-        from fastapi.responses import FileResponse
-
         index_file = os.path.join(static_dir, "index.html")
         if os.path.exists(index_file):
             return FileResponse(index_file)
@@ -195,8 +190,6 @@ def system_info_endpoint() -> dict[str, Any]:
         # Get vector database info
         vector_info = {}
         try:
-            from app.real_vector_db import get_vector_db
-
             vector_db = get_vector_db()
             vector_info = vector_db.get_collection_info()
         except Exception as e:
@@ -205,8 +198,6 @@ def system_info_endpoint() -> dict[str, Any]:
         # Get search configuration
         search_info = {}
         try:
-            from app.real_google_search import get_search_config
-
             search_info = get_search_config()
         except Exception as e:
             search_info = {"error": f"Search config not available: {e}"}

@@ -14,6 +14,7 @@
 
 """Intake agent node with memory management and Langfuse v3 observability."""
 
+import logging
 import re
 import time
 import uuid
@@ -21,10 +22,13 @@ import uuid
 from langchain_core.messages import HumanMessage, SystemMessage
 from langchain_core.output_parsers import PydanticOutputParser
 from langchain_google_vertexai import ChatVertexAI
+from pydantic import ValidationError
 
 from app.intake_suggestions import get_suggestions_for_question
 from app.types import IntakeSession, JapanHelpdeskState
 from app.utils.observability import observe
+
+logger = logging.getLogger(__name__)
 
 # Initialize the LLM
 llm = ChatVertexAI(
@@ -164,11 +168,6 @@ def get_or_create_session(user_id: str, session_id: str | None = None) -> Intake
 @observe(name="intake_agent_node")
 async def intake_agent_node(state: JapanHelpdeskState) -> JapanHelpdeskState:
     """Intake agent node for systematic information gathering."""
-
-    import logging
-
-    logger = logging.getLogger(__name__)
-
     start_time = time.time()
 
     logger.info(f"🔵 INTAKE AGENT START - Input: '{state['user_input']}'")
@@ -236,8 +235,6 @@ async def intake_agent_node(state: JapanHelpdeskState) -> JapanHelpdeskState:
             logger.warning(
                 f"🟡 INTAKE AGENT - Primary parse failed, attempting direct Pydantic parse: {parse_err}"
             )
-            from pydantic import ValidationError
-
             try:
                 updated_session = IntakeSession.model_validate_json(json_text)
             except ValidationError as ve:
