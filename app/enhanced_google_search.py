@@ -372,7 +372,7 @@ class EnhancedGoogleSearch(RealGoogleSearch):
             logger.info("Trafilatura failed, trying BeautifulSoup fallback")
             return self._extract_with_beautifulsoup(html_content)
 
-        except asyncio.TimeoutError:
+        except TimeoutError:
             logger.warning(f"Timeout fetching {url}")
             return None
         except Exception as e:

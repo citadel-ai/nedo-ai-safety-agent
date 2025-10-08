@@ -42,7 +42,6 @@ except Exception as e:
 app = FastAPI(
     title="Japan Helpdesk - LangGraph + Langfuse",
     description="AI-powered helpdesk for foreigners in Japan with comprehensive observability and guardrails",
-    version="1.0.0",
 )
 
 # Add CORS middleware for React frontend
@@ -126,8 +125,6 @@ class ChatResponse(BaseModel):
 
 class HealthResponse(BaseModel):
     status: str
-    version: str
-    workflow_type: str
 
 
 # Routes
@@ -160,11 +157,7 @@ else:
 @app.get("/health", response_model=HealthResponse)
 def health_check() -> HealthResponse:
     """Comprehensive health check endpoint with diagnostics."""
-    return HealthResponse(
-        status="healthy",
-        version="1.0.0",
-        workflow_type=f"langgraph-{AGENT_TYPE}",
-    )
+    return HealthResponse(status="healthy")
 
 
 @app.get("/system-info")
