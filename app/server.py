@@ -1,22 +1,9 @@
-# Copyright 2025 Google LLC
-#
-# Licensed under the Apache License, Version 2.0 (the "License");
-# you may not use this file except in compliance with the License.
-# You may obtain a copy of the License at
-#
-#     http://www.apache.org/licenses/LICENSE-2.0
-#
-# Unless required by applicable law or agreed to in writing, software
-# distributed under the License is distributed on an "AS IS" BASIS,
-# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-# See the License for the specific language governing permissions and
-# limitations under the License.
-
 import logging
 import os
-import time
 import uuid
 from typing import Any
+
+import uvicorn
 
 # Load environment variables from .env file
 from dotenv import load_dotenv
@@ -85,8 +72,6 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
-
-# Logging already set up above
 
 # Initialize Google Cloud logging if available (optional for development)
 try:
@@ -196,26 +181,10 @@ else:
 @app.get("/health", response_model=HealthResponse)
 def health_check() -> HealthResponse:
     """Comprehensive health check endpoint with diagnostics."""
-    from app.utils.circuit_breaker import get_all_circuit_breaker_status
-
-    status = "healthy"
-
-    # Check if any circuit breakers are open
-    breakers_status = get_all_circuit_breaker_status()
-    open_breakers = [
-        name
-        for name, status_dict in breakers_status.items()
-        if status_dict["state"] == "open"
-    ]
-
-    if open_breakers:
-        status = "degraded"
-        logger.warning(
-            f"⚠️ System degraded - Circuit breakers open: {', '.join(open_breakers)}"
-        )
-
     return HealthResponse(
-        status=status, version="1.0.0", workflow_type=f"langgraph-{AGENT_TYPE}"
+        status="healthy",
+        version="1.0.0",
+        workflow_type=f"langgraph-{AGENT_TYPE}",
     )
 
 
@@ -260,60 +229,6 @@ def system_info_endpoint() -> dict[str, Any]:
             "error": str(e),
             "fallback": "Using basic system information",
         }
-
-
-@app.get("/debug/circuit-breakers")
-def debug_circuit_breakers() -> dict[str, Any]:
-    """Get detailed circuit breaker status for debugging."""
-    from app.utils.circuit_breaker import (
-        get_all_circuit_breaker_status,
-        get_circuit_breaker,
-    )
-
-    breakers = get_all_circuit_breaker_status()
-
-    # Add more detailed info
-    detailed = {}
-    for name, status in breakers.items():
-        breaker = get_circuit_breaker(name)
-        detailed[name] = {
-            **status,
-            "config": {
-                "failure_threshold": breaker.config.failure_threshold,
-                "success_threshold": breaker.config.success_threshold,
-                "timeout_seconds": breaker.config.timeout,
-            },
-            "last_failure_time": breaker.last_failure_time,
-        }
-
-    return {
-        "timestamp": time.time(),
-        "circuit_breakers": detailed,
-        "summary": {
-            "total": len(breakers),
-            "open": len([s for s in breakers.values() if s["state"] == "open"]),
-            "half_open": len(
-                [s for s in breakers.values() if s["state"] == "half_open"]
-            ),
-            "closed": len([s for s in breakers.values() if s["state"] == "closed"]),
-        },
-    }
-
-
-@app.post("/debug/reset-circuit-breaker/{name}")
-def reset_circuit_breaker(name: str) -> dict[str, str]:
-    """Manually reset a circuit breaker (for debugging/recovery)."""
-    from app.utils.circuit_breaker import get_circuit_breaker
-
-    try:
-        breaker = get_circuit_breaker(name)
-        breaker.reset()
-        return {
-            "status": "success",
-            "message": f"Circuit breaker '{name}' has been reset",
-        }
-    except Exception as e:
-        return {"status": "error", "error": str(e)}
 
 
 @app.post("/chat", response_model=ChatResponse)
@@ -516,6 +431,4 @@ def collect_feedback(feedback: dict[str, Any]) -> dict[str, str]:
 
 # Main execution
 if __name__ == "__main__":
-    import uvicorn
-
     uvicorn.run(app, host="0.0.0.0", port=8000)
