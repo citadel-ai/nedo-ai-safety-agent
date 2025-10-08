@@ -18,7 +18,6 @@ from app.agent import JapanHelpdeskAgent
 from app.mock_agent import MockJapanHelpdeskAgent
 from app.real_google_search import get_search_config
 from app.real_vector_db import get_vector_db
-from app.simple_agent import SimpleJapanHelpdeskAgent
 from app.utils.observability import (
     get_langfuse_client,
     is_langfuse_enabled,
@@ -32,15 +31,9 @@ logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
 # Initialize agent based on configuration
-AGENT_IMPLEMENTATION = os.getenv(
-    "AGENT_IMPLEMENTATION", "production"
-)  # production | simple | mock
+AGENT_IMPLEMENTATION = os.getenv("AGENT_IMPLEMENTATION", "production")  # production | mock
 try:
-    if AGENT_IMPLEMENTATION == "simple":
-        agent = SimpleJapanHelpdeskAgent()
-        AGENT_TYPE = "simple"
-        logger.info("Initialized simple agent (experimental)")
-    elif AGENT_IMPLEMENTATION == "mock":
+    if AGENT_IMPLEMENTATION == "mock":
         agent = MockJapanHelpdeskAgent()
         AGENT_TYPE = "mock"
         logger.info("Initialized mock agent")
