@@ -249,7 +249,9 @@ async def chat_endpoint(request: ChatRequest) -> ChatResponse:
 
         # Process query through LangGraph workflow
         result = await agent.process_query(
-            user_input=request.message, user_id=request.user_id, session_id=session_id
+            user_input=request.message,
+            user_id=request.user_id,
+            session_id=session_id,
         )
 
         # Log response
