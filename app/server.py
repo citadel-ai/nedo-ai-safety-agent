@@ -29,19 +29,15 @@ load_dotenv()
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
-# Initialize agent
-try:
-    agent = JapanHelpdeskAgent()
-    AGENT_TYPE = "production"
-    logger.info("Initialized production agent")
-except Exception as e:
-    logger.error(f"Failed to initialize agent: {e}")
-    raise
+agent = JapanHelpdeskAgent()
 
 # Initialize FastAPI app and logging
 app = FastAPI(
     title="Japan Helpdesk - LangGraph + Langfuse",
-    description="AI-powered helpdesk for foreigners in Japan with comprehensive observability and guardrails",
+    description=(
+        "AI-powered helpdesk for foreigners in Japan with "
+        "comprehensive observability and guardrails"
+    ),
 )
 
 # Add CORS middleware for React frontend
@@ -181,7 +177,6 @@ def system_info_endpoint() -> dict[str, Any]:
 
         return {
             "status": "success",
-            "agent_type": f"langgraph-{AGENT_TYPE}",
             "vector_database": vector_info,
             "google_search": search_info,
             "features": {
@@ -323,12 +318,9 @@ def get_workflow_default() -> dict[str, str]:
             )
         else:
             ascii_graph = ""
-        return {"workflow": ascii_graph, "type": f"langgraph-{AGENT_TYPE}"}
+        return {"workflow": ascii_graph}
     except Exception as e:
-        return {
-            "workflow": f"Workflow visualization unavailable: {e}",
-            "type": f"langgraph-{AGENT_TYPE}",
-        }
+        return {"workflow": f"Workflow visualization unavailable: {e}"}
 
 
 @app.post("/feedback")
