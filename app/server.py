@@ -15,7 +15,6 @@ from google.cloud import logging as google_cloud_logging
 from pydantic import BaseModel
 
 from app.agent import JapanHelpdeskAgent
-from app.mock_agent import MockJapanHelpdeskAgent
 from app.real_google_search import get_search_config
 from app.real_vector_db import get_vector_db
 from app.utils.observability import (
@@ -30,22 +29,14 @@ load_dotenv()
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
-# Initialize agent based on configuration
-AGENT_IMPLEMENTATION = os.getenv("AGENT_IMPLEMENTATION", "production")  # production | mock
+# Initialize agent
 try:
-    if AGENT_IMPLEMENTATION == "mock":
-        agent = MockJapanHelpdeskAgent()
-        AGENT_TYPE = "mock"
-        logger.info("Initialized mock agent")
-    else:
-        agent = JapanHelpdeskAgent()
-        AGENT_TYPE = "production"
-        logger.info("Initialized production agent")
+    agent = JapanHelpdeskAgent()
+    AGENT_TYPE = "production"
+    logger.info("Initialized production agent")
 except Exception as e:
-    logger.warning(f"Failed to initialize selected agent '{AGENT_IMPLEMENTATION}': {e}")
-    logger.info("Falling back to mock agent")
-    agent = MockJapanHelpdeskAgent()
-    AGENT_TYPE = "mock"
+    logger.error(f"Failed to initialize agent: {e}")
+    raise
 
 # Initialize FastAPI app and logging
 app = FastAPI(
