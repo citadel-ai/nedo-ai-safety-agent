@@ -1,6 +1,7 @@
 """Agentic Search Orchestrator - Multi-query intelligent search with ranking."""
 
 import asyncio
+import logging
 import time
 from typing import Any
 
@@ -8,13 +9,15 @@ from langchain_core.messages import HumanMessage, SystemMessage
 from langchain_google_vertexai import ChatVertexAI
 
 from src.enhanced_google_search import get_enhanced_search_results
-from src.models import JapanHelpdeskState
+from src.models import JapanHelpdeskState, MergedSearchResult
 from src.utils.observability import observe
 
 # Initialize LLM for query generation
 llm = ChatVertexAI(
     model="gemini-2.5-flash", temperature=0.3, max_tokens=512, location="us-central1"
 )
+
+logger = logging.getLogger(__name__)
 
 QUERY_VARIANT_PROMPT = """
 You are a search query expert for Japan. Generate multiple search query variants in BOTH English and Japanese.
@@ -154,10 +157,6 @@ async def agentic_search_orchestrator_node(
     Generates multiple query variants and executes parallel searches for comprehensive results.
     """
 
-    import logging
-
-    logger = logging.getLogger(__name__)
-
     start_time = time.time()
 
     try:
@@ -293,7 +292,6 @@ async def agentic_search_orchestrator_node(
 
         # Store results in state
         # We'll create a merged result structure
-        from app.types import MergedSearchResult
 
         # Extract sources from results
         sources = []
