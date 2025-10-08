@@ -352,44 +352,6 @@ def get_workflow_default() -> dict[str, str]:
         }
 
 
-@app.get("/workflow/mermaid")
-def get_workflow_mermaid() -> dict[str, str]:
-    """Return a Mermaid diagram definition if supported, with ASCII fallback."""
-    try:
-        # Try to obtain a graph object from compiled app
-        graph = None
-        if hasattr(agent, "agent") and hasattr(agent.agent, "get_graph"):
-            graph = agent.agent.get_graph()
-        elif hasattr(agent, "workflow") and hasattr(agent.workflow, "compile"):
-            temp_app = agent.workflow.compile()  # type: ignore[attr-defined]
-            if hasattr(temp_app, "get_graph"):
-                graph = temp_app.get_graph()
-
-        if graph is None:
-            return {
-                "mermaid": "",
-                "fallback_ascii": "Workflow graph object unavailable",
-                "note": "Mermaid export not supported by current configuration",
-            }
-        # Some versions may not support draw_mermaid; fall back gracefully
-        if hasattr(graph, "draw_mermaid"):
-            mermaid = graph.draw_mermaid()
-            return {"mermaid": mermaid}
-        # Fallback: provide ASCII and a hint
-        fallback_ascii = graph.draw_ascii() if hasattr(graph, "draw_ascii") else ""
-        return {
-            "mermaid": "",
-            "fallback_ascii": fallback_ascii,
-            "note": "Mermaid export not supported by current LangGraph version",
-        }
-    except Exception as e:
-        return {
-            "mermaid": "",
-            "fallback_ascii": f"Workflow visualization unavailable: {e}",
-            "note": "Mermaid export failed",
-        }
-
-
 @app.post("/feedback")
 def collect_feedback(feedback: dict[str, Any]) -> dict[str, str]:
     """Collect user feedback for continuous improvement.
