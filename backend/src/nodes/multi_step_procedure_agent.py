@@ -7,8 +7,8 @@ from langchain_core.output_parsers import PydanticOutputParser
 from langchain_google_vertexai import ChatVertexAI
 from pydantic import BaseModel, Field
 
-from app.types import JapanHelpdeskState
-from app.utils.observability import observe
+from src.models import JapanHelpdeskState
+from src.utils.observability import observe
 
 # Initialize LLM
 llm = ChatVertexAI(

@@ -14,7 +14,7 @@ from langchain_chroma import Chroma
 from langchain_core.documents import Document
 from langchain_google_genai import GoogleGenerativeAIEmbeddings
 
-from app.types import VectorSearchResult
+from src.models import VectorSearchResult
 
 load_dotenv()
 

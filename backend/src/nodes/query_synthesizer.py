@@ -5,8 +5,8 @@ import time
 from langchain_core.messages import HumanMessage, SystemMessage
 from langchain_google_vertexai import ChatVertexAI
 
-from app.types import JapanHelpdeskState
-from app.utils.observability import observe
+from src.models import JapanHelpdeskState
+from src.utils.observability import observe
 
 # Initialize LLM for query synthesis
 llm = ChatVertexAI(

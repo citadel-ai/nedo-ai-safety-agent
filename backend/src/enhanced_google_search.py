@@ -16,7 +16,7 @@ import aiohttp
 import trafilatura
 from bs4 import BeautifulSoup
 
-from app.real_google_search import RealGoogleSearch
+from src.real_google_search import RealGoogleSearch
 
 logger = logging.getLogger(__name__)
 

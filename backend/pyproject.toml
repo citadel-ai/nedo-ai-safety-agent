@@ -1,5 +1,9 @@
+[build-system]
+requires = ["setuptools>=61.0"]
+build-backend = "setuptools.build_meta"
+
 [project]
-name = "japan-helpdesk-agent"
+name = "japan-helpdesk-backend"
 version = "0.1.0"
 description = ""
 dependencies = [
@@ -31,7 +35,6 @@ dependencies = [
 
 requires-python = ">=3.10,<3.14"
 
-
 [dependency-groups]
 dev = [
     "pytest>=8.3.4",
@@ -58,7 +61,7 @@ select = [
 ignore = ["E501", "C901", "B006"] # ignore line too long, too complex
 
 [tool.ruff.lint.isort]
-known-first-party = ["app", "frontend"]
+known-first-party = ["src"]
 
 [tool.mypy]
 disallow_untyped_calls = true
@@ -78,19 +81,9 @@ disable_error_code = ["misc", "no-untyped-call", "no-any-return"]
 
 exclude = [".venv"]
 
-[tool.codespell]
-ignore-words-list = "rouge"
-skip = "./locust_env/*,uv.lock,.venv,./frontend,**/*.ipynb"
-
-
-[build-system]
-requires = ["hatchling"]
-build-backend = "hatchling.build"
-
-
 [tool.pytest.ini_options]
 pythonpath = "."
 asyncio_default_fixture_loop_scope = "function"
 
-[tool.hatch.build.targets.wheel]
-packages = ["app", "frontend"]
+[tool.setuptools]
+packages = ["src"]

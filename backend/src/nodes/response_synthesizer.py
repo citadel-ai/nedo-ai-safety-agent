@@ -4,8 +4,8 @@
 
 import time
 
-from app.types import JapanHelpdeskState
-from app.utils.observability import observe
+from src.models import JapanHelpdeskState
+from src.utils.observability import observe
 
 
 @observe(name="response_synthesizer_node")

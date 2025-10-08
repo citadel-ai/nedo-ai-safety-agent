@@ -10,9 +10,9 @@ from langchain_core.output_parsers import PydanticOutputParser
 from langchain_google_vertexai import ChatVertexAI
 from pydantic import ValidationError
 
-from app.intake_suggestions import get_suggestions_for_question
-from app.types import IntakeSession, JapanHelpdeskState
-from app.utils.observability import observe
+from src.intake_suggestions import get_suggestions_for_question
+from src.models import IntakeSession, JapanHelpdeskState
+from src.utils.observability import observe
 
 logger = logging.getLogger(__name__)
 

@@ -7,9 +7,9 @@ import time
 from langchain_core.output_parsers import PydanticOutputParser
 from langchain_google_vertexai import ChatVertexAI
 
-from app.real_vector_db import real_vector_search
-from app.types import JapanHelpdeskState, MergedSearchResult
-from app.utils.observability import observe
+from src.models import JapanHelpdeskState, MergedSearchResult
+from src.real_vector_db import real_vector_search
+from src.utils.observability import observe
 
 llm = ChatVertexAI(model="gemini-2.5-flash", temperature=0.1, location="us-central1")
 parser = PydanticOutputParser(pydantic_object=MergedSearchResult)

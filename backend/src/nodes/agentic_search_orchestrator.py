@@ -7,9 +7,9 @@ from typing import Any
 from langchain_core.messages import HumanMessage, SystemMessage
 from langchain_google_vertexai import ChatVertexAI
 
-from app.enhanced_google_search import get_enhanced_search_results
-from app.types import JapanHelpdeskState
-from app.utils.observability import observe
+from src.enhanced_google_search import get_enhanced_search_results
+from src.models import JapanHelpdeskState
+from src.utils.observability import observe
 
 # Initialize LLM for query generation
 llm = ChatVertexAI(

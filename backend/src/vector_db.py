@@ -2,7 +2,7 @@
 
 import numpy as np
 
-from app.types import VectorSearchResult
+from src.models import VectorSearchResult
 
 # No sample documents - system starts empty for real testing
 SAMPLE_DOCUMENTS = []

@@ -8,7 +8,8 @@ from typing import Any, Literal
 
 from langgraph.graph import END, StateGraph
 
-from app.nodes import (
+from src.models import JapanHelpdeskState
+from src.nodes import (
     adversarial_detector_node,
     agentic_orchestrator_node,
     agentic_search_orchestrator_node,
@@ -21,8 +22,7 @@ from app.nodes import (
     response_synthesizer_node,
     scope_checker_node,
 )
-from app.types import JapanHelpdeskState
-from app.utils.error_diagnostics import (
+from src.utils.error_diagnostics import (
     WorkflowDiagnostics,
     create_detailed_error_response,
     diagnose_intake_failure,
@@ -30,7 +30,7 @@ from app.utils.error_diagnostics import (
     diagnose_search_failure,
     validate_state_integrity,
 )
-from app.utils.observability import flush_langfuse, observe
+from src.utils.observability import flush_langfuse, observe
 
 
 def create_japan_helpdesk_workflow():
@@ -183,7 +183,7 @@ class JapanHelpdeskAgent:
 
         # Update Langfuse session id on the active trace if available
         try:
-            from app.utils.observability import get_langfuse_client, is_langfuse_enabled
+            from src.utils.observability import get_langfuse_client, is_langfuse_enabled
 
             if is_langfuse_enabled():
                 lf = get_langfuse_client()
