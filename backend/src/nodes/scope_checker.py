@@ -3,25 +3,23 @@
 """Scope checker node for LangGraph with Langfuse v3 observability."""
 
 import re
-import time
 
 from langchain_core.messages import HumanMessage, SystemMessage
 from langchain_core.output_parsers import PydanticOutputParser
-from langchain_google_vertexai import ChatVertexAI
 
 from src.models import SUPPORTED_CATEGORIES, JapanHelpdeskState, ScopeCheckResult
-from src.settings import load_settings
+from src.utils.llm_factory import create_llm
+from src.utils.node_helpers import (
+    get_intake_context,
+    get_main_request,
+    get_user_location,
+    handle_node_error,
+    track_execution,
+)
 from src.utils.observability import observe
 
-# Initialize settings
-settings = load_settings()
-
-llm = ChatVertexAI(
-    model=settings.agent_model,
-    temperature=settings.agent_temperature,
-    max_tokens=settings.agent_max_tokens,
-    location=settings.vertex_ai_location,
-)
+# Initialize LLM and parser
+llm = create_llm()
 parser = PydanticOutputParser(pydantic_object=ScopeCheckResult)
 
 SCOPE_CHECK_PROMPT = """
@@ -48,182 +46,167 @@ Context: {context}
 Evaluated Query: "{query}"
 """
 
+# Illegal intent patterns
+ILLEGAL_PHRASES = [
+    "tax evasion",
+    "bypass the law",
+    "cheat the system",
+    "forged",
+    "fake",
+    "bribe",
+    "illegally",
+]
+
+ILLEGAL_PATTERNS = [
+    r"\bavoid(ing)?\s+tax(es)?\b",
+    r"\bevad(e|ing|ed)\s+tax(es)?\b",
+    r"\bdodg(e|ing|ed)\s+tax(es)?\b",
+    r"\bcheat(ing)?\s+tax(es)?\b",
+]
+
+
+def _classify_category(text: str) -> str:
+    """Classify text into a supported category using keyword matching."""
+    text_lower = (text or "").lower()
+    
+    category_keywords = {
+        "visa": ["visa", "immigration", "residence card", "status of residence"],
+        "housing": ["housing", "rental", "apartment", "lease"],
+        "tax": ["tax", "taxes", "withholding", "my number"],
+        "employment": ["work", "employment", "job", "part-time", "baito"],
+        "healthcare": ["health", "insurance", "clinic", "hospital", "nhis"],
+        "banking": ["bank", "account", "atm", "transfer"],
+        "education": ["school", "education", "university", "enrollment"],
+        "marriage": ["marriage", "divorce", "koseki", "registration"],
+        "driving_license": ["license", "driving", "jaf", "convert"],
+        "pension": ["pension", "nenkin"],
+        "insurance": ["insurance", "national health", "kokumin"],
+        "business_registration": ["business", "company", "registration", "incorporate"],
+    }
+    
+    for category, keywords in category_keywords.items():
+        if any(keyword in text_lower for keyword in keywords):
+            return category
+    
+    return "general_procedures"
+
+
+def _is_short_context_reply(user_input: str) -> bool:
+    """Check if input is a short contextual reply."""
+    return (
+        len(user_input.split()) <= 3 
+        and user_input.lower() not in {"yes", "no"}
+    )
+
+
+def _check_illegal_intent(text: str) -> bool:
+    """Check if text contains illegal intent patterns."""
+    text_lower = text.lower()
+    
+    # Check phrase matches
+    if any(phrase in text_lower for phrase in ILLEGAL_PHRASES):
+        return True
+    
+    # Check regex patterns
+    return any(re.search(pattern, text_lower) for pattern in ILLEGAL_PATTERNS)
+
+
+def _get_evaluated_query(state: JapanHelpdeskState) -> tuple[str, dict]:
+    """Extract evaluated query and context from state."""
+    intake = state.get("intake_session")
+    main_request = get_main_request(state)
+    location = get_user_location(state)
+    visa_type = getattr(intake, "visa_type", None) if intake else None
+    latest = state["user_input"]
+    synthesized = state.get("synthesized_search_query")
+    summary = getattr(intake, "conversation_summary", "") if intake else ""
+    
+    # Build evaluated query
+    evaluated_query = synthesized or main_request or latest
+    
+    # If latest is short context, try to extract location
+    if main_request and _is_short_context_reply(latest) and not location:
+        location = latest
+    
+    context = {
+        "main_request": main_request or evaluated_query,
+        "location": location,
+        "visa_type": visa_type,
+        "latest_user_message": latest,
+        "conversation_summary": summary,
+        "synthesized_search_query": synthesized,
+    }
+    
+    return evaluated_query, context
+
 
 @observe(name="scope_checker_node")
 async def scope_checker_node(state: JapanHelpdeskState) -> JapanHelpdeskState:
     """Check if query is within supported scope."""
-    start_time = time.time()
-
-    # Langfuse v3 automatically captures function context via @observe decorator
-
+    
     try:
-        # Build an evaluated query using synthesized intent and intake context
-        intake = state.get("intake_session")
-        collected = getattr(intake, "collected_info", {}) if intake else {}
-        main_request = collected.get("main_request")
-        location = collected.get("location") or (
-            getattr(intake, "user_location", None) if intake else None
-        )
-        visa_type = getattr(intake, "visa_type", None) if intake else None
-        latest = state["user_input"]
-        synthesized = state.get("synthesized_search_query")
-
-        # Start with synthesized or main request, fallback to latest
-        evaluated_query = synthesized or main_request or latest
-        # If latest looks like a short context answer, incorporate it as context
-        if (
-            main_request
-            and latest
-            and len(latest.split()) <= 3
-            and latest.lower() not in {"yes", "no"}
-        ):
-            if not location:
-                location = latest
-
-        # Deterministic override: short context reply with clear main intent → mark in-scope
-        def _classify_category(text: str) -> str:
-            text_l = (text or "").lower()
-            if any(
-                k in text_l
-                for k in [
-                    "visa",
-                    "immigration",
-                    "residence card",
-                    "status of residence",
-                ]
-            ):
-                return "visa"
-            if any(k in text_l for k in ["housing", "rental", "apartment", "lease"]):
-                return "housing"
-            if any(k in text_l for k in ["tax", "taxes", "withholding", "my number"]):
-                return "tax"
-            if any(
-                k in text_l for k in ["work", "employment", "job", "part-time", "baito"]
-            ):
-                return "employment"
-            if any(
-                k in text_l
-                for k in ["health", "insurance", "clinic", "hospital", "nhis"]
-            ):
-                return "healthcare"
-            if any(k in text_l for k in ["bank", "account", "atm", "transfer"]):
-                return "banking"
-            if any(
-                k in text_l for k in ["school", "education", "university", "enrollment"]
-            ):
-                return "education"
-            if any(
-                k in text_l for k in ["marriage", "divorce", "koseki", "registration"]
-            ):
-                return "marriage"
-            if any(k in text_l for k in ["license", "driving", "jaf", "convert"]):
-                return "driving_license"
-            if any(k in text_l for k in ["pension", "nenkin"]):
-                return "pension"
-            if any(k in text_l for k in ["insurance", "national health", "kokumin"]):
-                return "insurance"
-            if any(
-                k in text_l
-                for k in ["business", "company", "registration", "incorporate"]
-            ):
-                return "business_registration"
-            return "general_procedures"
-
-        is_short_context_reply = (
-            latest and len(latest.split()) <= 3 and latest.lower() not in {"yes", "no"}
-        )
-        if (synthesized or main_request) and is_short_context_reply:
-            category = _classify_category(synthesized or main_request)
-            # Only override if category is supported
-            if category in SUPPORTED_CATEGORIES:
-                result = ScopeCheckResult(
-                    is_in_scope=True, category=category, reason=None, confidence=0.9
+        with track_execution(state, "scope_check"):
+            evaluated_query, context = _get_evaluated_query(state)
+            latest = state["user_input"]
+            main_request = get_main_request(state)
+            synthesized = state.get("synthesized_search_query")
+            
+            # Fast path: Short context reply with known main intent
+            if (synthesized or main_request) and _is_short_context_reply(latest):
+                category = _classify_category(synthesized or main_request)
+                if category in SUPPORTED_CATEGORIES:
+                    state["scope_check_result"] = ScopeCheckResult(
+                        is_in_scope=True,
+                        category=category,
+                        reason=None,
+                        confidence=0.9
+                    )
+                    return state
+            
+            # Check for illegal intent
+            combined_text = f"{evaluated_query} {latest}"
+            if _check_illegal_intent(combined_text):
+                state["scope_check_result"] = ScopeCheckResult(
+                    is_in_scope=False,
+                    category=None,
+                    reason="Request appears to seek illegal activity (e.g., tax evasion), which is out of scope.",
+                    confidence=0.95,
                 )
-                state["scope_check_result"] = result
-                state["completed_steps"].append("scope_check")
                 return state
-
-        # Build LLM context using rolling summary when available
-        summary = getattr(intake, "conversation_summary", "") if intake else ""
-        context = {
-            "main_request": main_request or evaluated_query,
-            "location": location,
-            "visa_type": visa_type,
-            "latest_user_message": latest,
-            "conversation_summary": summary,
-            "synthesized_search_query": synthesized,
-        }
-
-        # Deterministic illegal/unethical intent filter (fail-closed)
-        combined_text = f"{evaluated_query} {latest}".lower()
-        phrase_hits = [
-            "tax evasion",
-            "bypass the law",
-            "cheat the system",
-            "forged",
-            "fake",
-            "bribe",
-            "illegally",
-        ]
-        regex_hits = [
-            r"\bavoid(ing)?\s+tax(es)?\b",
-            r"\bevad(e|ing|ed)\s+tax(es)?\b",
-            r"\bdodg(e|ing|ed)\s+tax(es)?\b",
-            r"\bcheat(ing)?\s+tax(es)?\b",
-        ]
-        illegal_match = any(p in combined_text for p in phrase_hits) or any(
-            re.search(rx, combined_text) for rx in regex_hits
-        )
-        if illegal_match:
-            result = ScopeCheckResult(
-                is_in_scope=False,
-                category=None,
-                reason="Request appears to seek illegal activity (e.g., tax evasion), which is out of scope.",
-                confidence=0.95,
+            
+            # LLM-based scope check
+            format_instructions = parser.get_format_instructions()
+            prompt = SCOPE_CHECK_PROMPT.format(
+                query=evaluated_query,
+                context=context,
+                format_instructions=format_instructions,
             )
+            
+            messages = [
+                SystemMessage(content="You are a scope checking system."),
+                HumanMessage(content=prompt),
+            ]
+            
+            response = await llm.ainvoke(messages)
+            result = parser.parse(response.content)
+            
             state["scope_check_result"] = result
-            state["completed_steps"].append("scope_check")
-            return state
-
-        format_instructions = parser.get_format_instructions()
-        prompt = SCOPE_CHECK_PROMPT.format(
-            query=evaluated_query,
-            context=context,
-            format_instructions=format_instructions,
-        )
-
-        messages = [
-            SystemMessage(content="You are a scope checking system."),
-            HumanMessage(content=prompt),
-        ]
-
-        response = await llm.ainvoke(messages)
-        result = parser.parse(response.content)
-
-        state["scope_check_result"] = result
-        state["completed_steps"].append("scope_check")
-
-        if not result.is_in_scope:
-            state["final_response"] = (
-                f"I'm sorry, but your query is outside my scope. {result.reason}"
-            )
-
-        processing_time = time.time() - start_time
-        state["processing_time"] += processing_time
-        state["tokens_used"] += len(response.content.split())
-
-        # Langfuse v3 automatically captures output via @observe decorator
-
+            state["tokens_used"] = state.get("tokens_used", 0) + len(response.content.split())
+            
+            if not result.is_in_scope:
+                state["final_response"] = (
+                    f"I'm sorry, but your query is outside my scope. {result.reason}"
+                )
+        
         return state
-
+        
     except Exception as e:
-        state["errors"].append(f"Scope check failed: {e!s}")
-        state["error_count"] += 1
-
         # Assume in scope if check fails
+        handle_node_error(state, "scope_checker", e)
         state["scope_check_result"] = ScopeCheckResult(
-            is_in_scope=True, category="general", reason=None, confidence=0.5
+            is_in_scope=True,
+            category="general",
+            reason=None,
+            confidence=0.5
         )
-
-        # Langfuse v3 automatically captures exceptions via @observe decorator
         return state
