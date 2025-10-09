@@ -125,7 +125,7 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({
                       <span></span>
                       <span></span>
                     </div>
-                    <span className="text-sm text-warm-gray-500">AI is thinking...</span>
+                    <span className="text-sm text-warm-gray-500">Processing your request...</span>
                   </div>
                 </div>
               </div>
