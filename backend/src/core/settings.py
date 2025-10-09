@@ -5,7 +5,13 @@ from pathlib import Path
 from pydantic import Field
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
-PROJECT_ROOT = Path(__file__).resolve().parents[2]
+# Point to project root (not backend root)
+# From backend/src/core/settings.py:
+#   parents[0] = backend/src/core/
+#   parents[1] = backend/src/
+#   parents[2] = backend/
+#   parents[3] = project root/
+PROJECT_ROOT = Path(__file__).resolve().parents[3]
 
 
 class Env(str, Enum):
