@@ -10,11 +10,17 @@ from langchain_google_vertexai import ChatVertexAI
 from src.enhanced_google_search import get_enhanced_search_results
 from src.models import JapanHelpdeskState, MergedSearchResult
 from src.real_vector_db import real_vector_search
+from src.settings import load_settings
 from src.utils.observability import observe
+
+# Initialize settings
+settings = load_settings()
 
 # Initialize the LLM
 llm = ChatVertexAI(
-    model="gemini-2.5-flash", temperature=0.2, max_tokens=3072, location="us-central1"
+    model=settings.agent_model,
+    temperature=settings.agent_temperature,
+    max_tokens=settings.agent_max_tokens,
 )
 
 # Output parser

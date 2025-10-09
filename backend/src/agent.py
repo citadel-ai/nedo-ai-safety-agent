@@ -2,6 +2,7 @@
 Japan Helpdesk LangGraph production workflow.
 """
 
+import logging
 import time
 import uuid
 from typing import Any, Literal
@@ -30,7 +31,14 @@ from src.utils.error_diagnostics import (
     diagnose_search_failure,
     validate_state_integrity,
 )
-from src.utils.observability import flush_langfuse, observe
+from src.utils.observability import (
+    flush_langfuse,
+    get_langfuse_client,
+    is_langfuse_enabled,
+    observe,
+)
+
+logger = logging.getLogger(__name__)
 
 
 def create_japan_helpdesk_workflow():
@@ -183,8 +191,6 @@ class JapanHelpdeskAgent:
 
         # Update Langfuse session id on the active trace if available
         try:
-            from src.utils.observability import get_langfuse_client, is_langfuse_enabled
-
             if is_langfuse_enabled():
                 lf = get_langfuse_client()
                 if lf:
@@ -234,9 +240,6 @@ class JapanHelpdeskAgent:
             # Validate initial state
             state_issues = validate_state_integrity(initial_state)
             if state_issues:
-                import logging
-
-                logger = logging.getLogger(__name__)
                 logger.warning(f"⚠️ Initial state validation issues: {state_issues}")
 
             # Execute the workflow (no config needed without checkpointer)
@@ -249,11 +252,6 @@ class JapanHelpdeskAgent:
 
             # Calculate total processing time
             total_time = time.time() - start_time
-
-            # Prepare response with COMPREHENSIVE fallback diagnostics
-            import logging
-
-            logger = logging.getLogger(__name__)
 
             final_response = result_state.get("final_response")
             logger.info(

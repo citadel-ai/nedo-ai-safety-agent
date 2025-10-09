@@ -31,15 +31,15 @@ A production-ready AI helpdesk system for foreigners in Japan, showcasing best p
 
 ```
 ┌─────────────────┐    ┌──────────────────┐    ┌─────────────────┐
-│   React Frontend │────│   FastAPI Server │────│  LangGraph Agent │
+│  React Frontend │────│  FastAPI Server  │────│ LangGraph Agent │
 │   (Port 3000)   │    │   (Port 8080)    │    │    Workflow     │
 └─────────────────┘    └──────────────────┘    └─────────────────┘
-                                │                         │
-                                │                         │
-                       ┌────────▼────────┐       ┌────────▼────────┐
-                       │  Google Cloud   │       │    Langfuse     │
-                       │    Logging      │       │  Observability  │
-                       └─────────────────┘       └─────────────────┘
+                                │                       │
+                                │                       │
+                       ┌────────▼─────────┐    ┌────────▼────────┐
+                       │   Google Cloud   │    │    Langfuse     │
+                       │     Logging      │    │  Observability  │
+                       └──────────────────┘    └─────────────────┘
 ```
 
 ### **LangGraph Workflow**

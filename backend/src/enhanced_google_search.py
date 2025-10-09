@@ -85,9 +85,7 @@ class EnhancedGoogleSearch(RealGoogleSearch):
         # self.allowed_domains = {'go.jp', 'ac.jp', 'ed.jp', 'lg.jp', 'or.jp'}
         # Simple in-memory TTL cache
         self._cache: dict[str, Any] = {}
-        self._cache_ttl_seconds: int = int(
-            os.getenv("ENHANCED_SEARCH_TTL_SECONDS", "900")
-        )
+        self._cache_ttl_seconds: int = 900
 
     async def search_with_full_content(
         self,

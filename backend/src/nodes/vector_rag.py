@@ -9,9 +9,17 @@ from langchain_google_vertexai import ChatVertexAI
 
 from src.models import JapanHelpdeskState, MergedSearchResult
 from src.real_vector_db import real_vector_search
+from src.settings import load_settings
 from src.utils.observability import observe
 
-llm = ChatVertexAI(model="gemini-2.5-flash", temperature=0.1, location="us-central1")
+# Initialize settings
+settings = load_settings()
+
+llm = ChatVertexAI(
+    model=settings.agent_model,
+    temperature=settings.agent_temperature,
+    max_tokens=settings.agent_max_tokens,
+)
 parser = PydanticOutputParser(pydantic_object=MergedSearchResult)
 
 

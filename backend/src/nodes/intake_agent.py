@@ -12,16 +12,19 @@ from pydantic import ValidationError
 
 from src.intake_suggestions import get_suggestions_for_question
 from src.models import IntakeSession, JapanHelpdeskState
+from src.settings import load_settings
 from src.utils.observability import observe
 
 logger = logging.getLogger(__name__)
 
+# Initialize settings
+settings = load_settings()
+
 # Initialize the LLM
 llm = ChatVertexAI(
-    model="gemini-2.5-flash",
-    temperature=0.3,
-    max_tokens=2048,  # Increased to handle longer conversation history
-    location="asia-northeast1",
+    model=settings.agent_model,
+    temperature=settings.agent_temperature,
+    max_tokens=settings.agent_max_tokens,
 )
 
 # Output parser

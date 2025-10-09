@@ -11,16 +11,19 @@ from langchain_google_vertexai import ChatVertexAI
 
 from src.models import AdversarialInputResult, JapanHelpdeskState
 from src.nodes.intake_agent import session_store
+from src.settings import load_settings
 from src.utils.observability import observe
 
 logger = logging.getLogger(__name__)
 
+# Initialize settings
+settings = load_settings()
+
 # Initialize the LLM
 llm = ChatVertexAI(
-    model="gemini-2.5-flash",
-    temperature=0.0,
-    max_tokens=2000,  # Enough for complete JSON response (simple yes/no + reason)
-    location="asia-northeast1",
+    model=settings.agent_model,
+    temperature=settings.agent_temperature,
+    max_tokens=settings.agent_max_tokens,
 )
 
 # Output parser

@@ -2,17 +2,17 @@
 
 import asyncio
 import logging
-import os
 from typing import Any
 
 import aiohttp
 
-# Load environment variables from .env file
-from dotenv import load_dotenv
-
-load_dotenv()
+from src.settings import load_settings
+from src.vector_db import mock_google_search
 
 logger = logging.getLogger(__name__)
+
+
+settings = load_settings()
 
 
 class RealGoogleSearch:
@@ -21,8 +21,8 @@ class RealGoogleSearch:
     def __init__(self):
         logger.info("🔍 GOOGLE SEARCH INIT DEBUG - Initializing RealGoogleSearch:")
 
-        self.google_api_key = os.getenv("GOOGLE_API_KEY")
-        self.google_cse_id = os.getenv("GOOGLE_CSE_ID")
+        self.google_api_key = settings.google_api_key
+        self.google_cse_id = settings.google_cse_id
         self.timeout = 10
 
         logger.info(f"   GOOGLE_API_KEY set: {bool(self.google_api_key)}")
@@ -249,8 +249,6 @@ class RealGoogleSearch:
         logger.info("🔍 MOCK FALLBACK DEBUG - Starting fallback:")
         logger.info(f"   Query: {query}")
         logger.info(f"   Num results: {num_results}")
-
-        from app.vector_db import mock_google_search
 
         logger.warning("⚠️ Using mock Google search as fallback")
         logger.info("🔍 MOCK FALLBACK DEBUG - Calling mock_google_search function")

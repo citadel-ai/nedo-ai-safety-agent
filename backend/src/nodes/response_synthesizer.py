@@ -1,5 +1,3 @@
-# Copyright 2025 Google LLC
-
 """Response synthesizer node for LangGraph with Langfuse observability."""
 
 import time
@@ -12,8 +10,6 @@ from src.utils.observability import observe
 async def response_synthesizer_node(state: JapanHelpdeskState) -> JapanHelpdeskState:
     """Synthesize final response from all gathered information."""
     start_time = time.time()
-
-    # Langfuse v3 automatically captures context via @observe decorator
 
     try:
         # Collect all available information

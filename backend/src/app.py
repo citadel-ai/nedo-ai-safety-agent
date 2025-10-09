@@ -1,12 +1,10 @@
 import logging
 import os
+import traceback
 import uuid
 from typing import Any
 
 import uvicorn
-
-# Load environment variables from .env file
-from dotenv import load_dotenv
 from fastapi import FastAPI, HTTPException, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import FileResponse, RedirectResponse
@@ -15,19 +13,24 @@ from google.cloud import logging as google_cloud_logging
 from pydantic import BaseModel
 
 from src.agent import JapanHelpdeskAgent
+from src.logging_config import setup_logging
 from src.real_google_search import get_search_config
 from src.real_vector_db import get_vector_db
+from src.settings import load_settings
 from src.utils.observability import (
     get_langfuse_client,
     is_langfuse_enabled,
     score_langfuse_trace,
 )
 
-load_dotenv()
-
-# Set up logging first
-logging.basicConfig(level=logging.INFO)
+setup_logging()
 logger = logging.getLogger(__name__)
+
+settings = load_settings()
+if settings.app_env == "prod" and settings.app_context != "cloud":
+    raise ValueError("Production environment must be run in cloud context")
+
+print(settings)
 
 agent = JapanHelpdeskAgent()
 
@@ -51,10 +54,7 @@ app.add_middleware(
 
 # Initialize Google Cloud logging if available (optional for development)
 try:
-    if (
-        os.getenv("GOOGLE_CLOUD_PROJECT")
-        and os.getenv("GOOGLE_CLOUD_PROJECT") != "test"
-    ):
+    if settings.google_cloud_project != "test":
         logging_client = google_cloud_logging.Client()
         logging_client.setup_logging()
         logger.info("Google Cloud logging initialized")
@@ -182,8 +182,7 @@ def system_info_endpoint() -> dict[str, Any]:
             "features": {
                 "real_vector_search": "error" not in vector_info,
                 "real_google_search": "error" not in search_info,
-                "langfuse_observability": os.getenv("LANGFUSE_ENABLED", "false").lower()
-                == "true",
+                "langfuse_observability": settings.langfuse_enabled,
             },
         }
     except Exception as e:
@@ -247,8 +246,6 @@ async def chat_endpoint(request: ChatRequest) -> ChatResponse:
     except Exception as e:
         logger.error(f"Chat endpoint error: {e!s}")
         logger.error(f"Error type: {type(e)}")
-        import traceback
-
         logger.error(f"Full traceback: {traceback.format_exc()}")
         raise HTTPException(
             status_code=500, detail=f"Internal server error: {e!s}"

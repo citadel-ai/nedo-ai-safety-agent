@@ -7,18 +7,16 @@ from typing import Any
 
 import chromadb
 from chromadb.config import Settings
-
-# Load environment variables from .env file
-from dotenv import load_dotenv
 from langchain_chroma import Chroma
 from langchain_core.documents import Document
 from langchain_google_genai import GoogleGenerativeAIEmbeddings
 
 from src.models import VectorSearchResult
-
-load_dotenv()
+from src.settings import load_settings
 
 logger = logging.getLogger(__name__)
+
+settings = load_settings()
 
 
 class RealVectorDB:
@@ -49,12 +47,12 @@ class RealVectorDB:
             "EMBEDDING_PROVIDER", "sentence_transformers"
         ).lower()
 
-        if embedding_provider == "google" and os.getenv("GOOGLE_API_KEY"):
+        if embedding_provider == "google" and settings.google_api_key:
             # Use Google's text-embedding model
             try:
                 self.embeddings = GoogleGenerativeAIEmbeddings(
                     model="models/text-embedding-004",
-                    google_api_key=os.getenv("GOOGLE_API_KEY"),
+                    google_api_key=settings.google_api_key,
                 )
                 logger.info("Using Google Generative AI embeddings")
             except Exception as e:

@@ -14,14 +14,17 @@ from langchain_google_vertexai import ChatVertexAI
 from src.enhanced_google_search import enhanced_google_search
 from src.models import AgentPlan, AgentTodo, JapanHelpdeskState
 from src.real_vector_db import real_vector_search
+from src.settings import load_settings
 from src.utils.observability import observe
+
+# Initialize settings
+settings = load_settings()
 
 # Initialize the LLM for planning
 planning_llm = ChatVertexAI(
-    model="gemini-2.5-flash",
+    model=settings.agent_model,
     temperature=0.7,  # Higher temperature for creative planning
-    max_tokens=2048,
-    location="us-central1",
+    max_tokens=settings.agent_max_tokens,
 )
 
 # Output parsers

@@ -13,23 +13,24 @@ from langchain_google_vertexai import ChatVertexAI
 from pydantic import BaseModel, Field
 
 from src.models import JapanHelpdeskState
+from src.settings import load_settings
 from src.utils.observability import observe
+
+# Initialize settings
+settings = load_settings()
 
 # Initialize LLMs
 evaluator_llm = ChatVertexAI(
-    model="gemini-2.5-flash",
-    temperature=0.1,  # Low temperature for consistent evaluation
+    model=settings.agent_model,
+    temperature=settings.agent_temperature,
     max_tokens=1024,
-    location="us-central1",
 )
 
 optimizer_llm = ChatVertexAI(
-    model="gemini-2.5-flash",
-    temperature=0.5,  # Medium temperature for creative improvement
+    model=settings.agent_model,
+    temperature=settings.agent_temperature,
     max_tokens=2048,
-    location="us-central1",
 )
-
 
 class ResponseEvaluation(BaseModel):
     """Evaluation of a response's quality and completeness."""

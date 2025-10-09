@@ -6,14 +6,17 @@ from langchain_core.messages import HumanMessage, SystemMessage
 from langchain_google_vertexai import ChatVertexAI
 
 from src.models import JapanHelpdeskState
+from src.settings import load_settings
 from src.utils.observability import observe
+
+# Initialize settings
+settings = load_settings()
 
 # Initialize LLM for query synthesis
 llm = ChatVertexAI(
-    model="gemini-2.5-flash",
-    temperature=0.3,
+    model=settings.agent_model,
+    temperature=settings.agent_temperature,
     max_tokens=256,  # Short queries only
-    location="us-central1",
 )
 
 QUERY_SYNTHESIS_PROMPT = """

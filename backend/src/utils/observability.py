@@ -5,10 +5,19 @@ import os
 from collections.abc import Callable
 from typing import Any
 
+from src.settings import load_settings
+
 logger = logging.getLogger(__name__)
 
 # Check if Langfuse should be enabled
-LANGFUSE_ENABLED = os.getenv("LANGFUSE_ENABLED", "true").lower() == "true"
+settings = load_settings()
+LANGFUSE_ENABLED = settings.langfuse_enabled
+
+# Langfuse v3 requires keys set in environment variables
+if settings.langfuse_public_key:
+    os.environ["LANGFUSE_PUBLIC_KEY"] = settings.langfuse_public_key
+if settings.langfuse_secret_key:
+    os.environ["LANGFUSE_SECRET_KEY"] = settings.langfuse_secret_key
 
 # Try to import Langfuse v3
 langfuse_client = None
