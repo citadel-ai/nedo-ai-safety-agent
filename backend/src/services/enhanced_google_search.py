@@ -157,16 +157,11 @@ class EnhancedGoogleSearch:
             logger.info("🔍 ENHANCED SEARCH DEBUG - Cache hit")
             return cached
 
-        # Run EN and JA structured searches
-        logger.info("🔍 Calling EN search...")
-        en_results = await self._get_structured_results(enhanced_query, num_results)
-        logger.info(f"🔍 EN search returned: {len(en_results)} results")
-
-        logger.info("🔍 Calling JA search...")
-        ja_results = await self._get_structured_results_lang(
+        # Run EN and JA structured searches (CSE)
+        en_results = await self._search_cse(enhanced_query, num_results, hl="en")
+        ja_results = await self._search_cse(
             enhanced_query, num_results, hl="ja", lr="lang_ja"
         )
-        logger.info(f"🔍 JA search returned: {len(ja_results)} results")
 
         merged: list[SearchResult] = []
         seen = set()
@@ -184,114 +179,43 @@ class EnhancedGoogleSearch:
 
         # Fetch full content if requested
         if fetch_content:
-            logger.info(f"🔍 Fetching full content for {len(merged)} results...")
             content_tasks = [self._fetch_page_content(r) for r in merged[:num_results]]
             final_results = await asyncio.gather(*content_tasks)
-            logger.info(f"🔍 Content fetch complete for {len(final_results)} results")
         else:
             final_results = merged[:num_results]
-            logger.info(
-                f"🔍 Returning {len(final_results)} results without content fetch"
-            )
 
         self._set_cache(cache_key, final_results)
         return final_results
 
-    async def _get_structured_results(
-        self, query: str, num_results: int
+    async def _search_cse(
+        self, query: str, num_results: int, hl: str = "en", lr: str | None = None
     ) -> list[SearchResult]:
-        """Get structured results with URLs and metadata from Google CSE."""
+        """Query Google CSE and return structured results."""
         try:
             if not self.google_api_key or not self.google_cse_id:
-                logger.warning(
-                    "Google CSE not configured, cannot get structured results"
-                )
+                logger.warning("Google CSE not configured")
                 return []
 
             url = "https://www.googleapis.com/customsearch/v1"
-            params = {
-                "key": self.google_api_key,
-                "cx": self.google_cse_id,
-                "q": query,
-                "num": min(num_results, 10),
-                "gl": "jp",
-                "hl": "en",
-            }
-
-            async with aiohttp.ClientSession(timeout=self.session_timeout) as session:
-                async with session.get(url, params=params) as response:
-                    if response.status != 200:
-                        error_body = await response.text()
-                        logger.error(
-                            f"❌ Google CSE API returned status {response.status}"
-                        )
-                        logger.error(f"❌ Error body: {error_body[:500]}")
-                        return []
-
-                    data = await response.json()
-
-                    # DEBUG: Show raw response
-                    if "items" not in data:
-                        logger.warning(
-                            f"⚠️ No 'items' in response. Keys: {list(data.keys())}"
-                        )
-                        if "error" in data:
-                            logger.error(f"❌ API Error: {data['error']}")
-                        return []
-
-                    logger.info(f"✅ CSE returned {len(data.get('items', []))} items")
-
-                    results = []
-                    for item in data.get("items", [])[:num_results]:
-                        result = SearchResult(
-                            title=item.get("title", "No title"),
-                            url=item.get("link", ""),
-                            snippet=item.get("snippet", ""),
-                            content_type="html",
-                        )
-                        results.append(result)
-
-                        logger.info(f"🔍 STRUCTURED RESULT - {result.title}")
-                        logger.info(f"   URL: {result.url}")
-                        logger.info(f"   Snippet: {result.snippet[:100]}...")
-
-                    return results
-
-        except Exception as e:
-            logger.error(f"Failed to get structured results: {e}")
-            return []
-
-    async def _get_structured_results_lang(
-        self, query: str, num_results: int, hl: str = "ja", lr: str = "lang_ja"
-    ) -> list[SearchResult]:
-        """Get structured results with language hints (e.g., Japanese)."""
-        try:
-            if not self.google_api_key or not self.google_cse_id:
-                logger.warning(
-                    "Google CSE not configured, cannot get structured results"
-                )
-                return []
-            url = "https://www.googleapis.com/customsearch/v1"
-            params = {
+            params: dict[str, Any] = {
                 "key": self.google_api_key,
                 "cx": self.google_cse_id,
                 "q": query,
                 "num": min(num_results, 10),
                 "gl": "jp",
                 "hl": hl,
-                "lr": lr,
-                "safe": "active",
             }
+            if lr:
+                params["lr"] = lr
+
             async with aiohttp.ClientSession(timeout=self.session_timeout) as session:
                 async with session.get(url, params=params) as response:
                     if response.status != 200:
-                        logger.error(
-                            f"Google CSE API returned status {response.status}"
-                        )
                         return []
                     data = await response.json()
+                    items = data.get("items", [])
                     results: list[SearchResult] = []
-                    for item in data.get("items", [])[:num_results]:
+                    for item in items[:num_results]:
                         results.append(
                             SearchResult(
                                 title=item.get("title", "No title"),
@@ -301,190 +225,64 @@ class EnhancedGoogleSearch:
                             )
                         )
                     return results
-        except Exception as e:
-            logger.error(f"Failed to get structured results: {e}")
+        except Exception:
             return []
 
     async def _fetch_page_content(self, result: SearchResult) -> SearchResult:
-        """Fetch full content from a search result URL."""
-        logger.info(f"🔍 CONTENT FETCH DEBUG - Fetching: {result.url}")
-
+        """Fetch full content from a search result URL (HTML only; PDFs get a placeholder)."""
         try:
-            # Check if URL is valid
             parsed_url = urlparse(result.url)
             if not parsed_url.scheme or not parsed_url.netloc:
-                logger.warning(f"Invalid URL: {result.url}")
                 return result
-            # Enforce domain allowlist
             hostname = parsed_url.hostname or ""
             if not self._is_allowed_domain(hostname):
-                logger.info(
-                    f"🔍 CONTENT FETCH DEBUG - Skipping non-allowed domain: {hostname}"
-                )
                 return result
 
-            # Only extract HTML content - PDFs should go to vector DB
-            if result.url.endswith(".pdf"):
-                logger.info(
-                    f"🔍 CONTENT FETCH DEBUG - Skipping PDF (should be in vector DB): {result.url}"
-                )
+            if result.url.lower().endswith(".pdf"):
                 result.content_type = "pdf"
-                result.full_content = f"PDF document: {result.title}\nURL: {result.url}\n[PDF content should be available in vector database]"
+                result.full_content = (
+                    f"PDF document: {result.title}\nURL: {result.url}\n[PDF content should be available in vector database]"
+                )
                 result.extraction_success = True
                 result.content_length = len(result.full_content)
+                return result
 
-                logger.info("📄 PDF reference created:")
-                logger.info(f"   Title: {result.title}")
-                logger.info(f"   URL: {result.url}")
-                logger.info("   Note: Content should be in vector database")
+            content = await self._extract_html_content(result.url)
+            result.content_type = "html"
+            if content:
+                result.full_content = content[: self.max_content_length]
+                result.content_length = len(content)
+                result.extraction_success = True
             else:
-                content = await self._extract_html_content(result.url)
-                result.content_type = "html"
-
-                if content:
-                    result.full_content = content[: self.max_content_length]
-                    result.content_length = len(content)
-                    result.extraction_success = True
-
-                    logger.info("✅ HTML content extracted successfully:")
-                    logger.info(f"   Length: {result.content_length} chars")
-                    logger.info(f"   Type: {result.content_type}")
-                    logger.info(f"   Preview: {content[:200]}...")
-                else:
-                    logger.warning(f"⚠️ No HTML content extracted from {result.url}")
-                    result.extraction_success = False
-
+                result.extraction_success = False
             return result
-
-        except Exception as e:
-            logger.error(f"❌ Failed to fetch content from {result.url}: {e}")
+        except Exception:
             result.extraction_success = False
             return result
 
-    async def _extract_html_content(self, url: str, retry_count: int = 0) -> str | None:
-        """Extract clean text content from HTML page with retry logic."""
-        max_retries = 2
-        
+    async def _extract_html_content(self, url: str) -> str | None:
+        """Extract clean text content from an HTML page with a simple fallback."""
         try:
-            # Add rate limiting: small delay between requests to be polite
-            if retry_count > 0:
-                delay = min(2 ** retry_count, 8)  # Exponential backoff: 2, 4, 8 seconds
-                logger.info(f"Retry {retry_count}/{max_retries} after {delay}s delay for {url}")
-                await asyncio.sleep(delay)
-            else:
-                # Small delay even on first request to avoid looking like aggressive bot
-                await asyncio.sleep(0.5)
-            
-            # Use aiohttp for async HTTP request
             async with aiohttp.ClientSession(timeout=self.session_timeout) as session:
-                # Modern browser headers - updated to latest Chrome/Edge
-                headers = {
-                    # Latest Chrome User-Agent (updated regularly)
-                    "User-Agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36",
-                    "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8",
-                    # Japanese language preference for Japanese sites
-                    "Accept-Language": "ja,en-US;q=0.9,en;q=0.8",
-                    "Accept-Encoding": "gzip, deflate, br",
-                    "DNT": "1",
-                    "Connection": "keep-alive",
-                    "Upgrade-Insecure-Requests": "1",
-                    # Make it look like we came from Google search
-                    "Referer": "https://www.google.com/",
-                    "Sec-Fetch-Dest": "document",
-                    "Sec-Fetch-Mode": "navigate",
-                    "Sec-Fetch-Site": "cross-site",
-                    "Sec-Fetch-User": "?1",
-                    "sec-ch-ua": '"Chromium";v="131", "Not_A Brand";v="24"',
-                    "sec-ch-ua-mobile": "?0",
-                    "sec-ch-ua-platform": '"macOS"',
-                }
-
-                async with session.get(url, headers=headers, allow_redirects=True) as response:
-                    if response.status == 403:
-                        # Retry with even more conservative approach
-                        if retry_count < max_retries:
-                            logger.info(f"HTTP 403 for {url}, retrying with different headers...")
-                            return await self._extract_html_content_fallback(url, retry_count + 1)
-                        
-                        logger.warning(
-                            f"HTTP 403 (Forbidden) for {url} - Site blocking access after {max_retries} retries, using snippet instead"
-                        )
-                        return f"Content from {url} is not accessible due to access restrictions. Please visit the site directly for full information."
-                    
-                    elif response.status == 429:  # Too Many Requests
-                        if retry_count < max_retries:
-                            logger.warning(f"HTTP 429 (Rate Limited) for {url}, backing off...")
-                            await asyncio.sleep(5)  # Wait 5 seconds before retry
-                            return await self._extract_html_content(url, retry_count + 1)
-                        else:
-                            logger.warning(f"HTTP 429 for {url} after {max_retries} retries")
-                            return f"Content from {url} is currently rate-limited. Please try again later."
-                    
-                    elif response.status != 200:
-                        logger.warning(f"HTTP {response.status} for {url}")
-                        return f"Content from {url} could not be retrieved (HTTP {response.status}). Please visit the site directly."
-
-                    # Check content type
-                    content_type = response.headers.get("content-type", "").lower()
-                    if not any(
-                        ct in content_type for ct in ["text/html", "text/plain"]
-                    ):
-                        logger.warning(f"Unsupported content type: {content_type}")
-                        return None
-
-                    html_content = await response.text()
-
-            # Use trafilatura for clean text extraction (best for news/articles)
-            extracted_text = trafilatura.extract(html_content)
-
-            if extracted_text and len(extracted_text.strip()) > 100:
-                logger.info(f"✅ Successfully extracted {len(extracted_text)} chars from {url}")
-                return extracted_text.strip()
-
-            # Fallback to BeautifulSoup if trafilatura fails
-            logger.info("Trafilatura failed, trying BeautifulSoup fallback")
-            return self._extract_with_beautifulsoup(html_content)
-
-        except asyncio.TimeoutError:
-            if retry_count < max_retries:
-                logger.warning(f"Timeout fetching {url}, retrying...")
-                return await self._extract_html_content(url, retry_count + 1)
-            logger.warning(f"Timeout fetching {url} after {max_retries} retries")
-            return None
-        except Exception as e:
-            logger.error(f"Error extracting HTML from {url}: {e}")
-            return None
-
-    async def _extract_html_content_fallback(self, url: str, retry_count: int) -> str | None:
-        """Fallback extraction with even simpler headers (looks more like a browser)."""
-        try:
-            await asyncio.sleep(2)  # Be extra polite
-            
-            async with aiohttp.ClientSession(timeout=self.session_timeout) as session:
-                # Minimal headers - just look like a Japanese browser
                 headers = {
                     "User-Agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36",
                     "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8",
                     "Accept-Language": "ja,en;q=0.9",
-                    "Referer": "https://www.google.co.jp/",  # Japanese Google
+                    "Referer": "https://www.google.co.jp/",
                 }
-
                 async with session.get(url, headers=headers, allow_redirects=True) as response:
                     if response.status != 200:
-                        logger.warning(f"Fallback also failed with HTTP {response.status} for {url}")
                         return None
-
+                    content_type = response.headers.get("content-type", "").lower()
+                    if "text/html" not in content_type and "text/plain" not in content_type:
+                        return None
                     html_content = await response.text()
-                    extracted_text = trafilatura.extract(html_content)
-                    
-                    if extracted_text and len(extracted_text.strip()) > 100:
-                        logger.info(f"✅ Fallback succeeded for {url}")
-                        return extracted_text.strip()
-                    
-                    return self._extract_with_beautifulsoup(html_content)
 
-        except Exception as e:
-            logger.error(f"Fallback extraction failed for {url}: {e}")
+            extracted_text = trafilatura.extract(html_content)
+            if extracted_text and len(extracted_text.strip()) > 100:
+                return extracted_text.strip()
+            return self._extract_with_beautifulsoup(html_content)
+        except Exception:
             return None
 
     def _extract_with_beautifulsoup(self, html_content: str) -> str | None:
