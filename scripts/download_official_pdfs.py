@@ -45,7 +45,7 @@ logger = logging.getLogger(__name__)
 OFFICIAL_DOMAINS = ["go.jp", "ac.jp", "ed.jp", "lg.jp", "or.jp"]
 DOCS_DIR = Path("docs_for_rag")
 DOWNLOAD_LOG = DOCS_DIR / "download_log.json"
-MAX_PDFS_PER_CATEGORY = 50
+MAX_PDFS_PER_CATEGORY = 10
 MAX_FILE_SIZE_MB = 20
 TIMEOUT_SECONDS = 30
 
