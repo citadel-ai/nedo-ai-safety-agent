@@ -207,3 +207,9 @@ marimo/_lsp/
 __marimo__/
 
 .DS_Store
+# Vector Database (generated, not committed)
+chroma_db/
+*.sqlite3
+
+# Documents cache (if using remote docs)
+docs_cache/
