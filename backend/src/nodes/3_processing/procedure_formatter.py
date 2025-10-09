@@ -106,13 +106,13 @@ You are an expert at breaking down complex administrative procedures in Japan in
 """
 
 
-@observe(name="multi_step_procedure_agent")
-async def multi_step_procedure_agent_node(
+@observe(name="procedure_formatter")
+async def procedure_formatter_node(
     state: JapanHelpdeskState,
 ) -> JapanHelpdeskState:
     """
-    Analyzes if a query requires multi-step procedures and breaks them down.
-    Enhances the response with actionable step-by-step guidance.
+    Formats search results into actionable multi-step procedures.
+    Enhances the response with step-by-step guidance, timelines, and documents needed.
     """
 
     import logging

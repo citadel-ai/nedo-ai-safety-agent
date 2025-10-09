@@ -1,23 +1,44 @@
-"""LangGraph nodes for Japan Helpdesk workflow."""
+"""
+LangGraph nodes for Japan Helpdesk workflow.
 
-from .adversarial_detector import adversarial_detector_node
-from .agentic_search_orchestrator import agentic_search_orchestrator_node
-from .hybrid_search import hybrid_search_node
-from .intake_agent import intake_agent_node
-from .legal_checker import legal_checker_node
-from .multi_step_procedure_agent import multi_step_procedure_agent_node
-from .query_synthesizer import query_synthesizer_node
-from .response_synthesizer import response_synthesizer_node
-from .scope_checker import scope_checker_node
+Organized by workflow phase:
+- intake: Intake & Validation
+- search: Search
+- processing: Processing & Formatting
+- response: Response Validation & Synthesis
+"""
+
+# Phase 1: Intake & Validation
+from .intake import (
+    adversarial_detector_node,
+    intake_agent_node,
+    query_synthesizer_node,
+    scope_checker_node,
+)
+
+# Phase 2: Search
+from .search import search_node
+
+# Phase 3: Processing & Formatting
+from .processing import procedure_formatter_node
+
+# Phase 4: Response Validation & Synthesis
+from .response import (
+    legal_checker_node,
+    response_synthesizer_node,
+)
 
 __all__ = [
+    # Phase 1
     "adversarial_detector_node",
-    "agentic_search_orchestrator_node",
-    "hybrid_search_node",
     "intake_agent_node",
-    "legal_checker_node",
-    "multi_step_procedure_agent_node",
     "query_synthesizer_node",
-    "response_synthesizer_node",
     "scope_checker_node",
+    # Phase 2
+    "search_node",
+    # Phase 3
+    "procedure_formatter_node",
+    # Phase 4
+    "legal_checker_node",
+    "response_synthesizer_node",
 ]

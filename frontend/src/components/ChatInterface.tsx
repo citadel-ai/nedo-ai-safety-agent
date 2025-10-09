@@ -33,20 +33,10 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({
     }
   };
 
-  const quickTopics = [
-    { emoji: "🛂", label: "Visa & Immigration", question: "How do I renew my visa in Japan?" },
-    { emoji: "🏠", label: "Housing", question: "What documents do I need for address registration?" },
-    { emoji: "🏥", label: "Healthcare", question: "How do I enroll in National Health Insurance?" },
-    { emoji: "🏦", label: "Banking", question: "How to open a bank account as a foreigner?" },
-    { emoji: "💼", label: "Employment", question: "What are the work permit requirements?" },
-    { emoji: "📋", label: "Tax", question: "What are the tax filing requirements for foreign residents?" },
-  ];
-
   const exampleQuestions = [
     "How do I get a My Number card?",
     "What's the process for changing my visa status?",
     "How to transfer my driver's license to Japan?",
-    "Where can I find English-speaking doctors?",
   ];
 
   return (
@@ -56,33 +46,10 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({
         <div className="max-w-4xl mx-auto">
           <MessageList messages={messages} onQuickReply={onSendMessage} />
           
-          {/* Quick topic buttons and example questions (show only when there's just the welcome message) */}
+          {/* Example questions (show only when there's just the welcome message) */}
           {messages.length === 1 && (
             <div className="mt-8 space-y-6 animate-fade-in">
-              {/* Quick Topics */}
-              <div>
-                <h3 className="text-sm font-semibold text-warm-gray-700 mb-3 flex items-center">
-                  <span className="mr-2">🚀</span>
-                  Quick Topics
-                </h3>
-                <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
-                  {quickTopics.map((topic, index) => (
-                    <button
-                      key={index}
-                      onClick={() => onSendMessage(topic.question)}
-                      className="flex items-center space-x-3 p-4 rounded-xl border-2 border-warm-gray-200 hover:border-japan-blue hover:shadow-md transition-all duration-200 text-left group bg-white"
-                      disabled={isLoading}
-                    >
-                      <span className="text-2xl">{topic.emoji}</span>
-                      <span className="text-sm font-medium text-warm-gray-700 group-hover:text-japan-blue">
-                        {topic.label}
-                      </span>
-                    </button>
-                  ))}
-                </div>
-              </div>
-
-              {/* Example Questions */}
+              {/* Popular Questions */}
               <div>
                 <h3 className="text-sm font-semibold text-warm-gray-700 mb-3 flex items-center">
                   <span className="mr-2">💭</span>

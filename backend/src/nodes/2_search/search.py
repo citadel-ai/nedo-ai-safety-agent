@@ -353,12 +353,12 @@ def create_merged_search_result(
     )
 
 
-@observe(name="agentic_search_orchestrator_node")
-async def agentic_search_orchestrator_node(
+@observe(name="search_node")
+async def search_node(
     state: JapanHelpdeskState,
 ) -> JapanHelpdeskState:
     """
-    Agentic search orchestrator with multi-query strategy.
+    Search node with multi-query strategy.
     Generates multiple query variants and executes parallel searches for comprehensive results.
     """
     start_time = time.time()

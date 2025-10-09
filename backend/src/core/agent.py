@@ -12,13 +12,13 @@ from langgraph.graph import END, StateGraph
 from src.core.models import JapanHelpdeskState
 from src.nodes import (
     adversarial_detector_node,
-    agentic_search_orchestrator_node,
     intake_agent_node,
     legal_checker_node,
-    multi_step_procedure_agent_node,
+    procedure_formatter_node,
     query_synthesizer_node,
     response_synthesizer_node,
     scope_checker_node,
+    search_node,
 )
 from src.utils.error_diagnostics import (
     WorkflowDiagnostics,
@@ -43,16 +43,19 @@ def create_japan_helpdesk_workflow():
     """Create the Japan Helpdesk workflow with proper routing."""
     workflow = StateGraph(JapanHelpdeskState)
 
-    # Add essential nodes
+    # Phase: Intake & Validation
     workflow.add_node("adversarial_detector", adversarial_detector_node)
     workflow.add_node("intake_agent", intake_agent_node)
     workflow.add_node("query_synthesizer", query_synthesizer_node)
     workflow.add_node("scope_checker", scope_checker_node)
 
-    # Agentic search nodes
-    workflow.add_node("agentic_search", agentic_search_orchestrator_node)
-    workflow.add_node("multi_step_procedure", multi_step_procedure_agent_node)
+    # Phase: Search
+    workflow.add_node("search", search_node)
 
+    # Phase: Processing & Formatting
+    workflow.add_node("procedure_formatter", procedure_formatter_node)
+
+    # Phase: Response Validation & Synthesis
     workflow.add_node("legal_checker", legal_checker_node)
     workflow.add_node("response_synthesizer", response_synthesizer_node)
 
@@ -95,8 +98,8 @@ def create_japan_helpdesk_workflow():
 
     def route_after_scope(
         state: JapanHelpdeskState,
-    ) -> Literal["agentic_search", "END"]:
-        """Route after scope check - use agentic search if in scope."""
+    ) -> Literal["search", "END"]:
+        """Route after scope check - proceed to search if in scope."""
         import logging
 
         logger = logging.getLogger(__name__)
@@ -121,8 +124,8 @@ def create_japan_helpdesk_workflow():
             logger.info(f"   TERMINATING: {final_msg}")
             return "END"
 
-        logger.info("   PROCEEDING to agentic_search")
-        return "agentic_search"
+        logger.info("   PROCEEDING to search")
+        return "search"
 
     # Add edges - linear flow
     workflow.add_conditional_edges(
@@ -143,13 +146,13 @@ def create_japan_helpdesk_workflow():
     workflow.add_conditional_edges(
         "scope_checker",
         route_after_scope,
-        {"agentic_search": "agentic_search", "END": END},
+        {"search": "search", "END": END},
     )
 
-    # Agentic flow:
-    # agentic_search -> multi_step_procedure -> legal_checker -> response_synthesizer -> END
-    workflow.add_edge("agentic_search", "multi_step_procedure")
-    workflow.add_edge("multi_step_procedure", "legal_checker")
+    # Linear flow: Phase 2 → 3 → 4
+    # search → procedure_formatter → legal_checker → response_synthesizer → END
+    workflow.add_edge("search", "procedure_formatter")
+    workflow.add_edge("procedure_formatter", "legal_checker")
     workflow.add_edge("legal_checker", "response_synthesizer")
     workflow.add_edge("response_synthesizer", END)
 
