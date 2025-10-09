@@ -34,7 +34,7 @@ fi
 # Show menu
 echo "What would you like to do?"
 echo ""
-echo "  1) Download ALL categories (up to 50 PDFs each)"
+echo "  1) Download ALL categories (up to 10 PDFs each)"
 echo "  2) Download IMMIGRATION documents only"
 echo "  3) Download TAX documents only"
 echo "  4) Download HEALTHCARE documents only"
