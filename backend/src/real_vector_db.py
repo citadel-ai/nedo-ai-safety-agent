@@ -25,7 +25,7 @@ class RealVectorDB:
     def __init__(
         self,
         collection_name: str = "japan_helpdesk_docs",
-        embedding_model: str = "sentence-transformers/all-MiniLM-L6-v2",
+        embedding_model: str = settings.embedding_provider,
         persist_directory: str = "./chroma_db",
     ):
         self.collection_name = collection_name

@@ -46,6 +46,8 @@ class Settings(BaseSettings):
         alias="GOOGLE_APPLICATION_CREDENTIALS",
     )
 
+    embedding_provider: str = Field(default="google", alias="EMBEDDING_PROVIDER")
+
     model_config = SettingsConfigDict(env_file=PROJECT_ROOT / ".env.local")
 
     @property

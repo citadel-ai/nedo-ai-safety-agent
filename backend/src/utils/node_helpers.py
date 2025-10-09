@@ -119,6 +119,65 @@ def get_user_location(state: JapanHelpdeskState) -> str | None:
     return location
 
 
+def get_visa_type(state: JapanHelpdeskState) -> str | None:
+    """Get visa type from intake session."""
+    intake = state.get("intake_session")
+    if not intake:
+        return None
+    
+    context = get_intake_context(state)
+    return context.get("visa_type") or getattr(intake, "visa_type", None)
+
+
+def get_timeline(state: JapanHelpdeskState) -> str | None:
+    """Get timeline/urgency information from intake session."""
+    intake = state.get("intake_session")
+    if not intake:
+        return None
+    
+    context = get_intake_context(state)
+    return context.get("timeline") or getattr(intake, "timeline", None)
+
+
+def get_urgency_level(state: JapanHelpdeskState) -> str | None:
+    """Get urgency level from intake session."""
+    intake = state.get("intake_session")
+    if not intake:
+        return None
+    
+    context = get_intake_context(state)
+    return context.get("urgency_level") or getattr(intake, "urgency_level", None)
+
+
+def is_intake_complete(state: JapanHelpdeskState) -> bool:
+    """Check if intake session is marked complete."""
+    intake = state.get("intake_session")
+    return getattr(intake, "is_complete", False) if intake else False
+
+
+def get_conversation_history(state: JapanHelpdeskState, last_n: int | None = None) -> list[str]:
+    """
+    Get conversation history from intake session.
+    
+    Args:
+        state: Current state
+        last_n: Optional number of most recent messages to return
+        
+    Returns:
+        List of conversation messages
+    """
+    intake = state.get("intake_session")
+    if not intake:
+        return []
+    
+    history = getattr(intake, "conversation_history", [])
+    
+    if last_n and len(history) > last_n:
+        return history[-last_n:]
+    
+    return history
+
+
 def ensure_state_fields(state: JapanHelpdeskState, fields: dict[str, Any]) -> None:
     """
     Ensure state has required fields with default values.

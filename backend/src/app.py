@@ -117,6 +117,7 @@ class ChatResponse(BaseModel):
     tokens_used: int
     metadata: dict[str, Any]
     suggested_answers: list[str] = []  # Quick-reply suggestions from intake agent
+    collected_facts: dict[str, Any] | None = None  # Facts for UI sidebar display
 
 
 class HealthResponse(BaseModel):

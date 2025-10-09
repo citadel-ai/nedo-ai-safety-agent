@@ -28,6 +28,7 @@ from src.utils.error_diagnostics import (
     diagnose_search_failure,
     validate_state_integrity,
 )
+from src.utils.facts_extractor import extract_display_facts
 from src.utils.observability import (
     flush_langfuse,
     get_langfuse_client,
@@ -307,6 +308,12 @@ class JapanHelpdeskAgent:
                     f"🔵 WORKING AGENT - Extracted {len(suggested_answers)} suggested answers from intake_session"
                 )
 
+            # Extract collected facts for UI display
+            collected_facts = extract_display_facts(result_state)
+            logger.info(
+                f"🔵 WORKING AGENT - Extracted collected facts: {collected_facts}"
+            )
+
             response = {
                 "response": final_response,
                 "confidence_score": result_state.get("confidence_score", 0.0),
@@ -318,6 +325,7 @@ class JapanHelpdeskAgent:
                 "processing_time": total_time,
                 "tokens_used": result_state.get("tokens_used", 0),
                 "suggested_answers": suggested_answers,
+                "collected_facts": collected_facts,
                 "metadata": {
                     "workflow_type": "working_langgraph",
                     "error_count": len(result_state.get("errors", [])),

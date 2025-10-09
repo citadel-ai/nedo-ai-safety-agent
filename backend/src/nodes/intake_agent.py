@@ -7,28 +7,18 @@ import uuid
 
 from langchain_core.messages import HumanMessage, SystemMessage
 from langchain_core.output_parsers import PydanticOutputParser
-from langchain_google_vertexai import ChatVertexAI
 from pydantic import ValidationError
 
 from src.intake_suggestions import get_suggestions_for_question
 from src.models import IntakeSession, JapanHelpdeskState
-from src.settings import load_settings
+from src.session_manager import get_session_manager
+from src.utils.llm_factory import create_llm
 from src.utils.observability import observe
 
 logger = logging.getLogger(__name__)
 
-# Initialize settings
-settings = load_settings()
-
-# Initialize the LLM
-llm = ChatVertexAI(
-    model=settings.agent_model,
-    temperature=settings.agent_temperature,
-    max_tokens=settings.agent_max_tokens,
-    location=settings.vertex_ai_location,
-)
-
-# Output parser
+# Initialize LLM and parser
+llm = create_llm()
 parser = PydanticOutputParser(pydantic_object=IntakeSession)
 
 
@@ -54,8 +44,12 @@ def _extract_json_block(text: str) -> str:
     return text
 
 
-# In-memory session storage (in production, use proper database)
-session_store: dict[str, IntakeSession] = {}
+# Get centralized session manager
+session_manager = get_session_manager()
+
+# Keep session_store reference for backwards compatibility
+# (will be removed in future refactoring)
+session_store = session_manager._sessions
 
 AUTONOMOUS_INTAKE_PROMPT = """
 You are an autonomous intake agent for a Japan helpdesk system. Your role is to intelligently analyze ANY user query and determine what contextual information is needed to provide accurate, personalized assistance.
@@ -135,24 +129,8 @@ Set is_complete = True when you have enough context to provide:
 
 
 def get_or_create_session(user_id: str, session_id: str | None = None) -> IntakeSession:
-    """Get existing session or create new one."""
-    if session_id and session_id in session_store:
-        return session_store[session_id]
-
-    # Create new session
-    new_session_id = session_id or f"sess_{uuid.uuid4().hex[:8]}"
-    new_session = IntakeSession(
-        session_id=new_session_id,
-        user_id=user_id,
-        conversation_history=[],
-        collected_info={},
-        current_step="initial",
-        completed_steps=[],
-        needs_clarification=[],
-        is_complete=False,
-    )
-    session_store[new_session_id] = new_session
-    return new_session
+    """Get existing session or create new one using centralized session manager."""
+    return session_manager.get_or_create_session(user_id, session_id)
 
 
 @observe(name="intake_agent_node")
@@ -261,8 +239,8 @@ async def intake_agent_node(state: JapanHelpdeskState) -> JapanHelpdeskState:
                     f"🔵 INTAKE AGENT - Preserved main_request: '{session.collected_info['main_request']}'"
                 )
 
-        # Update session store
-        session_store[updated_session.session_id] = updated_session
+        # Update session in centralized manager
+        session_manager.update_session(updated_session)
 
         # Update state
         state["intake_session"] = updated_session
@@ -289,7 +267,7 @@ async def intake_agent_node(state: JapanHelpdeskState) -> JapanHelpdeskState:
 
             # Add to conversation history
             updated_session.conversation_history.append(f"Agent: {question}")
-            session_store[updated_session.session_id] = updated_session
+            session_manager.update_session(updated_session)
         elif not updated_session.is_complete:
             # No questions but not complete - this shouldn't happen, but handle it
             logger.warning(

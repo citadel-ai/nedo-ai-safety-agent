@@ -18,6 +18,8 @@ if settings.langfuse_public_key:
     os.environ["LANGFUSE_PUBLIC_KEY"] = settings.langfuse_public_key
 if settings.langfuse_secret_key:
     os.environ["LANGFUSE_SECRET_KEY"] = settings.langfuse_secret_key
+if settings.langfuse_secret_key:
+    os.environ["LANGFUSE_HOST"] = settings.langfuse_host
 
 # Try to import Langfuse v3
 langfuse_client = None
