@@ -12,7 +12,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-# Use the pre-built frontend for now (simpler deployment)
 FROM python:3.11-slim
 
 # Install system dependencies including build tools
