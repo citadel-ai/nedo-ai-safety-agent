@@ -14,6 +14,14 @@ Launch the FastAPI server in a separate terminal:
 uv run uvicorn app.server:app --host 0.0.0.0 --port 8000 --reload
 ```
 
+> **To stop the server:** Press `Ctrl+C` in the terminal where the server is running. If you need to kill it by process ID, use:
+> ```bash
+> # Find the process ID
+> lsof -i :8000
+> # Kill the process (replace <PID> with the actual process ID)
+> kill -9 <PID>
+> ```
+
 **2. (In another tab) Create virtual environment with Locust**
 Using another terminal tab, This is suggested to avoid conflicts with the existing application python environment.
 

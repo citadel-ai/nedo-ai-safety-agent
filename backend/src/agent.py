@@ -12,10 +12,7 @@ from langgraph.graph import END, StateGraph
 from src.models import JapanHelpdeskState
 from src.nodes import (
     adversarial_detector_node,
-    agentic_orchestrator_node,
     agentic_search_orchestrator_node,
-    evaluator_optimizer_node,
-    hybrid_search_node,
     intake_agent_node,
     legal_checker_node,
     multi_step_procedure_agent_node,
@@ -51,19 +48,12 @@ def create_japan_helpdesk_workflow():
     workflow.add_node("query_synthesizer", query_synthesizer_node)
     workflow.add_node("scope_checker", scope_checker_node)
 
-    # Agentic search nodes (NEW!)
+    # Agentic search nodes
     workflow.add_node("agentic_search", agentic_search_orchestrator_node)
     workflow.add_node("multi_step_procedure", multi_step_procedure_agent_node)
 
-    # Original search node (kept as fallback)
-    workflow.add_node("hybrid_search", hybrid_search_node)
-
     workflow.add_node("legal_checker", legal_checker_node)
     workflow.add_node("response_synthesizer", response_synthesizer_node)
-
-    # Other agentic nodes (disabled)
-    workflow.add_node("agentic_orchestrator", agentic_orchestrator_node)
-    workflow.add_node("evaluator_optimizer", evaluator_optimizer_node)
 
     # Set entry point
     workflow.set_entry_point("adversarial_detector")
@@ -106,14 +96,17 @@ def create_japan_helpdesk_workflow():
         state: JapanHelpdeskState,
     ) -> Literal["agentic_search", "END"]:
         """Route after scope check - use agentic search if in scope."""
+        import logging
+
+        logger = logging.getLogger(__name__)
         scope_result = state.get("scope_check_result")
-        print("🔀 SCOPE ROUTING DEBUG:")
-        print(f"   scope_result: {scope_result}")
-        print(f"   state keys: {list(state.keys())}")
+        logger.info("🔀 SCOPE ROUTING DEBUG:")
+        logger.info(f"   scope_result: {scope_result}")
+        logger.info(f"   state keys: {list(state.keys())}")
 
         if scope_result:
-            print(f"   is_in_scope: {scope_result.is_in_scope}")
-            print(f"   category: {scope_result.category}")
+            logger.info(f"   is_in_scope: {scope_result.is_in_scope}")
+            logger.info(f"   category: {scope_result.category}")
 
         if not scope_result or not scope_result.is_in_scope:
             # Set final response for out-of-scope queries
@@ -124,10 +117,10 @@ def create_japan_helpdesk_workflow():
             )
             final_msg = f"I'm sorry, but your query is outside my scope. {reason}"
             state["final_response"] = final_msg
-            print(f"   TERMINATING: {final_msg}")
+            logger.info(f"   TERMINATING: {final_msg}")
             return "END"
 
-        print("   PROCEEDING to agentic_search")
+        logger.info("   PROCEEDING to agentic_search")
         return "agentic_search"
 
     # Add edges - linear flow
@@ -152,18 +145,12 @@ def create_japan_helpdesk_workflow():
         {"agentic_search": "agentic_search", "END": END},
     )
 
-    # New agentic flow:
+    # Agentic flow:
     # agentic_search -> multi_step_procedure -> legal_checker -> response_synthesizer -> END
     workflow.add_edge("agentic_search", "multi_step_procedure")
     workflow.add_edge("multi_step_procedure", "legal_checker")
     workflow.add_edge("legal_checker", "response_synthesizer")
     workflow.add_edge("response_synthesizer", END)
-
-    # TODO: Re-enable agentic nodes once state management is fixed
-    # workflow.add_edge("hybrid_search", "evaluator_optimizer")
-    # workflow.add_edge("evaluator_optimizer", "legal_checker")
-    # workflow.add_edge("scope_checker", "agentic_orchestrator")
-    # workflow.add_edge("agentic_orchestrator", "hybrid_search")
 
     return workflow
 
