@@ -12,6 +12,7 @@ from langgraph.graph import END, StateGraph
 from src.core.models import JapanHelpdeskState
 from src.nodes import (
     adversarial_detector_node,
+    grounding_validator_node,
     intake_agent_node,
     legal_checker_node,
     procedure_formatter_node,
@@ -58,6 +59,7 @@ def create_japan_helpdesk_workflow():
     # Phase: Response Validation & Synthesis
     workflow.add_node("legal_checker", legal_checker_node)
     workflow.add_node("response_synthesizer", response_synthesizer_node)
+    workflow.add_node("grounding_validator", grounding_validator_node)
 
     # Set entry point
     workflow.set_entry_point("adversarial_detector")
@@ -150,11 +152,12 @@ def create_japan_helpdesk_workflow():
     )
 
     # Linear flow: Phase 2 → 3 → 4
-    # search → procedure_formatter → legal_checker → response_synthesizer → END
+    # search → procedure_formatter → legal_checker → response_synthesizer → grounding_validator → END
     workflow.add_edge("search", "procedure_formatter")
     workflow.add_edge("procedure_formatter", "legal_checker")
     workflow.add_edge("legal_checker", "response_synthesizer")
-    workflow.add_edge("response_synthesizer", END)
+    workflow.add_edge("response_synthesizer", "grounding_validator")
+    workflow.add_edge("grounding_validator", END)
 
     return workflow
 

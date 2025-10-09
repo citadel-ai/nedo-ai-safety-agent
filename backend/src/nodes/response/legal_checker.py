@@ -16,13 +16,9 @@ parser = PydanticOutputParser(pydantic_object=LegalAdviceCheck)
 
 
 def _get_response_content(state: JapanHelpdeskState) -> str:
-    """Extract response content from various result types."""
-    if state.get("hybrid_results"):
-        return state["hybrid_results"].merged_summary
-    elif state.get("vector_results"):
-        return state["vector_results"].merged_summary
-    elif state.get("rag_results"):
-        return state["rag_results"].summary
+    """Extract response content from search results (RAG: Vector DB + Google Search)."""
+    if state.get("search_results"):
+        return state["search_results"].merged_summary
     return ""
 
 

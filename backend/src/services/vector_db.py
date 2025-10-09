@@ -1,4 +1,4 @@
-"""Real vector database implementation using ChromaDB and sentence transformers."""
+"""Real vector database implementation using ChromaDB with Vertex AI embeddings."""
 
 import logging
 import os
@@ -9,7 +9,7 @@ import chromadb
 from chromadb.config import Settings
 from langchain_chroma import Chroma
 from langchain_core.documents import Document
-from langchain_google_genai import GoogleGenerativeAIEmbeddings
+from langchain_google_vertexai import VertexAIEmbeddings
 
 from src.core.models import VectorSearchResult
 from src.core.settings import load_settings
@@ -26,9 +26,13 @@ class RealVectorDB:
         self,
         collection_name: str = "japan_helpdesk_docs",
         embedding_model: str = settings.embedding_provider,
-        persist_directory: str = "./chroma_db",
+        persist_directory: str | None = None,
     ):
         self.collection_name = collection_name
+        # Use absolute path to project root chroma_db
+        if persist_directory is None:
+            project_root = Path(__file__).resolve().parents[3]  # From src/services/ to project root
+            persist_directory = str(project_root / "chroma_db")
         self.persist_directory = persist_directory
         self.embedding_model_name = embedding_model
 
@@ -42,23 +46,22 @@ class RealVectorDB:
         self._check_collection_status()
 
     def _init_embedding_model(self):
-        """Initialize the embedding model."""
-        embedding_provider = os.getenv(
-            "EMBEDDING_PROVIDER", "sentence_transformers"
-        ).lower()
-
-        if embedding_provider == "google" and settings.google_api_key:
-            # Use Google's text-embedding model
-            try:
-                self.embeddings = GoogleGenerativeAIEmbeddings(
-                    model="models/text-embedding-004",
-                    google_api_key=settings.google_api_key,
-                )
-                logger.info("Using Google Generative AI embeddings")
-            except Exception as e:
-                logger.warning(f"Failed to initialize Google embeddings: {e}")
-                self._fallback_to_sentence_transformers()
-        else:
+        """Initialize the embedding model using Vertex AI."""
+        # Use Vertex AI embeddings by default (same credentials as LLM)
+        embedding_model = os.getenv(
+            "EMBEDDING_MODEL", "text-multilingual-embedding-002"
+        )
+        
+        try:
+            self.embeddings = VertexAIEmbeddings(
+                model_name=embedding_model,
+                location=settings.vertex_ai_location,
+            )
+            logger.info(f"Using Vertex AI embeddings: {embedding_model}")
+            logger.info(f"Location: {settings.vertex_ai_location}")
+        except Exception as e:
+            logger.warning(f"Failed to initialize Vertex AI embeddings: {e}")
+            logger.info("Falling back to sentence transformers")
             self._fallback_to_sentence_transformers()
 
     def _fallback_to_sentence_transformers(self):
@@ -134,6 +137,8 @@ class RealVectorDB:
     ) -> list[VectorSearchResult]:
         """Search the vector database."""
         try:
+            logger.info(f"🔍 Vector DB search - query: '{query[:50]}...', top_k: {top_k}, min_similarity: {min_similarity}")
+            
             # Perform similarity search
             search_kwargs = {"k": top_k}
             if filter_metadata:
@@ -143,9 +148,12 @@ class RealVectorDB:
             results = self.vectorstore.similarity_search_with_score(
                 query=query, **search_kwargs
             )
+            
+            logger.info(f"📊 Raw results from ChromaDB: {len(results)} documents")
 
             # Convert to VectorSearchResult format
             vector_results = []
+            filtered_count = 0
             for doc, score in results:
                 # ChromaDB returns distance (lower is better), convert to similarity
                 # For cosine distance, similarity = 1 - distance
@@ -155,6 +163,8 @@ class RealVectorDB:
                 else:
                     # For euclidean distance, use inverse relationship
                     similarity = max(0.0, 1.0 / (1.0 + score))
+                
+                logger.debug(f"  Doc: {doc.page_content[:50]}... | Score: {score:.3f} | Similarity: {similarity:.3f}")
 
                 if similarity >= min_similarity:
                     result = VectorSearchResult(
@@ -164,14 +174,16 @@ class RealVectorDB:
                         source=doc.metadata.get("source", "unknown"),
                     )
                     vector_results.append(result)
+                else:
+                    filtered_count += 1
 
             logger.info(
-                f"Vector search returned {len(vector_results)} results for query: {query[:50]}..."
+                f"✓ Vector search returned {len(vector_results)} results (filtered {filtered_count} below {min_similarity} threshold) for query: '{query[:50]}...'"
             )
             return vector_results
 
         except Exception as e:
-            logger.error(f"Vector search failed: {e}")
+            logger.error(f"❌ Vector search failed: {e}", exc_info=True)
             # Fallback to empty results
             return []
 

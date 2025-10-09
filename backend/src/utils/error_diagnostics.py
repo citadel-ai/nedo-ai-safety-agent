@@ -54,7 +54,7 @@ class WorkflowDiagnostics:
             "final_response",
             "intake_session",
             "synthesized_search_query",
-            "hybrid_results",
+            "search_results",
             "recommendations",
             "errors",
         ]
@@ -152,15 +152,17 @@ def diagnose_search_failure(state: dict[str, Any]) -> str:
     if not synthesized_query:
         issues.append("⚠️ No synthesized_search_query - using raw user_input")
 
-    hybrid_results = state.get("hybrid_results")
+    search_results = state.get("search_results")
     vector_results = state.get("_raw_vector_results")
     google_results = state.get("_raw_google_results")
 
-    if not hybrid_results and not vector_results and not google_results:
-        issues.append("❌ No search results at all")
+    if not search_results and not vector_results and not google_results:
+        issues.append("❌ No search results at all (RAG)")
     else:
+        if search_results is not None:
+            issues.append(f"✓ Search results available (merged RAG output)")
         if vector_results is not None:
-            issues.append(f"✓ Vector results: {len(vector_results)} items")
+            issues.append(f"✓ Vector DB results: {len(vector_results)} items")
         if google_results is not None:
             issues.append(f"✓ Google results: {len(google_results)} items")
 

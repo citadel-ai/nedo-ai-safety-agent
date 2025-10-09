@@ -12,18 +12,18 @@ Organized by workflow phase:
 from .intake import (
     adversarial_detector_node,
     intake_agent_node,
-    query_synthesizer_node,
     scope_checker_node,
 )
 
 # Phase 2: Search
-from .search import search_node
+from .search import query_synthesizer_node, search_node
 
 # Phase 3: Processing & Formatting
 from .processing import procedure_formatter_node
 
 # Phase 4: Response Validation & Synthesis
 from .response import (
+    grounding_validator_node,
     legal_checker_node,
     response_synthesizer_node,
 )
@@ -41,4 +41,5 @@ __all__ = [
     # Phase 4
     "legal_checker_node",
     "response_synthesizer_node",
+    "grounding_validator_node",
 ]

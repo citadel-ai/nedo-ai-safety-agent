@@ -1,10 +1,10 @@
 """External services and integrations (search, vector DB, etc.)."""
 
-from .real_google_search import RealGoogleSearch
 from .vector_db import RealVectorDB
+from .enhanced_google_search import EnhancedGoogleSearch
 
 __all__ = [
-    "RealGoogleSearch",
     "RealVectorDB",
+    "EnhancedGoogleSearch",
 ]
 

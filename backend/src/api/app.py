@@ -14,7 +14,7 @@ from pydantic import BaseModel
 
 from src.core.agent import JapanHelpdeskAgent
 from src.core.settings import load_settings
-from src.services.real_google_search import get_search_config
+from src.services.enhanced_google_search import get_search_config
 from src.services.vector_db import get_vector_db
 from src.utils.logging import setup_logging
 from src.utils.observability import (

@@ -16,7 +16,7 @@ import aiohttp
 import trafilatura
 from bs4 import BeautifulSoup
 
-from src.services.real_google_search import RealGoogleSearch
+from src.core.settings import load_settings
 
 logger = logging.getLogger(__name__)
 
@@ -63,11 +63,25 @@ class SearchResult:
         }
 
 
-class EnhancedGoogleSearch(RealGoogleSearch):
+class EnhancedGoogleSearch:
     """Enhanced Google Search that fetches full page content."""
 
     def __init__(self):
-        super().__init__()
+        # Initialize base search configuration (previously from RealGoogleSearch)
+        settings = load_settings()
+        self.google_api_key = settings.google_api_key
+        self.google_cse_id = settings.google_cse_id
+        self.timeout = 10
+
+        logger.info("🔍 GOOGLE SEARCH INIT DEBUG - Initializing EnhancedGoogleSearch:")
+        logger.info(f"   GOOGLE_API_KEY set: {bool(self.google_api_key)}")
+        if self.google_api_key:
+            logger.info(f"   GOOGLE_API_KEY length: {len(self.google_api_key)} chars")
+            logger.info(f"   GOOGLE_API_KEY prefix: {self.google_api_key[:10]}...")
+        logger.info(f"   GOOGLE_CSE_ID set: {bool(self.google_cse_id)}")
+        if self.google_cse_id:
+            logger.info(f"   GOOGLE_CSE_ID value: {self.google_cse_id}")
+        logger.info(f"   Timeout: {self.timeout} seconds")
         self.session_timeout = aiohttp.ClientTimeout(
             total=30
         )  # Longer timeout for content fetching
@@ -86,6 +100,28 @@ class EnhancedGoogleSearch(RealGoogleSearch):
         # Simple in-memory TTL cache
         self._cache: dict[str, Any] = {}
         self._cache_ttl_seconds: int = 900
+
+    def _enhance_query_for_japan(
+        self, query: str, site_filter: str | None = None
+    ) -> str:
+        """Enhance query with Japan-specific terms and restrict to official domains."""
+        enhanced_query = query
+
+        # Add Japan context if needed
+        if (
+            "japan" not in query.lower()
+            and "japanese" not in query.lower()
+            and "日本" not in query
+        ):
+            enhanced_query = f"{enhanced_query} Japan"
+
+        # Restrict to official Japanese domains (OR across official domains)
+        official_domains = ["go.jp", "ac.jp", "ed.jp", "lg.jp", "or.jp"]
+        site_filters = " OR ".join([f"site:{domain}" for domain in official_domains])
+        enhanced_query = f"({site_filters}) {enhanced_query}"
+
+        logger.info(f"🔍 _enhance_query_for_japan: '{query}' → '{enhanced_query}'")
+        return enhanced_query
 
     async def search_with_full_content(
         self,
@@ -325,27 +361,65 @@ class EnhancedGoogleSearch(RealGoogleSearch):
             result.extraction_success = False
             return result
 
-    async def _extract_html_content(self, url: str) -> str | None:
-        """Extract clean text content from HTML page."""
+    async def _extract_html_content(self, url: str, retry_count: int = 0) -> str | None:
+        """Extract clean text content from HTML page with retry logic."""
+        max_retries = 2
+        
         try:
+            # Add rate limiting: small delay between requests to be polite
+            if retry_count > 0:
+                delay = min(2 ** retry_count, 8)  # Exponential backoff: 2, 4, 8 seconds
+                logger.info(f"Retry {retry_count}/{max_retries} after {delay}s delay for {url}")
+                await asyncio.sleep(delay)
+            else:
+                # Small delay even on first request to avoid looking like aggressive bot
+                await asyncio.sleep(0.5)
+            
             # Use aiohttp for async HTTP request
             async with aiohttp.ClientSession(timeout=self.session_timeout) as session:
+                # Modern browser headers - updated to latest Chrome/Edge
                 headers = {
-                    "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36",
-                    "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8",
-                    "Accept-Language": "en-US,en;q=0.9,ja;q=0.8",
+                    # Latest Chrome User-Agent (updated regularly)
+                    "User-Agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36",
+                    "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8",
+                    # Japanese language preference for Japanese sites
+                    "Accept-Language": "ja,en-US;q=0.9,en;q=0.8",
                     "Accept-Encoding": "gzip, deflate, br",
                     "DNT": "1",
                     "Connection": "keep-alive",
                     "Upgrade-Insecure-Requests": "1",
+                    # Make it look like we came from Google search
+                    "Referer": "https://www.google.com/",
+                    "Sec-Fetch-Dest": "document",
+                    "Sec-Fetch-Mode": "navigate",
+                    "Sec-Fetch-Site": "cross-site",
+                    "Sec-Fetch-User": "?1",
+                    "sec-ch-ua": '"Chromium";v="131", "Not_A Brand";v="24"',
+                    "sec-ch-ua-mobile": "?0",
+                    "sec-ch-ua-platform": '"macOS"',
                 }
 
-                async with session.get(url, headers=headers) as response:
+                async with session.get(url, headers=headers, allow_redirects=True) as response:
                     if response.status == 403:
+                        # Retry with even more conservative approach
+                        if retry_count < max_retries:
+                            logger.info(f"HTTP 403 for {url}, retrying with different headers...")
+                            return await self._extract_html_content_fallback(url, retry_count + 1)
+                        
                         logger.warning(
-                            f"HTTP 403 (Forbidden) for {url} - Site blocking access, using snippet instead"
+                            f"HTTP 403 (Forbidden) for {url} - Site blocking access after {max_retries} retries, using snippet instead"
                         )
                         return f"Content from {url} is not accessible due to access restrictions. Please visit the site directly for full information."
+                    
+                    elif response.status == 429:  # Too Many Requests
+                        if retry_count < max_retries:
+                            logger.warning(f"HTTP 429 (Rate Limited) for {url}, backing off...")
+                            await asyncio.sleep(5)  # Wait 5 seconds before retry
+                            return await self._extract_html_content(url, retry_count + 1)
+                        else:
+                            logger.warning(f"HTTP 429 for {url} after {max_retries} retries")
+                            return f"Content from {url} is currently rate-limited. Please try again later."
+                    
                     elif response.status != 200:
                         logger.warning(f"HTTP {response.status} for {url}")
                         return f"Content from {url} could not be retrieved (HTTP {response.status}). Please visit the site directly."
@@ -364,17 +438,53 @@ class EnhancedGoogleSearch(RealGoogleSearch):
             extracted_text = trafilatura.extract(html_content)
 
             if extracted_text and len(extracted_text.strip()) > 100:
+                logger.info(f"✅ Successfully extracted {len(extracted_text)} chars from {url}")
                 return extracted_text.strip()
 
             # Fallback to BeautifulSoup if trafilatura fails
             logger.info("Trafilatura failed, trying BeautifulSoup fallback")
             return self._extract_with_beautifulsoup(html_content)
 
-        except TimeoutError:
-            logger.warning(f"Timeout fetching {url}")
+        except asyncio.TimeoutError:
+            if retry_count < max_retries:
+                logger.warning(f"Timeout fetching {url}, retrying...")
+                return await self._extract_html_content(url, retry_count + 1)
+            logger.warning(f"Timeout fetching {url} after {max_retries} retries")
             return None
         except Exception as e:
             logger.error(f"Error extracting HTML from {url}: {e}")
+            return None
+
+    async def _extract_html_content_fallback(self, url: str, retry_count: int) -> str | None:
+        """Fallback extraction with even simpler headers (looks more like a browser)."""
+        try:
+            await asyncio.sleep(2)  # Be extra polite
+            
+            async with aiohttp.ClientSession(timeout=self.session_timeout) as session:
+                # Minimal headers - just look like a Japanese browser
+                headers = {
+                    "User-Agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36",
+                    "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8",
+                    "Accept-Language": "ja,en;q=0.9",
+                    "Referer": "https://www.google.co.jp/",  # Japanese Google
+                }
+
+                async with session.get(url, headers=headers, allow_redirects=True) as response:
+                    if response.status != 200:
+                        logger.warning(f"Fallback also failed with HTTP {response.status} for {url}")
+                        return None
+
+                    html_content = await response.text()
+                    extracted_text = trafilatura.extract(html_content)
+                    
+                    if extracted_text and len(extracted_text.strip()) > 100:
+                        logger.info(f"✅ Fallback succeeded for {url}")
+                        return extracted_text.strip()
+                    
+                    return self._extract_with_beautifulsoup(html_content)
+
+        except Exception as e:
+            logger.error(f"Fallback extraction failed for {url}: {e}")
             return None
 
     def _extract_with_beautifulsoup(self, html_content: str) -> str | None:
@@ -505,3 +615,14 @@ async def get_enhanced_search_results(
     """
     search_engine = get_enhanced_google_search()
     return await search_engine.search_with_full_content(query, num_results)
+
+
+def get_search_config() -> dict[str, Any]:
+    """Get current search configuration (for /system-info endpoint)."""
+    engine = get_enhanced_google_search()
+    return {
+        "google_cse_configured": bool(engine.google_api_key and engine.google_cse_id),
+        "googlesearch_available": True,
+        "mock_fallback": True,
+        "recommended_setup": "Use EnhancedGoogleSearch via Google CSE; PDFs handled via vector DB",
+    }

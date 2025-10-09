@@ -321,26 +321,26 @@ async def intake_agent_node(state: JapanHelpdeskState) -> JapanHelpdeskState:
             next_question = "To provide you with accurate information, could you tell me: What type of visa are you on, and which city in Japan are you located in?"
             required_fields = ["visa_type", "user_location"]
 
-            # Create fallback session with helpful question
-            # Generate suggestions for the fallback question
-            suggestions = (
-                get_suggestions_for_question(next_question) if next_question else []
-            )
+        # Create fallback session with helpful question (outside the else block)
+        # Generate suggestions for the fallback question
+        suggestions = (
+            get_suggestions_for_question(next_question) if next_question else []
+        )
 
-            fallback_session = IntakeSession(
-                session_id=state.get("session_id", f"fallback_{uuid.uuid4().hex[:8]}"),
-                user_id=state["user_id"],
-                conversation_history=[f"User: {state['user_input']}"],
-                collected_info={"main_request": state["user_input"]},
-                current_step="basic_info",
-                completed_steps=["initial"],
-                needs_clarification=required_fields,
-                is_complete=False,
-                required_context_fields=required_fields,
-                missing_context_fields=required_fields,
-                next_questions=[next_question] if next_question else [],
-                suggested_answers=suggestions,
-            )
+        fallback_session = IntakeSession(
+            session_id=state.get("session_id", f"fallback_{uuid.uuid4().hex[:8]}"),
+            user_id=state["user_id"],
+            conversation_history=[f"User: {state['user_input']}"],
+            collected_info={"main_request": state["user_input"]},
+            current_step="basic_info",
+            completed_steps=["initial"],
+            needs_clarification=required_fields,
+            is_complete=False,
+            required_context_fields=required_fields,
+            missing_context_fields=required_fields,
+            next_questions=[next_question] if next_question else [],
+            suggested_answers=suggestions,
+        )
 
         state["intake_session"] = fallback_session
         state["session_id"] = fallback_session.session_id

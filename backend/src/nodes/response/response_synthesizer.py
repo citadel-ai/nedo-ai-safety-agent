@@ -1,39 +1,37 @@
 """Response synthesizer node for LangGraph with Langfuse observability."""
 
+import logging
 import time
 
 from src.core.models import JapanHelpdeskState
 from src.utils.observability import observe
 
+logger = logging.getLogger(__name__)
+
 
 @observe(name="response_synthesizer_node")
 async def response_synthesizer_node(state: JapanHelpdeskState) -> JapanHelpdeskState:
-    """Synthesize final response from all gathered information."""
+    """Synthesize final response from all gathered information with citation tracking."""
     start_time = time.time()
 
     try:
         # Collect all available information
         response_parts = []
         confidence_scores = []
+        citations = []  # Track sources for grounding validation
 
-        # Add search results summary
-        if state.get("hybrid_results"):
-            response_parts.append(state["hybrid_results"].merged_summary)
-            confidence_scores.append(state["hybrid_results"].confidence_score)
-
-        elif state.get("vector_results"):
-            response_parts.append(state["vector_results"].merged_summary)
-            confidence_scores.append(state["vector_results"].confidence_score)
-
-        elif state.get("rag_results"):
-            response_parts.append(state["rag_results"].summary)
-            confidence_scores.append(0.7)  # Default confidence for RAG
+        # Add search results summary with citation tracking (RAG: Vector DB + Google Search)
+        if state.get("search_results"):
+            response_parts.append(state["search_results"].merged_summary)
+            confidence_scores.append(state["search_results"].confidence_score)
+            # Track sources for grounding validation
+            sources = getattr(state["search_results"], "sources", [])
+            if sources:
+                citations.extend(sources)
+                logger.info(f"📚 Added {len(sources)} sources from search results")
 
         # Add multi-step procedure recommendations (CRITICAL!)
         if state.get("recommendations") and len(state["recommendations"]) > 0:
-            import logging
-
-            logger = logging.getLogger(__name__)
             logger.info(
                 f"🔧 RESPONSE SYNTH - Including {len(state['recommendations'])} recommendation lines"
             )
@@ -43,8 +41,9 @@ async def response_synthesizer_node(state: JapanHelpdeskState) -> JapanHelpdeskS
             response_parts.append("\n" + "\n".join(state["recommendations"]))
 
         # Add intake context if available
-        if state.get("intake_session") and state["intake_session"].collected_info:
-            user_context = state["intake_session"].collected_info
+        intake_session = state.get("intake_session")
+        if intake_session:
+            user_context = getattr(intake_session, "collected_info", {}) or {}
             if user_context.get("location"):
                 response_parts.append(
                     f"\n**Location-Specific Note:** Based on your location in {user_context['location']}, please verify local requirements with your municipal office."
@@ -57,6 +56,16 @@ async def response_synthesizer_node(state: JapanHelpdeskState) -> JapanHelpdeskS
         # Synthesize final response
         if response_parts:
             final_response = "\n\n".join(response_parts)
+
+            # Add sources section for transparency and grounding
+            if citations:
+                final_response += "\n\n**Sources:**"
+                # Filter out None values and ensure all are strings
+                valid_citations = [str(c) for c in citations[:10] if c]  # Top 10, filter None
+                unique_sources = list(dict.fromkeys(valid_citations))[:5]  # Top 5 unique, preserving order
+                for i, source in enumerate(unique_sources, 1):
+                    final_response += f"\n{i}. {source}"
+                logger.info(f"📚 Added {len(unique_sources)} sources to response for grounding transparency")
 
             # Add standard disclaimers
             final_response += "\n\n**Important Disclaimers:**"
@@ -105,6 +114,7 @@ Please try rephrasing your question or provide more specific details about your 
         return state
 
     except Exception as e:
+        logger.error(f"🔴 RESPONSE SYNTHESIS FAILED: {e}", exc_info=True)
         state["errors"].append(f"Response synthesis failed: {e!s}")
         state["error_count"] += 1
 

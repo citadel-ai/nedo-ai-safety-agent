@@ -9,6 +9,7 @@ from langchain_core.messages import HumanMessage, SystemMessage
 from langchain_google_vertexai import ChatVertexAI
 
 from src.services.enhanced_google_search import get_enhanced_search_results
+from src.services.vector_db import get_vector_db as get_global_vector_db
 from src.core.models import JapanHelpdeskState, MergedSearchResult
 from src.core.settings import load_settings
 from src.utils.observability import observe
@@ -23,6 +24,8 @@ llm = ChatVertexAI(
     max_tokens=512,
     location=settings.vertex_ai_location,
 )
+
+# Vector DB access is centralized in src.services.vector_db
 
 logger = logging.getLogger(__name__)
 
@@ -175,18 +178,35 @@ async def execute_parallel_searches(
     query_variants: list[str], context: dict[str, Any]
 ) -> list[tuple[str, str, Any]]:
     """
-    Execute parallel searches for query variants.
+    Execute parallel searches for query variants using both Vector DB and Google.
     
     Returns:
         List of (source_type, query, result) tuples
     """
     search_tasks = []
+    # Get centralized vector DB; gracefully degrade if unavailable
+    try:
+        vector_db = get_global_vector_db()
+    except Exception as e:
+        logger.error(f"⚠️ Vector DB unavailable, using Google only: {e}")
+        vector_db = None
     
     # Use up to 4 variants (mix of English and Japanese)
     for i, query in enumerate(query_variants[:4], 1):
         logger.info(f"🔍 Variant {i}: '{query}'")
         
-        # Google search with enhanced query
+        # Vector DB search (if available) - RAG from official Japanese PDFs
+        if vector_db:
+            logger.info(f"📚 Vector DB variant {i}: '{query}'")
+            search_tasks.append(
+                (
+                    "vector",
+                    query,
+                    vector_db.search(query, top_k=5, min_similarity=0.5),
+                )
+            )
+        
+        # Google search with enhanced query - secondary source
         google_query = await enhance_query_for_google(query, context)
         logger.info(f"🌐 Google variant {i}: '{google_query}'")
         
@@ -194,11 +214,11 @@ async def execute_parallel_searches(
             (
                 "google",
                 google_query,
-                get_enhanced_search_results(google_query, num_results=4),
+                get_enhanced_search_results(google_query, num_results=3),  # Reduced from 4 to 3
             )
         )
     
-    logger.info(f"⚡ Executing {len(search_tasks)} parallel searches...")
+    logger.info(f"⚡ Executing {len(search_tasks)} parallel searches ({len([t for t in search_tasks if t[0] == 'vector'])} vector + {len([t for t in search_tasks if t[0] == 'google'])} google)...")
     results = await asyncio.gather(
         *[task[2] for task in search_tasks], return_exceptions=True
     )
@@ -364,11 +384,27 @@ async def search_node(
     start_time = time.time()
 
     try:
-        # Get the synthesized query (or fall back to user input)
-        base_query = state.get("synthesized_search_query") or state["user_input"]
+        # Get the synthesized query (or fall back to constructing from context)
+        base_query = state.get("synthesized_search_query")
         
         # Build context from intake session
         context = build_search_context(state)
+        
+        # If synthesized query is empty or too short, construct from context
+        if not base_query or len(base_query.strip()) < 3:
+            logger.warning(f"⚠️ Synthesized query too short or empty: '{base_query}'")
+            # Try to construct from main_request in intake session
+            intake_session = state.get("intake_session")
+            if intake_session and hasattr(intake_session, "collected_info"):
+                main_request = intake_session.collected_info.get("main_request")
+                if main_request:
+                    base_query = main_request
+                    logger.info(f"🔍 Using main_request from intake: '{base_query}'")
+            
+            # If still no good query, use original user input
+            if not base_query or len(base_query.strip()) < 3:
+                base_query = state["user_input"]
+                logger.info(f"🔍 Falling back to original user_input: '{base_query}'")
         
         logger.info(f"🔍 AGENTIC SEARCH - Base query: '{base_query}'")
         logger.info(f"🔍 AGENTIC SEARCH - Context: {context}")
@@ -418,11 +454,10 @@ async def search_node(
             unique_vector, unique_google, google_results_str, sources
         )
 
-        # Update state with results
-        state["hybrid_results"] = merged_result
-        state["vector_results"] = merged_result  # For compatibility
-        state["_raw_vector_results"] = unique_vector
-        state["_raw_google_results"] = google_results_str
+        # Update state with search results (RAG: Vector DB + Google Search)
+        state["search_results"] = merged_result
+        state["_raw_vector_results"] = unique_vector  # Internal: raw vector DB hits for debugging
+        state["_raw_google_results"] = google_results_str  # Internal: raw Google hits for debugging
 
         # Update metadata
         processing_time = time.time() - start_time

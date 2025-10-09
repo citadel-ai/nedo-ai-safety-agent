@@ -145,10 +145,10 @@ async def procedure_formatter_node(
             if hasattr(intake, "timeline") and intake.timeline:
                 context["timeline"] = intake.timeline
 
-        # Get search results summary
+        # Get search results summary (RAG: Vector DB + Google Search)
         search_summary = "No search results available"
-        if state.get("hybrid_results"):
-            search_summary = state["hybrid_results"].merged_summary
+        if state.get("search_results"):
+            search_summary = state["search_results"].merged_summary
         elif state.get("_raw_vector_results") or state.get("_raw_google_results"):
             vector_count = len(state.get("_raw_vector_results", []))
             google_count = len(state.get("_raw_google_results", []))
