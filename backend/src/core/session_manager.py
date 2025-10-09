@@ -8,7 +8,7 @@ preparing for future UI sidebar display of collected information.
 import uuid
 from typing import Any
 
-from src.models import IntakeSession
+from src.core.models import IntakeSession
 
 
 class SessionManager:

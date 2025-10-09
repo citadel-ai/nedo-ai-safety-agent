@@ -1,6 +1,6 @@
 import logging.config
 
-from src.settings import Settings
+from src.core.settings import Settings
 
 fmt = "json" if Settings().use_json_log else "standard"
 

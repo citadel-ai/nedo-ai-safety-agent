@@ -2,7 +2,7 @@
 
 import time
 
-from src.models import JapanHelpdeskState
+from src.core.models import JapanHelpdeskState
 from src.utils.observability import observe
 
 

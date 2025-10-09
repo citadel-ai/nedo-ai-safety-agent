@@ -6,13 +6,16 @@ from typing import Any
 
 import aiohttp
 
-from src.settings import load_settings
-from src.vector_db import mock_google_search
+from src.core.settings import load_settings
 
 logger = logging.getLogger(__name__)
 
-
 settings = load_settings()
+
+
+def mock_google_search(query: str) -> list[str]:
+    """Mock Google search - returns empty results for testing without credentials."""
+    return []
 
 
 class RealGoogleSearch:

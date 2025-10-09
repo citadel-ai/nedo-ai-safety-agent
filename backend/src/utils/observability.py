@@ -5,7 +5,7 @@ import os
 from collections.abc import Callable
 from typing import Any
 
-from src.settings import load_settings
+from src.core.settings import load_settings
 
 logger = logging.getLogger(__name__)
 

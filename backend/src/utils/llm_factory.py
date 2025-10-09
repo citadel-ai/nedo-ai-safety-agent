@@ -4,7 +4,7 @@ LLM Factory - Centralized LLM creation with common configurations.
 
 from langchain_google_vertexai import ChatVertexAI
 
-from src.settings import load_settings
+from src.core.settings import load_settings
 
 # Global settings instance
 _settings = load_settings()

@@ -4,7 +4,7 @@ import logging
 
 from langchain_core.messages import HumanMessage, SystemMessage
 
-from src.models import JapanHelpdeskState
+from src.core.models import JapanHelpdeskState
 from src.utils.llm_factory import create_query_llm
 from src.utils.node_helpers import handle_node_error, track_execution
 from src.utils.observability import observe

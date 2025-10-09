@@ -11,8 +11,8 @@ from langchain_chroma import Chroma
 from langchain_core.documents import Document
 from langchain_google_genai import GoogleGenerativeAIEmbeddings
 
-from src.models import VectorSearchResult
-from src.settings import load_settings
+from src.core.models import VectorSearchResult
+from src.core.settings import load_settings
 
 logger = logging.getLogger(__name__)
 

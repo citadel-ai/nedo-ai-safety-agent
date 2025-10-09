@@ -7,7 +7,7 @@ import time
 from contextlib import contextmanager
 from typing import Any, Callable, TypeVar
 
-from src.models import JapanHelpdeskState
+from src.core.models import JapanHelpdeskState
 
 logger = logging.getLogger(__name__)
 

@@ -12,11 +12,11 @@ from fastapi.staticfiles import StaticFiles
 from google.cloud import logging as google_cloud_logging
 from pydantic import BaseModel
 
-from src.agent import JapanHelpdeskAgent
-from src.logging_config import setup_logging
-from src.real_google_search import get_search_config
-from src.real_vector_db import get_vector_db
-from src.settings import load_settings
+from src.core.agent import JapanHelpdeskAgent
+from src.core.settings import load_settings
+from src.services.real_google_search import get_search_config
+from src.services.vector_db import get_vector_db
+from src.utils.logging import setup_logging
 from src.utils.observability import (
     get_langfuse_client,
     is_langfuse_enabled,

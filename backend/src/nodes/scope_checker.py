@@ -7,7 +7,7 @@ import re
 from langchain_core.messages import HumanMessage, SystemMessage
 from langchain_core.output_parsers import PydanticOutputParser
 
-from src.models import SUPPORTED_CATEGORIES, JapanHelpdeskState, ScopeCheckResult
+from src.core.models import SUPPORTED_CATEGORIES, JapanHelpdeskState, ScopeCheckResult
 from src.utils.llm_factory import create_llm
 from src.utils.node_helpers import (
     get_intake_context,

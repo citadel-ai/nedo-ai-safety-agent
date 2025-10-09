@@ -8,7 +8,7 @@ collected information for display in the UI sidebar.
 from dataclasses import dataclass
 from typing import Any
 
-from src.models import IntakeSession, JapanHelpdeskState
+from src.core.models import IntakeSession, JapanHelpdeskState
 
 
 @dataclass

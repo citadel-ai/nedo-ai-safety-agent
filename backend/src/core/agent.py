@@ -9,7 +9,7 @@ from typing import Any, Literal
 
 from langgraph.graph import END, StateGraph
 
-from src.models import JapanHelpdeskState
+from src.core.models import JapanHelpdeskState
 from src.nodes import (
     adversarial_detector_node,
     agentic_search_orchestrator_node,

@@ -7,10 +7,10 @@ from langchain_core.messages import HumanMessage, SystemMessage
 from langchain_core.output_parsers import PydanticOutputParser
 from langchain_google_vertexai import ChatVertexAI
 
-from src.enhanced_google_search import get_enhanced_search_results
-from src.models import JapanHelpdeskState, MergedSearchResult
-from src.real_vector_db import real_vector_search
-from src.settings import load_settings
+from src.services.enhanced_google_search import get_enhanced_search_results
+from src.core.models import JapanHelpdeskState, MergedSearchResult
+from src.services.vector_db import real_vector_search
+from src.core.settings import load_settings
 from src.utils.observability import observe
 
 # Initialize settings

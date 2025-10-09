@@ -12,8 +12,8 @@ from langchain_core.output_parsers import PydanticOutputParser
 from langchain_google_vertexai import ChatVertexAI
 from pydantic import BaseModel, Field
 
-from src.models import JapanHelpdeskState
-from src.settings import load_settings
+from src.core.models import JapanHelpdeskState
+from src.core.settings import load_settings
 from src.utils.observability import observe
 
 # Initialize settings
