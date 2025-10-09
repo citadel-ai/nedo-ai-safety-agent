@@ -17,6 +17,7 @@ llm = ChatVertexAI(
     model=settings.agent_model,
     temperature=settings.agent_temperature,
     max_tokens=256,  # Short queries only
+    location=settings.vertex_ai_location,
 )
 
 QUERY_SYNTHESIS_PROMPT = """

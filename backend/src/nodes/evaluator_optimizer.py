@@ -24,12 +24,14 @@ evaluator_llm = ChatVertexAI(
     model=settings.agent_model,
     temperature=settings.agent_temperature,
     max_tokens=1024,
+    location=settings.vertex_ai_location,
 )
 
 optimizer_llm = ChatVertexAI(
     model=settings.agent_model,
     temperature=settings.agent_temperature,
     max_tokens=2048,
+    location=settings.vertex_ai_location,
 )
 
 class ResponseEvaluation(BaseModel):

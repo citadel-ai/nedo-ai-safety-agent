@@ -19,6 +19,7 @@ llm = ChatVertexAI(
     model=settings.agent_model,
     temperature=settings.agent_temperature,
     max_tokens=4096,  # Increased for detailed multi-step procedures
+    location=settings.vertex_ai_location,
 )
 
 

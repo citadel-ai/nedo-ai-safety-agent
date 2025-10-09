@@ -21,6 +21,7 @@ llm = ChatVertexAI(
     model=settings.agent_model,
     temperature=settings.agent_temperature,
     max_tokens=512,
+    location=settings.vertex_ai_location,
 )
 
 logger = logging.getLogger(__name__)

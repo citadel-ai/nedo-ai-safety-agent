@@ -21,6 +21,7 @@ llm = ChatVertexAI(
     model=settings.agent_model,
     temperature=settings.agent_temperature,
     max_tokens=settings.agent_max_tokens,
+    location=settings.vertex_ai_location,
 )
 
 # Output parser

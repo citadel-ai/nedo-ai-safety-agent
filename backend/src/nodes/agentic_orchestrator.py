@@ -25,6 +25,7 @@ planning_llm = ChatVertexAI(
     model=settings.agent_model,
     temperature=0.7,  # Higher temperature for creative planning
     max_tokens=settings.agent_max_tokens,
+    location=settings.vertex_ai_location,
 )
 
 # Output parsers
