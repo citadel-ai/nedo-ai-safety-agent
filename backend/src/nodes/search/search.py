@@ -8,10 +8,10 @@ from typing import Any
 from langchain_core.messages import HumanMessage, SystemMessage
 from langchain_google_vertexai import ChatVertexAI
 
-from src.services.enhanced_google_search import get_enhanced_search_results
-from src.services.vector_db import get_vector_db as get_global_vector_db
 from src.core.models import JapanHelpdeskState, MergedSearchResult
 from src.core.settings import load_settings
+from src.services.enhanced_google_search import get_enhanced_search_results
+from src.services.vector_db import get_vector_db as get_global_vector_db
 from src.utils.observability import observe
 
 # Initialize settings
@@ -162,7 +162,7 @@ def build_search_context(state: JapanHelpdeskState) -> dict[str, Any]:
     """Extract search context from intake session."""
     context = {}
     intake = state.get("intake_session")
-    
+
     if intake:
         if hasattr(intake, "visa_type") and intake.visa_type:
             context["visa_type"] = intake.visa_type
@@ -170,7 +170,7 @@ def build_search_context(state: JapanHelpdeskState) -> dict[str, Any]:
             context["location"] = intake.user_location
         if hasattr(intake, "timeline") and intake.timeline:
             context["timeline"] = intake.timeline
-    
+
     return context
 
 
@@ -179,7 +179,7 @@ async def execute_parallel_searches(
 ) -> list[tuple[str, str, Any]]:
     """
     Execute parallel searches for query variants using both Vector DB and Google.
-    
+
     Returns:
         List of (source_type, query, result) tuples
     """
@@ -190,11 +190,11 @@ async def execute_parallel_searches(
     except Exception as e:
         logger.error(f"⚠️ Vector DB unavailable, using Google only: {e}")
         vector_db = None
-    
+
     # Use up to 4 variants (mix of English and Japanese)
     for i, query in enumerate(query_variants[:4], 1):
         logger.info(f"🔍 Variant {i}: '{query}'")
-        
+
         # Vector DB search (if available) - RAG from official Japanese PDFs
         if vector_db:
             logger.info(f"📚 Vector DB variant {i}: '{query}'")
@@ -205,24 +205,28 @@ async def execute_parallel_searches(
                     vector_db.search(query, top_k=5, min_similarity=0.5),
                 )
             )
-        
+
         # Google search with enhanced query - secondary source
         google_query = await enhance_query_for_google(query, context)
         logger.info(f"🌐 Google variant {i}: '{google_query}'")
-        
+
         search_tasks.append(
             (
                 "google",
                 google_query,
-                get_enhanced_search_results(google_query, num_results=3),  # Reduced from 4 to 3
+                get_enhanced_search_results(
+                    google_query, num_results=3
+                ),  # Reduced from 4 to 3
             )
         )
-    
-    logger.info(f"⚡ Executing {len(search_tasks)} parallel searches ({len([t for t in search_tasks if t[0] == 'vector'])} vector + {len([t for t in search_tasks if t[0] == 'google'])} google)...")
+
+    logger.info(
+        f"⚡ Executing {len(search_tasks)} parallel searches ({len([t for t in search_tasks if t[0] == 'vector'])} vector + {len([t for t in search_tasks if t[0] == 'google'])} google)..."
+    )
     results = await asyncio.gather(
         *[task[2] for task in search_tasks], return_exceptions=True
     )
-    
+
     # Combine tasks with results
     return [
         (search_tasks[j][0], search_tasks[j][1], results[j])
@@ -234,15 +238,15 @@ def deduplicate_vector_results(vector_results: list[Any]) -> list[Any]:
     """Deduplicate vector search results by content hash."""
     unique_results = []
     seen_contents = set()
-    
+
     for res in vector_results:
         content = res.content if hasattr(res, "content") else str(res)
         content_hash = hash(content[:100])
-        
+
         if content_hash not in seen_contents:
             seen_contents.add(content_hash)
             unique_results.append(res)
-    
+
     return unique_results
 
 
@@ -250,21 +254,21 @@ def deduplicate_google_results(google_results: list[Any]) -> list[Any]:
     """Deduplicate Google search results by URL."""
     unique_results = []
     seen_urls = set()
-    
+
     for res in google_results:
         url = getattr(res, "url", "") if hasattr(res, "url") else str(res)
-        
+
         if url and url not in seen_urls:
             seen_urls.add(url)
             unique_results.append(res)
-    
+
     return unique_results
 
 
 def convert_google_results_to_strings(google_results: list[Any]) -> list[str]:
     """Convert Google result objects to formatted strings with content."""
     results_str = []
-    
+
     for res in google_results:
         if hasattr(res, "title"):
             # Build a rich string with title, URL, and full_content
@@ -272,14 +276,14 @@ def convert_google_results_to_strings(google_results: list[Any]) -> list[str]:
             url = res.url if isinstance(res.url, str) else str(res.url)
             snippet = res.snippet if isinstance(res.snippet, str) else str(res.snippet)
             full_content = getattr(res, "full_content", None)
-            
+
             # Build rich string with all available info
             result_str = f"Title: {title}\nURL: {url}\n"
             if full_content and len(full_content) > 100:
                 result_str += f"Content: {full_content[:2000]}...\n"
             elif snippet:
                 result_str += f"Snippet: {snippet}\n"
-            
+
             results_str.append(result_str)
             logger.info(
                 f"📊 Converted Google result to string ({len(result_str)} chars, "
@@ -289,7 +293,7 @@ def convert_google_results_to_strings(google_results: list[Any]) -> list[str]:
             results_str.append(res)
         else:
             results_str.append(str(res))
-    
+
     return results_str
 
 
@@ -321,7 +325,7 @@ def log_search_results_detail(
             logger.info(
                 f"   {i}. (Unknown type: {type(res).__name__}): {str(res)[:200]}..."
             )
-    
+
     # Log Vector results
     logger.info("📊 VECTOR SEARCH RESULTS DETAIL:")
     for i, res in enumerate(unique_vector[:3], 1):  # Show first 3
@@ -338,19 +342,19 @@ def extract_sources_from_results(
 ) -> list[str]:
     """Extract source URLs/identifiers from search results."""
     sources = []
-    
+
     # Extract from vector results
     for res in unique_vector:
         if hasattr(res, "source"):
             sources.append(res.source)
-    
+
     # Extract from Google results
     for res in unique_google:
         if hasattr(res, "url"):
             sources.append(res.url)
         elif isinstance(res, str):
             sources.append(res)
-    
+
     return sources
 
 
@@ -362,7 +366,7 @@ def create_merged_search_result(
 ) -> MergedSearchResult:
     """Create a unified search result from vector and Google results."""
     total_results = len(unique_vector) + len(unique_google)
-    
+
     return MergedSearchResult(
         vector_results=unique_vector,
         google_results=google_results_str,
@@ -386,10 +390,10 @@ async def search_node(
     try:
         # Get the synthesized query (or fall back to constructing from context)
         base_query = state.get("synthesized_search_query")
-        
+
         # Build context from intake session
         context = build_search_context(state)
-        
+
         # If synthesized query is empty or too short, construct from context
         if not base_query or len(base_query.strip()) < 3:
             logger.warning(f"⚠️ Synthesized query too short or empty: '{base_query}'")
@@ -400,12 +404,12 @@ async def search_node(
                 if main_request:
                     base_query = main_request
                     logger.info(f"🔍 Using main_request from intake: '{base_query}'")
-            
+
             # If still no good query, use original user input
             if not base_query or len(base_query.strip()) < 3:
                 base_query = state["user_input"]
                 logger.info(f"🔍 Falling back to original user_input: '{base_query}'")
-        
+
         logger.info(f"🔍 AGENTIC SEARCH - Base query: '{base_query}'")
         logger.info(f"🔍 AGENTIC SEARCH - Context: {context}")
 
@@ -456,8 +460,12 @@ async def search_node(
 
         # Update state with search results (RAG: Vector DB + Google Search)
         state["search_results"] = merged_result
-        state["_raw_vector_results"] = unique_vector  # Internal: raw vector DB hits for debugging
-        state["_raw_google_results"] = google_results_str  # Internal: raw Google hits for debugging
+        state["_raw_vector_results"] = (
+            unique_vector  # Internal: raw vector DB hits for debugging
+        )
+        state["_raw_google_results"] = (
+            google_results_str  # Internal: raw Google hits for debugging
+        )
 
         # Update metadata
         processing_time = time.time() - start_time

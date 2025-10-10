@@ -37,7 +37,9 @@ class Settings(BaseSettings):
     agent_temperature: float = Field(default=0.3, alias="AGENT_TEMPERATURE")
     agent_seed: int = Field(default=42, alias="AGENT_SEED")
     agent_max_tokens: int = Field(default=2048, alias="AGENT_MAX_TOKENS")
-    vertex_ai_location: str = Field(default="asia-northeast1", alias="VERTEX_AI_LOCATION")
+    vertex_ai_location: str = Field(
+        default="asia-northeast1", alias="VERTEX_AI_LOCATION"
+    )
 
     langfuse_enabled: bool = Field(default=True, alias="LANGFUSE_ENABLED")
     langfuse_secret_key: str = Field(default="", alias="LANGFUSE_SECRET_KEY")

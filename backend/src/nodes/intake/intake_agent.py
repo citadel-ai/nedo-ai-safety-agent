@@ -9,9 +9,9 @@ from langchain_core.messages import HumanMessage, SystemMessage
 from langchain_core.output_parsers import PydanticOutputParser
 from pydantic import ValidationError
 
-from src.nodes.helpers.intake_suggestions import get_suggestions_for_question
 from src.core.models import IntakeSession, JapanHelpdeskState
 from src.core.session_manager import get_session_manager
+from src.nodes.helpers.intake_suggestions import get_suggestions_for_question
 from src.utils.llm_factory import create_llm
 from src.utils.observability import observe
 

@@ -53,17 +53,17 @@ def _extract_json_block(text: str) -> str:
     # Try to extract from fenced code block
     fenced_start = re.search(r"```(?:json)?\s*", text, re.IGNORECASE)
     if fenced_start:
-        after_fence = text[fenced_start.end():]
+        after_fence = text[fenced_start.end() :]
         closing = after_fence.find("```")
         return after_fence[:closing].strip() if closing != -1 else after_fence.strip()
-    
+
     # Extract JSON object by braces
     start, end = text.find("{"), text.rfind("}")
     if start != -1 and end != -1 and end > start:
-        return text[start:end + 1].strip()
+        return text[start : end + 1].strip()
     elif start != -1:
         return text[start:].strip()
-    
+
     return text.strip()
 
 
@@ -77,14 +77,14 @@ def _parse_adversarial_result(raw_content: str) -> AdversarialInputResult:
         try:
             extracted = _extract_json_block(raw_content)
             data = json.loads(extracted)
-            
+
             # Fill missing fields with defaults
             data.setdefault("is_adversarial", False)
             data.setdefault("confidence", 0.5)
             data.setdefault("reason", "Incomplete response")
             data.setdefault("threat_type", None)
             data.setdefault("sanitized_query", None)
-            
+
             return AdversarialInputResult(**data)
         except Exception as e:
             logger.error(f"🔴 ADV DETECTOR - Parsing failed: {e}")
@@ -103,41 +103,40 @@ def _get_conversation_context(state: JapanHelpdeskState) -> str:
     session_id = state.get("session_id")
     if not session_id:
         return "No previous conversation"
-    
+
     intake = session_store.get(session_id)
     if not intake:
         return "No previous conversation"
-    
+
     conv_history = getattr(intake, "conversation_history", [])
     if not conv_history:
         return "No previous conversation"
-    
+
     # Get last few exchanges, focusing on agent questions
     recent = conv_history[-3:] if len(conv_history) > 3 else conv_history
     agent_questions = [msg for msg in recent if msg.startswith("Agent:")]
-    
+
     if agent_questions:
         last_question = agent_questions[-1].replace("Agent: ", "")
         return f"Previous agent question: '{last_question}'"
-    
+
     return "Ongoing conversation: " + " | ".join(recent)
 
 
 @observe(name="adversarial_detector_node")
 async def adversarial_detector_node(state: JapanHelpdeskState) -> JapanHelpdeskState:
     """Detect adversarial inputs using LangGraph node pattern with Langfuse v3 tracing."""
-    
+
     try:
         with track_execution(state, "adversarial_detection"):
             # Get conversation context
             context = _get_conversation_context(state)
-            
+
             # Prepare prompt
             prompt = ADVERSARIAL_DETECTOR_PROMPT.format(
-                context=context,
-                user_input=state["user_input"]
+                context=context, user_input=state["user_input"]
             )
-            
+
             # Create messages
             messages = [
                 SystemMessage(
@@ -146,35 +145,37 @@ async def adversarial_detector_node(state: JapanHelpdeskState) -> JapanHelpdeskS
                 ),
                 HumanMessage(content=prompt),
             ]
-            
+
             # Get LLM response
             response = await llm.ainvoke(messages)
             raw_content = response.content or ""
-            
+
             # Log detection attempt
             logger.info(f"🛡️ ADV DETECTOR - Input: '{state['user_input'][:80]}'")
             logger.info(f"🛡️ ADV DETECTOR - Context: {context[:100]}")
-            
+
             # Parse result
             result = _parse_adversarial_result(raw_content)
-            
+
             logger.info(
                 f"🛡️ ADV DETECTOR - Result: adversarial={result.is_adversarial}, "
                 f"confidence={result.confidence:.2f}, reason={result.reason}"
             )
-            
+
             # Update state
             state["adversarial_result"] = result
-            state["tokens_used"] = state.get("tokens_used", 0) + len(raw_content.split())
-            
+            state["tokens_used"] = state.get("tokens_used", 0) + len(
+                raw_content.split()
+            )
+
             if result.is_adversarial:
                 state["errors"].append(f"Adversarial input detected: {result.reason}")
                 state["final_response"] = (
                     f"I cannot process this request. Reason: {result.reason}"
                 )
-        
+
         return state
-        
+
     except Exception as e:
         # Handle error and create safe fallback
         handle_node_error(state, "adversarial_detector", e)

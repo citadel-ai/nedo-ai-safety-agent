@@ -415,15 +415,15 @@ class OfficialPDFDownloader:
         
         # Summary
         logger.info(f"\n{'='*80}")
-        logger.info(f"🎉 DOWNLOAD COMPLETE")
+        logger.info("🎉 DOWNLOAD COMPLETE")
         logger.info(f"{'='*80}")
         logger.info(f"Total PDFs downloaded: {total_downloaded}")
         logger.info(f"Total PDFs in log: {len(self.download_log)}")
         logger.info(f"Download log: {DOWNLOAD_LOG}")
-        logger.info(f"\n💡 Next steps:")
+        logger.info("\n💡 Next steps:")
         logger.info(f"   1. Review downloaded PDFs in {DOCS_DIR}")
         logger.info(f"   2. Update {DOCS_DIR / 'README.md'} with new documents")
-        logger.info(f"   3. Rebuild ChromaDB: ./scripts/rebuild_vectordb.sh")
+        logger.info("   3. Rebuild ChromaDB: ./scripts/rebuild_vectordb.sh")
 
 
 def main():

@@ -10,7 +10,6 @@ from langchain_core.output_parsers import PydanticOutputParser
 from src.core.models import SUPPORTED_CATEGORIES, JapanHelpdeskState, ScopeCheckResult
 from src.utils.llm_factory import create_llm
 from src.utils.node_helpers import (
-    get_intake_context,
     get_main_request,
     get_user_location,
     handle_node_error,
@@ -68,7 +67,7 @@ ILLEGAL_PATTERNS = [
 def _classify_category(text: str) -> str:
     """Classify text into a supported category using keyword matching."""
     text_lower = (text or "").lower()
-    
+
     category_keywords = {
         "visa": ["visa", "immigration", "residence card", "status of residence"],
         "housing": ["housing", "rental", "apartment", "lease"],
@@ -83,30 +82,27 @@ def _classify_category(text: str) -> str:
         "insurance": ["insurance", "national health", "kokumin"],
         "business_registration": ["business", "company", "registration", "incorporate"],
     }
-    
+
     for category, keywords in category_keywords.items():
         if any(keyword in text_lower for keyword in keywords):
             return category
-    
+
     return "general_procedures"
 
 
 def _is_short_context_reply(user_input: str) -> bool:
     """Check if input is a short contextual reply."""
-    return (
-        len(user_input.split()) <= 3 
-        and user_input.lower() not in {"yes", "no"}
-    )
+    return len(user_input.split()) <= 3 and user_input.lower() not in {"yes", "no"}
 
 
 def _check_illegal_intent(text: str) -> bool:
     """Check if text contains illegal intent patterns."""
     text_lower = text.lower()
-    
+
     # Check phrase matches
     if any(phrase in text_lower for phrase in ILLEGAL_PHRASES):
         return True
-    
+
     # Check regex patterns
     return any(re.search(pattern, text_lower) for pattern in ILLEGAL_PATTERNS)
 
@@ -120,14 +116,14 @@ def _get_evaluated_query(state: JapanHelpdeskState) -> tuple[str, dict]:
     latest = state["user_input"]
     synthesized = state.get("synthesized_search_query")
     summary = getattr(intake, "conversation_summary", "") if intake else ""
-    
+
     # Build evaluated query
     evaluated_query = synthesized or main_request or latest
-    
+
     # If latest is short context, try to extract location
     if main_request and _is_short_context_reply(latest) and not location:
         location = latest
-    
+
     context = {
         "main_request": main_request or evaluated_query,
         "location": location,
@@ -136,33 +132,30 @@ def _get_evaluated_query(state: JapanHelpdeskState) -> tuple[str, dict]:
         "conversation_summary": summary,
         "synthesized_search_query": synthesized,
     }
-    
+
     return evaluated_query, context
 
 
 @observe(name="scope_checker_node")
 async def scope_checker_node(state: JapanHelpdeskState) -> JapanHelpdeskState:
     """Check if query is within supported scope."""
-    
+
     try:
         with track_execution(state, "scope_check"):
             evaluated_query, context = _get_evaluated_query(state)
             latest = state["user_input"]
             main_request = get_main_request(state)
             synthesized = state.get("synthesized_search_query")
-            
+
             # Fast path: Short context reply with known main intent
             if (synthesized or main_request) and _is_short_context_reply(latest):
                 category = _classify_category(synthesized or main_request)
                 if category in SUPPORTED_CATEGORIES:
                     state["scope_check_result"] = ScopeCheckResult(
-                        is_in_scope=True,
-                        category=category,
-                        reason=None,
-                        confidence=0.9
+                        is_in_scope=True, category=category, reason=None, confidence=0.9
                     )
                     return state
-            
+
             # Check for illegal intent
             combined_text = f"{evaluated_query} {latest}"
             if _check_illegal_intent(combined_text):
@@ -173,7 +166,7 @@ async def scope_checker_node(state: JapanHelpdeskState) -> JapanHelpdeskState:
                     confidence=0.95,
                 )
                 return state
-            
+
             # LLM-based scope check
             format_instructions = parser.get_format_instructions()
             prompt = SCOPE_CHECK_PROMPT.format(
@@ -181,32 +174,31 @@ async def scope_checker_node(state: JapanHelpdeskState) -> JapanHelpdeskState:
                 context=context,
                 format_instructions=format_instructions,
             )
-            
+
             messages = [
                 SystemMessage(content="You are a scope checking system."),
                 HumanMessage(content=prompt),
             ]
-            
+
             response = await llm.ainvoke(messages)
             result = parser.parse(response.content)
-            
+
             state["scope_check_result"] = result
-            state["tokens_used"] = state.get("tokens_used", 0) + len(response.content.split())
-            
+            state["tokens_used"] = state.get("tokens_used", 0) + len(
+                response.content.split()
+            )
+
             if not result.is_in_scope:
                 state["final_response"] = (
                     f"I'm sorry, but your query is outside my scope. {result.reason}"
                 )
-        
+
         return state
-        
+
     except Exception as e:
         # Assume in scope if check fails
         handle_node_error(state, "scope_checker", e)
         state["scope_check_result"] = ScopeCheckResult(
-            is_in_scope=True,
-            category="general",
-            reason=None,
-            confidence=0.5
+            is_in_scope=True, category="general", reason=None, confidence=0.5
         )
         return state

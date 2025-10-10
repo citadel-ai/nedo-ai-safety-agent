@@ -7,7 +7,6 @@ instead of just snippets, providing much richer information for RAG.
 
 import asyncio
 import logging
-import os
 import re
 from typing import Any
 from urllib.parse import urlparse
@@ -240,9 +239,7 @@ class EnhancedGoogleSearch:
 
             if result.url.lower().endswith(".pdf"):
                 result.content_type = "pdf"
-                result.full_content = (
-                    f"PDF document: {result.title}\nURL: {result.url}\n[PDF content should be available in vector database]"
-                )
+                result.full_content = f"PDF document: {result.title}\nURL: {result.url}\n[PDF content should be available in vector database]"
                 result.extraction_success = True
                 result.content_length = len(result.full_content)
                 return result
@@ -270,11 +267,16 @@ class EnhancedGoogleSearch:
                     "Accept-Language": "ja,en;q=0.9",
                     "Referer": "https://www.google.co.jp/",
                 }
-                async with session.get(url, headers=headers, allow_redirects=True) as response:
+                async with session.get(
+                    url, headers=headers, allow_redirects=True
+                ) as response:
                     if response.status != 200:
                         return None
                     content_type = response.headers.get("content-type", "").lower()
-                    if "text/html" not in content_type and "text/plain" not in content_type:
+                    if (
+                        "text/html" not in content_type
+                        and "text/plain" not in content_type
+                    ):
                         return None
                     html_content = await response.text()
 

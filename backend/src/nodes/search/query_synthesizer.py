@@ -61,15 +61,17 @@ Return ONLY the search query, nothing else. No explanations, no punctuation at t
 @observe(name="query_synthesizer_node")
 async def query_synthesizer_node(state: JapanHelpdeskState) -> JapanHelpdeskState:
     """Synthesize an intelligent search query from conversation context."""
-    
+
     try:
         with track_execution(state, "query_synthesis"):
             intake_session = state.get("intake_session")
-            
+
             if not intake_session:
-                logger.info("🔍 QUERY SYNTHESIS - No intake session, using original query")
+                logger.info(
+                    "🔍 QUERY SYNTHESIS - No intake session, using original query"
+                )
                 return state
-            
+
             # Determine original user intent (first user message)
             original_query = state["user_input"]
             if intake_session.conversation_history:
@@ -77,7 +79,7 @@ async def query_synthesizer_node(state: JapanHelpdeskState) -> JapanHelpdeskStat
                     if msg.startswith("User:"):
                         original_query = msg.replace("User:", "").strip()
                         break
-            
+
             # Build collected context
             collected_context = {}
             if intake_session.visa_type:
@@ -88,39 +90,43 @@ async def query_synthesizer_node(state: JapanHelpdeskState) -> JapanHelpdeskStat
                 collected_context["timeline"] = intake_session.timeline
             if intake_session.urgency_level:
                 collected_context["urgency"] = intake_session.urgency_level
-            
+
             conversation_summary = "\n".join(intake_session.conversation_history[-5:])
-            
+
             logger.info(
                 f"🔍 QUERY SYNTHESIS - Original: '{original_query[:50]}', "
                 f"Latest: '{state['user_input'][:50]}'"
             )
             logger.info(f"🔍 QUERY SYNTHESIS - Context: {collected_context}")
-            
+
             # Create synthesis prompt
             prompt = QUERY_SYNTHESIS_PROMPT.format(
                 original_query=original_query,
                 latest_message=state["user_input"],
-                collected_context=collected_context if collected_context else "No context collected yet",
+                collected_context=collected_context
+                if collected_context
+                else "No context collected yet",
                 conversation_history=conversation_summary,
             )
-            
+
             messages = [
                 SystemMessage(content="You are a query synthesis expert."),
                 HumanMessage(content=prompt),
             ]
-            
+
             # Get synthesized query
             response = await llm.ainvoke(messages)
             synthesized_query = response.content.strip().strip("\"'.,!?")
-            
+
             logger.info(f"🔍 QUERY SYNTHESIS - Result: '{synthesized_query}'")
-            
+
             state["synthesized_search_query"] = synthesized_query
-            state["tokens_used"] = state.get("tokens_used", 0) + len(response.content.split())
-        
+            state["tokens_used"] = state.get("tokens_used", 0) + len(
+                response.content.split()
+            )
+
         return state
-        
+
     except Exception as e:
         handle_node_error(state, "query_synthesizer", e)
         return state

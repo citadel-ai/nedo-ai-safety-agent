@@ -25,11 +25,11 @@ def _get_response_content(state: JapanHelpdeskState) -> str:
 @observe(name="legal_checker_node")
 async def legal_checker_node(state: JapanHelpdeskState) -> JapanHelpdeskState:
     """Check for unauthorized legal advice in responses."""
-    
+
     try:
         with track_execution(state, "legal_check"):
             response_content = _get_response_content(state)
-            
+
             if not response_content:
                 # No content to check, assume compliant
                 state["legal_check_result"] = LegalAdviceCheck(
@@ -39,7 +39,7 @@ async def legal_checker_node(state: JapanHelpdeskState) -> JapanHelpdeskState:
                     confidence=1.0,
                 )
                 return state
-            
+
             format_instructions = parser.get_format_instructions()
             prompt = f"""
 Check if this response contains unauthorized legal advice.
@@ -48,20 +48,22 @@ Check if this response contains unauthorized legal advice.
 
 Response to check: "{response_content}"
 """
-            
+
             messages = [
                 SystemMessage(content="You are a legal compliance checker."),
                 HumanMessage(content=prompt),
             ]
-            
+
             response = await llm.ainvoke(messages)
             result = parser.parse(response.content)
-            
+
             state["legal_check_result"] = result
-            state["tokens_used"] = state.get("tokens_used", 0) + len(response.content.split())
-        
+            state["tokens_used"] = state.get("tokens_used", 0) + len(
+                response.content.split()
+            )
+
         return state
-        
+
     except Exception as e:
         # Assume compliant if check fails
         handle_node_error(state, "legal_checker", e)

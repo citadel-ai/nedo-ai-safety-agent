@@ -8,8 +8,7 @@ from .settings import Settings, load_settings
 __all__ = [
     "JapanHelpdeskAgent",
     "SessionManager",
-    "get_session_manager",
     "Settings",
+    "get_session_manager",
     "load_settings",
 ]
-

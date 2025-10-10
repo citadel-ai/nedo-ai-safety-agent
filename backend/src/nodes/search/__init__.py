@@ -7,4 +7,3 @@ __all__ = [
     "query_synthesizer_node",
     "search_node",
 ]
-

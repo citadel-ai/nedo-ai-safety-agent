@@ -61,11 +61,17 @@ async def response_synthesizer_node(state: JapanHelpdeskState) -> JapanHelpdeskS
             if citations:
                 final_response += "\n\n**Sources:**"
                 # Filter out None values and ensure all are strings
-                valid_citations = [str(c) for c in citations[:10] if c]  # Top 10, filter None
-                unique_sources = list(dict.fromkeys(valid_citations))[:5]  # Top 5 unique, preserving order
+                valid_citations = [
+                    str(c) for c in citations[:10] if c
+                ]  # Top 10, filter None
+                unique_sources = list(dict.fromkeys(valid_citations))[
+                    :5
+                ]  # Top 5 unique, preserving order
                 for i, source in enumerate(unique_sources, 1):
                     final_response += f"\n{i}. {source}"
-                logger.info(f"📚 Added {len(unique_sources)} sources to response for grounding transparency")
+                logger.info(
+                    f"📚 Added {len(unique_sources)} sources to response for grounding transparency"
+                )
 
             # Add standard disclaimers
             final_response += "\n\n**Important Disclaimers:**"

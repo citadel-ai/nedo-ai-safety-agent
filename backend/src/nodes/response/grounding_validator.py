@@ -6,7 +6,6 @@ retrieved context (RAG + Google Search results) and not hallucinated.
 """
 
 import logging
-from typing import Any
 
 from langchain_core.messages import HumanMessage, SystemMessage
 from pydantic import BaseModel, Field
@@ -40,9 +39,7 @@ class GroundingCheck(BaseModel):
         default_factory=list,
         description="List of claims that are well-supported by sources",
     )
-    reasoning: str = Field(
-        description="Explanation of the grounding assessment"
-    )
+    reasoning: str = Field(description="Explanation of the grounding assessment")
     grounding_score: float = Field(
         ge=0.0,
         le=1.0,
@@ -94,7 +91,7 @@ Analyze the response and provide:
 def _extract_sources_from_state(state: JapanHelpdeskState) -> str:
     """Extract all source documents from the state."""
     sources = []
-    
+
     # Get vector search results
     if state.get("_raw_vector_results"):
         vector_results = state["_raw_vector_results"]
@@ -107,7 +104,7 @@ def _extract_sources_from_state(state: JapanHelpdeskState) -> str:
             sources.append(f"Filename: {metadata.get('filename', 'N/A')}")
             sources.append(f"Content: {content}...")
             sources.append("")
-    
+
     # Get Google search results
     if state.get("_raw_google_results"):
         google_results = state["_raw_google_results"]
@@ -116,16 +113,16 @@ def _extract_sources_from_state(state: JapanHelpdeskState) -> str:
             sources.append(f"\n[Google Source {i}]")
             sources.append(f"Content: {result[:500]}...")
             sources.append("")
-    
+
     # Fallback to search_results if raw results not available
     if not sources and state.get("search_results"):
         search_results = state["search_results"]
         sources.append("=== SEARCH RESULTS (RAG) ===")
         sources.append(search_results.merged_summary)
-    
+
     if not sources:
         return "No source documents available"
-    
+
     return "\n".join(sources)
 
 
@@ -134,7 +131,7 @@ def _extract_response_text(state: JapanHelpdeskState) -> str:
     # Try to get the synthesized response
     if state.get("final_response"):
         return state["final_response"]
-    
+
     # Fallback to procedure results
     if state.get("procedure_result"):
         procedure = state["procedure_result"]
@@ -142,9 +139,11 @@ def _extract_response_text(state: JapanHelpdeskState) -> str:
         if procedure.overview:
             parts.append(procedure.overview)
         if procedure.steps:
-            parts.extend([f"Step {i+1}: {step}" for i, step in enumerate(procedure.steps)])
+            parts.extend(
+                [f"Step {i + 1}: {step}" for i, step in enumerate(procedure.steps)]
+            )
         return "\n".join(parts)
-    
+
     return "No response available"
 
 
@@ -152,7 +151,7 @@ def _extract_response_text(state: JapanHelpdeskState) -> str:
 async def grounding_validator_node(state: JapanHelpdeskState) -> JapanHelpdeskState:
     """
     Validates that the response is grounded in retrieved sources.
-    
+
     This node:
     1. Extracts all source documents (Vector DB + Google Search)
     2. Extracts the final response
@@ -162,11 +161,11 @@ async def grounding_validator_node(state: JapanHelpdeskState) -> JapanHelpdeskSt
     try:
         with track_execution(state, "grounding_validation"):
             logger.info("🔍 GROUNDING VALIDATOR - Starting validation")
-            
+
             # Extract sources and response
             sources = _extract_sources_from_state(state)
             response = _extract_response_text(state)
-            
+
             if sources == "No source documents available":
                 logger.warning("⚠️ No sources available for grounding validation")
                 state["grounding_check"] = GroundingCheck(
@@ -178,41 +177,44 @@ async def grounding_validator_node(state: JapanHelpdeskState) -> JapanHelpdeskSt
                     grounding_score=0.0,
                 )
                 return state
-            
-            logger.info(f"📄 Validating response ({len(response)} chars) against sources ({len(sources)} chars)")
-            
+
+            logger.info(
+                f"📄 Validating response ({len(response)} chars) against sources ({len(sources)} chars)"
+            )
+
             # Prepare prompt
             prompt = GROUNDING_VALIDATION_PROMPT.format(
-                sources=sources,
-                response=response
+                sources=sources, response=response
             )
-            
+
             messages = [
-                SystemMessage(content="You are a strict grounding validator for RAG systems."),
+                SystemMessage(
+                    content="You are a strict grounding validator for RAG systems."
+                ),
                 HumanMessage(content=prompt),
             ]
-            
+
             # Get validation from LLM
             llm_response = await llm.ainvoke(messages)
-            
+
             # Parse response
             try:
                 import json
                 import re
-                
+
                 # Extract JSON from response
                 content = llm_response.content
                 # Try to find JSON block
-                json_match = re.search(r'\{[\s\S]*\}', content)
+                json_match = re.search(r"\{[\s\S]*\}", content)
                 if json_match:
                     json_str = json_match.group(0)
                     result_data = json.loads(json_str)
                 else:
                     # Fallback: try parsing entire content
                     result_data = json.loads(content)
-                
+
                 grounding_result = GroundingCheck(**result_data)
-                
+
             except Exception as e:
                 logger.error(f"Failed to parse grounding validation response: {e}")
                 logger.debug(f"Raw response: {llm_response.content}")
@@ -225,23 +227,25 @@ async def grounding_validator_node(state: JapanHelpdeskState) -> JapanHelpdeskSt
                     reasoning="Validation parsing failed",
                     grounding_score=0.0,
                 )
-            
+
             # Store result
             state["grounding_check"] = grounding_result
-            
+
             # Log results
-            logger.info(f"✓ Grounding validation complete:")
+            logger.info("✓ Grounding validation complete:")
             logger.info(f"  Is Grounded: {grounding_result.is_grounded}")
             logger.info(f"  Grounding Score: {grounding_result.grounding_score:.2%}")
             logger.info(f"  Confidence: {grounding_result.confidence:.2%}")
             logger.info(f"  Supported Claims: {len(grounding_result.supported_claims)}")
-            logger.info(f"  Unsupported Claims: {len(grounding_result.unsupported_claims)}")
-            
+            logger.info(
+                f"  Unsupported Claims: {len(grounding_result.unsupported_claims)}"
+            )
+
             if grounding_result.unsupported_claims:
-                logger.warning(f"⚠️ Unsupported claims detected:")
+                logger.warning("⚠️ Unsupported claims detected:")
                 for claim in grounding_result.unsupported_claims[:3]:  # Show first 3
                     logger.warning(f"  - {claim}")
-            
+
             # Add warning to state if grounding is poor
             if grounding_result.grounding_score < 0.7:
                 warning = (
@@ -250,9 +254,9 @@ async def grounding_validator_node(state: JapanHelpdeskState) -> JapanHelpdeskSt
                 )
                 state["errors"].append(warning)
                 logger.warning(warning)
-            
+
             return state
-            
+
     except Exception as e:
         handle_node_error(state, "grounding_validator", e)
         # Create a failed validation result
@@ -261,8 +265,7 @@ async def grounding_validator_node(state: JapanHelpdeskState) -> JapanHelpdeskSt
             confidence=0.0,
             unsupported_claims=["Validation failed due to error"],
             supported_claims=[],
-            reasoning=f"Validation error: {str(e)}",
+            reasoning=f"Validation error: {e!s}",
             grounding_score=0.0,
         )
         return state
-

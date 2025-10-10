@@ -15,7 +15,6 @@ Usage:
 
 import argparse
 import asyncio
-import json
 import logging
 from dataclasses import dataclass
 from pathlib import Path
@@ -163,11 +162,11 @@ async def main():
     categories = list(TARGET_LAWS.keys()) if args.categories == ["all"] else args.categories
     
     logger.info(f"🚀 Downloading structured legal data for: {', '.join(categories)}")
-    logger.info(f"⚠️  NOTE: This is a prototype. Full implementation requires:")
-    logger.info(f"   1. XML parsing (use xml.etree.ElementTree)")
-    logger.info(f"   2. Law ID lookup from search results")
-    logger.info(f"   3. Integration with lawtext for parsing")
-    logger.info(f"   4. Consider using existing law databases")
+    logger.info("⚠️  NOTE: This is a prototype. Full implementation requires:")
+    logger.info("   1. XML parsing (use xml.etree.ElementTree)")
+    logger.info("   2. Law ID lookup from search results")
+    logger.info("   3. Integration with lawtext for parsing")
+    logger.info("   4. Consider using existing law databases")
     
     downloader = EGovLawDownloader()
     
@@ -186,17 +185,17 @@ async def main():
                     # law_id = results[0]["law_id"]
                     # await downloader.download_law(law_id, category)
                 else:
-                    logger.info(f"   No results found")
+                    logger.info("   No results found")
                 
                 await asyncio.sleep(1)  # Rate limiting
     
     finally:
         await downloader.close()
     
-    logger.info(f"\n💡 Next steps:")
-    logger.info(f"   1. Implement XML parsing for e-Gov API responses")
-    logger.info(f"   2. Consider using lawtext: https://github.com/yamachig/lawtext")
-    logger.info(f"   3. Or use pre-processed databases like 日本法令データベース")
+    logger.info("\n💡 Next steps:")
+    logger.info("   1. Implement XML parsing for e-Gov API responses")
+    logger.info("   2. Consider using lawtext: https://github.com/yamachig/lawtext")
+    logger.info("   3. Or use pre-processed databases like 日本法令データベース")
 
 
 if __name__ == "__main__":

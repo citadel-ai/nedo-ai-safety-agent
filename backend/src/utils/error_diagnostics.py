@@ -160,7 +160,7 @@ def diagnose_search_failure(state: dict[str, Any]) -> str:
         issues.append("❌ No search results at all (RAG)")
     else:
         if search_results is not None:
-            issues.append(f"✓ Search results available (merged RAG output)")
+            issues.append("✓ Search results available (merged RAG output)")
         if vector_results is not None:
             issues.append(f"✓ Vector DB results: {len(vector_results)} items")
         if google_results is not None:

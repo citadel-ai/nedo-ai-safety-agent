@@ -15,9 +15,6 @@ from .intake import (
     scope_checker_node,
 )
 
-# Phase 2: Search
-from .search import query_synthesizer_node, search_node
-
 # Phase 3: Processing & Formatting
 from .processing import procedure_formatter_node
 
@@ -28,18 +25,21 @@ from .response import (
     response_synthesizer_node,
 )
 
+# Phase 2: Search
+from .search import query_synthesizer_node, search_node
+
 __all__ = [
     # Phase 1
     "adversarial_detector_node",
+    "grounding_validator_node",
     "intake_agent_node",
+    # Phase 4
+    "legal_checker_node",
+    # Phase 3
+    "procedure_formatter_node",
     "query_synthesizer_node",
+    "response_synthesizer_node",
     "scope_checker_node",
     # Phase 2
     "search_node",
-    # Phase 3
-    "procedure_formatter_node",
-    # Phase 4
-    "legal_checker_node",
-    "response_synthesizer_node",
-    "grounding_validator_node",
 ]

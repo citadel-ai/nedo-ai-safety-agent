@@ -31,7 +31,9 @@ class RealVectorDB:
         self.collection_name = collection_name
         # Use absolute path to project root chroma_db
         if persist_directory is None:
-            project_root = Path(__file__).resolve().parents[3]  # From src/services/ to project root
+            project_root = (
+                Path(__file__).resolve().parents[3]
+            )  # From src/services/ to project root
             persist_directory = str(project_root / "chroma_db")
         self.persist_directory = persist_directory
         self.embedding_model_name = embedding_model
@@ -51,7 +53,7 @@ class RealVectorDB:
         embedding_model = os.getenv(
             "EMBEDDING_MODEL", "text-multilingual-embedding-002"
         )
-        
+
         try:
             self.embeddings = VertexAIEmbeddings(
                 model_name=embedding_model,
@@ -137,8 +139,10 @@ class RealVectorDB:
     ) -> list[VectorSearchResult]:
         """Search the vector database."""
         try:
-            logger.info(f"🔍 Vector DB search - query: '{query[:50]}...', top_k: {top_k}, min_similarity: {min_similarity}")
-            
+            logger.info(
+                f"🔍 Vector DB search - query: '{query[:50]}...', top_k: {top_k}, min_similarity: {min_similarity}"
+            )
+
             # Perform similarity search
             search_kwargs = {"k": top_k}
             if filter_metadata:
@@ -148,7 +152,7 @@ class RealVectorDB:
             results = self.vectorstore.similarity_search_with_score(
                 query=query, **search_kwargs
             )
-            
+
             logger.info(f"📊 Raw results from ChromaDB: {len(results)} documents")
 
             # Convert to VectorSearchResult format
@@ -163,8 +167,10 @@ class RealVectorDB:
                 else:
                     # For euclidean distance, use inverse relationship
                     similarity = max(0.0, 1.0 / (1.0 + score))
-                
-                logger.debug(f"  Doc: {doc.page_content[:50]}... | Score: {score:.3f} | Similarity: {similarity:.3f}")
+
+                logger.debug(
+                    f"  Doc: {doc.page_content[:50]}... | Score: {score:.3f} | Similarity: {similarity:.3f}"
+                )
 
                 if similarity >= min_similarity:
                     result = VectorSearchResult(

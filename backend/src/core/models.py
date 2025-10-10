@@ -235,7 +235,9 @@ class JapanHelpdeskState(TypedDict):
     adversarial_result: AdversarialInputResult | None
     intake_session: IntakeSession | None
     scope_check_result: ScopeCheckResult | None  # Consistent key across nodes/routers
-    search_results: MergedSearchResult | None  # RAG results: Vector DB + Google Search combined
+    search_results: (
+        MergedSearchResult | None
+    )  # RAG results: Vector DB + Google Search combined
     legal_check_result: LegalAdviceCheck | None  # Consistent key across nodes/routers
     grounding_check: Any | None  # Grounding validation result
 
