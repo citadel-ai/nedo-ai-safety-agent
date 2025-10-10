@@ -189,9 +189,9 @@ async def ingest_pdfs():
     batch_size = 25  # Reduced from 100 to stay under token limits
     for i in range(0, len(all_chunks), batch_size):
         batch = all_chunks[i : i + batch_size]
-        logger.info(
-            f"  Batch {i // batch_size + 1}/{(len(all_chunks) - 1) // batch_size + 1}: {len(batch)} chunks"
-        )
+        batch_num = i // batch_size + 1
+        total_batches = (len(all_chunks) - 1) // batch_size + 1
+        logger.info(f"  Batch {batch_num}/{total_batches}: {len(batch)} chunks")
 
         if i == 0:
             # Create on first batch

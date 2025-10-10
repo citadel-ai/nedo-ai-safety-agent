@@ -92,7 +92,8 @@ class EnhancedGoogleSearch:
             "application/msword",
             "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
         }
-        # Domain allowlist prioritized (suffix match). Avoid wildcard entries for suffix-check logic
+        # Domain allowlist prioritized (suffix match).
+        # Avoid wildcard entries for suffix-check logic
         # TEMP: Disabled for debugging - allow all domains
         self.allowed_domains = set()  # Empty = allow all
         # self.allowed_domains = {'go.jp', 'ac.jp', 'ed.jp', 'lg.jp', 'or.jp'}
@@ -228,7 +229,9 @@ class EnhancedGoogleSearch:
             return []
 
     async def _fetch_page_content(self, result: SearchResult) -> SearchResult:
-        """Fetch full content from a search result URL (HTML only; PDFs get a placeholder)."""
+        """
+        Fetch full content from a search result URL (HTML only; PDFs get a placeholder).
+        """
         try:
             parsed_url = urlparse(result.url)
             if not parsed_url.scheme or not parsed_url.netloc:
@@ -239,7 +242,10 @@ class EnhancedGoogleSearch:
 
             if result.url.lower().endswith(".pdf"):
                 result.content_type = "pdf"
-                result.full_content = f"PDF document: {result.title}\nURL: {result.url}\n[PDF content should be available in vector database]"
+                result.full_content = (
+                    f"PDF document: {result.title}\nURL: {result.url}\n"
+                    "[PDF content should be available in vector database]"
+                )
                 result.extraction_success = True
                 result.content_length = len(result.full_content)
                 return result
@@ -262,8 +268,11 @@ class EnhancedGoogleSearch:
         try:
             async with aiohttp.ClientSession(timeout=self.session_timeout) as session:
                 headers = {
-                    "User-Agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36",
-                    "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8",
+                    "User-Agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) "
+                    "AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 "
+                    "Safari/537.36",
+                    "Accept": "text/html,application/xhtml+xml,"
+                    "application/xml;q=0.9,*/*;q=0.8",
                     "Accept-Language": "ja,en;q=0.9",
                     "Referer": "https://www.google.co.jp/",
                 }
@@ -424,5 +433,6 @@ def get_search_config() -> dict[str, Any]:
         "google_cse_configured": bool(engine.google_api_key and engine.google_cse_id),
         "googlesearch_available": True,
         "mock_fallback": True,
-        "recommended_setup": "Use EnhancedGoogleSearch via Google CSE; PDFs handled via vector DB",
+        "recommended_setup": "Use EnhancedGoogleSearch via Google CSE; "
+        "PDFs handled via vector DB",
     }

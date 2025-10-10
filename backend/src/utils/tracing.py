@@ -12,11 +12,12 @@ from opentelemetry.sdk.trace.export import SpanExportResult
 
 class CloudTraceLoggingSpanExporter(CloudTraceSpanExporter):
     """
-    An extended version of CloudTraceSpanExporter that logs span data to Google Cloud Logging
-    and handles large attribute values by storing them in Google Cloud Storage.
+    An extended version of CloudTraceSpanExporter that logs span data to Google Cloud
+    Logging and handles large attribute values by storing them in Google Cloud Storage.
 
     This class helps bypass the 256 character limit of Cloud Trace for attribute values
-    by leveraging Cloud Logging (which has a 256KB limit) and Cloud Storage for larger payloads.
+    by leveraging Cloud Logging (which has a 256KB limit) and Cloud Storage for larger
+    payloads.
     """
 
     def __init__(

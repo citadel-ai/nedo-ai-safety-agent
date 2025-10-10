@@ -73,7 +73,9 @@ def create_japan_helpdesk_workflow():
         if adversarial_result and adversarial_result.is_adversarial:
             # Set final response for adversarial inputs
             state["final_response"] = (
-                f"I'm sorry, but your request has been flagged as potentially inappropriate: {adversarial_result.reason}. I cannot process this request."
+                f"I'm sorry, but your request has been flagged as "
+                f"potentially inappropriate: {adversarial_result.reason}. "
+                f"I cannot process this request."
             )
             return "END"
         return "intake_agent"
@@ -119,9 +121,14 @@ def create_japan_helpdesk_workflow():
             reason = (
                 scope_result.reason
                 if scope_result
-                else "Please ask about Japanese administrative procedures for foreigners."
+                else (
+                    "Please ask about Japanese administrative "
+                    "procedures for foreigners."
+                )
             )
-            final_msg = f"I'm sorry, but your query is outside my scope. {reason}"
+            final_msg = (
+                f"I'm sorry, but your query is outside my scope. {reason}"
+            )
             state["final_response"] = final_msg
             logger.info(f"   TERMINATING: {final_msg}")
             return "END"
@@ -152,7 +159,8 @@ def create_japan_helpdesk_workflow():
     )
 
     # Linear flow: Phase 2 → 3 → 4
-    # search → procedure_formatter → legal_checker → response_synthesizer → grounding_validator → END
+    # search → procedure_formatter → legal_checker →
+    # response_synthesizer → grounding_validator → END
     workflow.add_edge("search", "procedure_formatter")
     workflow.add_edge("procedure_formatter", "legal_checker")
     workflow.add_edge("legal_checker", "response_synthesizer")
@@ -234,7 +242,9 @@ class JapanHelpdeskAgent:
             # Validate initial state
             state_issues = validate_state_integrity(initial_state)
             if state_issues:
-                logger.warning(f"⚠️ Initial state validation issues: {state_issues}")
+                logger.warning(
+                    f"⚠️ Initial state validation issues: {state_issues}"
+                )
 
             # Execute the workflow (no config needed without checkpointer)
             result_state = await self.agent.ainvoke(initial_state)
@@ -242,7 +252,9 @@ class JapanHelpdeskAgent:
             # Validate final state
             final_state_issues = validate_state_integrity(result_state)
             if final_state_issues:
-                logger.warning(f"⚠️ Final state validation issues: {final_state_issues}")
+                logger.warning(
+                    f"⚠️ Final state validation issues: {final_state_issues}"
+                )
 
             # Calculate total processing time
             total_time = time.time() - start_time
@@ -262,7 +274,8 @@ class JapanHelpdeskAgent:
             if not final_response or len(final_response.strip()) < 10:
                 logger.error("🔴 CRITICAL: No valid final_response!")
                 logger.error(
-                    f"🔴 Completed steps: {result_state.get('completed_steps', [])}"
+                    f"🔴 Completed steps: "
+                    f"{result_state.get('completed_steps', [])}"
                 )
                 logger.error(f"🔴 Errors in state: {result_state.get('errors', [])}")
 
@@ -271,7 +284,9 @@ class JapanHelpdeskAgent:
                 logger.error(f"🔴 Current step: {current_step}")
 
                 # Stage-specific diagnostics
-                if "intake" in current_step or not result_state.get("intake_session"):
+                if "intake" in current_step or not result_state.get(
+                    "intake_session"
+                ):
                     logger.error("🔴 INTAKE FAILURE DIAGNOSIS:")
                     logger.error(diagnose_intake_failure(result_state))
                     final_response = create_detailed_error_response(
@@ -302,7 +317,9 @@ class JapanHelpdeskAgent:
                         logger.error(f"   {key}: {str(value)[:200]}")
 
             logger.info(
-                f"🟢 WORKING AGENT - Final response to send: length={len(final_response)}, text='{final_response[:100]}...'"
+                f"🟢 WORKING AGENT - Final response to send: "
+                f"length={len(final_response)}, "
+                f"text='{final_response[:100]}...'"
             )
 
             # Extract suggested_answers from intake_session if available
@@ -311,7 +328,9 @@ class JapanHelpdeskAgent:
             if intake_session and hasattr(intake_session, "suggested_answers"):
                 suggested_answers = intake_session.suggested_answers or []
                 logger.info(
-                    f"🔵 WORKING AGENT - Extracted {len(suggested_answers)} suggested answers from intake_session"
+                    f"🔵 WORKING AGENT - Extracted "
+                    f"{len(suggested_answers)} suggested answers "
+                    f"from intake_session"
                 )
 
             # Extract collected facts for UI display
@@ -350,7 +369,10 @@ class JapanHelpdeskAgent:
             # Fallback response with error tracking
             total_time = time.time() - start_time
             error_response = {
-                "response": f"I apologize, but I encountered a technical error: {e!s}. Please try again or contact support.",
+                "response": (
+                    f"I apologize, but I encountered a technical error: {e!s}. "
+                    "Please try again or contact support."
+                ),
                 "confidence_score": 0.0,
                 "sources": ["error_fallback"],
                 "recommendations": [

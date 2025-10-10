@@ -47,7 +47,9 @@ class GroundingCheck(BaseModel):
     )
 
 
-GROUNDING_VALIDATION_PROMPT = """You are a grounding validator. Your job is to verify if an AI assistant's response is fully supported by the provided source documents.
+GROUNDING_VALIDATION_PROMPT = """
+You are a grounding validator. Your job is to verify if an AI assistant's response is
+fully supported by the provided source documents.
 
 **Instructions:**
 1. Extract all factual claims from the response
@@ -179,7 +181,8 @@ async def grounding_validator_node(state: JapanHelpdeskState) -> JapanHelpdeskSt
                 return state
 
             logger.info(
-                f"📄 Validating response ({len(response)} chars) against sources ({len(sources)} chars)"
+                f"📄 Validating response ({len(response)} chars) "
+                f"against sources ({len(sources)} chars)"
             )
 
             # Prepare prompt

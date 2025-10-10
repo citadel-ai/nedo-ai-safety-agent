@@ -1,4 +1,6 @@
-"""Query Synthesizer Node - Generates intelligent search queries from conversation context."""
+"""
+Query Synthesizer Node - Generates intelligent search queries from conversation context.
+"""
 
 import logging
 
@@ -15,7 +17,8 @@ logger = logging.getLogger(__name__)
 llm = create_query_llm()
 
 QUERY_SYNTHESIS_PROMPT = """
-You are a query synthesis agent. Your job is to create effective search queries based on user conversations.
+You are a query synthesis agent. Your job is to create effective search queries based
+on user conversations.
 
 **CRITICAL RULES:**
 1. Generate SHORT, focused search queries (3-10 words maximum)
@@ -53,7 +56,8 @@ Latest User Message: "{latest_message}"
 Collected Context: {collected_context}
 Conversation History: {conversation_history}
 
-Generate a SHORT, focused search query (3-10 words) that will find relevant official information.
+Generate a SHORT, focused search query (3-10 words) that will find relevant official
+information.
 Return ONLY the search query, nothing else. No explanations, no punctuation at the end.
 """
 

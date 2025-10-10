@@ -6,7 +6,7 @@ collected information for display in the UI sidebar.
 """
 
 from dataclasses import dataclass
-from typing import Any
+from typing import Any, ClassVar
 
 from src.core.models import IntakeSession, JapanHelpdeskState
 
@@ -92,7 +92,7 @@ class FactsExtractor:
     """Extract and format collected facts from state."""
 
     # Mapping of keys to human-readable labels and icons
-    FACT_METADATA = {
+    FACT_METADATA: ClassVar[dict] = {
         "main_request": {"label": "Main Request", "icon": "message"},
         "category": {"label": "Category", "icon": "folder"},
         "user_location": {"label": "Location", "icon": "map-pin"},

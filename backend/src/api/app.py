@@ -13,7 +13,7 @@ from google.cloud import logging as google_cloud_logging
 from pydantic import BaseModel
 
 from src.core.agent import JapanHelpdeskAgent
-from src.core.settings import load_settings
+from src.core.settings import Context, Env, load_settings
 from src.services.enhanced_google_search import get_search_config
 from src.services.vector_db import get_vector_db
 from src.utils.logging import setup_logging
@@ -27,10 +27,13 @@ setup_logging()
 logger = logging.getLogger(__name__)
 
 settings = load_settings()
-if settings.app_env == "prod" and settings.app_context != "cloud":
+if (
+    settings.app_env in [Env.STG, Env.Env.PROD]
+    and settings.app_context != Context.CLOUD
+):
     raise ValueError("Production environment must be run in cloud context")
 
-print(settings)
+logging.debug(settings)
 
 agent = JapanHelpdeskAgent()
 
@@ -46,7 +49,7 @@ app = FastAPI(
 # Add CORS middleware for React frontend
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],  # In production, specify your frontend domain
+    allow_origins=["*"],  # TODO: In production, specify your frontend domain
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -116,8 +119,10 @@ class ChatResponse(BaseModel):
     processing_time: float
     tokens_used: int
     metadata: dict[str, Any]
-    suggested_answers: list[str] = []  # Quick-reply suggestions from intake agent
-    collected_facts: dict[str, Any] | None = None  # Facts for UI sidebar display
+    # Quick-reply suggestions from intake agent
+    suggested_answers: list[str] = []
+    # Facts for UI sidebar display
+    collected_facts: dict[str, Any] | None = None
 
 
 class HealthResponse(BaseModel):
@@ -208,7 +213,9 @@ async def chat_endpoint(request: ChatRequest) -> ChatResponse:
         # Log the incoming request for debugging
         logger.info(f"Received chat request: {request}")
         logger.info(
-            f"Request data - message: '{request.message}', user_id: '{request.user_id}', session_id: {request.session_id}"
+            f"Request data - message: '{request.message}', "
+            f"user_id: '{request.user_id}', "
+            f"session_id: {request.session_id}"
         )
 
         # Generate session ID if not provided
@@ -228,7 +235,8 @@ async def chat_endpoint(request: ChatRequest) -> ChatResponse:
 
         # Log response
         logger.info(
-            f"Chat response generated for session {session_id}, confidence: {result['confidence_score']}"
+            f"Chat response generated for session {session_id}, "
+            f"confidence: {result['confidence_score']}"
         )
         logger.info(
             f"Response text: {result.get('response', 'N/A')[:200]}..."
@@ -239,7 +247,8 @@ async def chat_endpoint(request: ChatRequest) -> ChatResponse:
         response = ChatResponse(**result)
         logger.info("Response object created successfully")
         logger.info(
-            f"ChatResponse.response: {response.response[:200] if response.response else 'None'}..."
+            f"ChatResponse.response: "
+            f"{response.response[:200] if response.response else 'None'}..."
         )
 
         return response

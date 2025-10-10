@@ -123,7 +123,8 @@ class RealVectorDB:
             collection_count = len(self.vectorstore.get()["ids"])
             if collection_count == 0:
                 logger.info(
-                    "Vector database is empty. Use ingest_documents.py to add your documents."
+                    "Vector database is empty. "
+                    "Use ingest_documents.py to add your documents."
                 )
             else:
                 logger.info(f"Vector database contains {collection_count} documents")
@@ -140,7 +141,8 @@ class RealVectorDB:
         """Search the vector database."""
         try:
             logger.info(
-                f"🔍 Vector DB search - query: '{query[:50]}...', top_k: {top_k}, min_similarity: {min_similarity}"
+                "🔍 Vector DB search - query: "
+                f"'{query[:50]}...', top_k: {top_k}, min_similarity: {min_similarity}"
             )
 
             # Perform similarity search
@@ -169,7 +171,8 @@ class RealVectorDB:
                     similarity = max(0.0, 1.0 / (1.0 + score))
 
                 logger.debug(
-                    f"  Doc: {doc.page_content[:50]}... | Score: {score:.3f} | Similarity: {similarity:.3f}"
+                    f"  Doc: {doc.page_content[:50]}... | Score: {score:.3f} | "
+                    f"Similarity: {similarity:.3f}"
                 )
 
                 if similarity >= min_similarity:
@@ -184,7 +187,9 @@ class RealVectorDB:
                     filtered_count += 1
 
             logger.info(
-                f"✓ Vector search returned {len(vector_results)} results (filtered {filtered_count} below {min_similarity} threshold) for query: '{query[:50]}...'"
+                f"✓ Vector search returned {len(vector_results)} results "
+                f"(filtered {filtered_count} below {min_similarity} threshold) "
+                f"for query: '{query[:50]}...'"
             )
             return vector_results
 

@@ -30,12 +30,14 @@ llm = ChatVertexAI(
 logger = logging.getLogger(__name__)
 
 QUERY_VARIANT_PROMPT = """
-You are a search query expert for Japan. Generate multiple search query variants in BOTH English and Japanese.
+You are a search query expert for Japan. Generate multiple search query variants
+in BOTH English and Japanese.
 
 **Original Query**: "{original_query}"
 **User Context**: {context}
 
-**Your Task**: Generate 4-6 search query variants (half in English, half in Japanese) that approach this question from different angles.
+**Your Task**: Generate 4-6 search query variants (half in English, half in Japanese)
+that approach this question from different angles.
 
 **Guidelines**:
 1. Use different terminology (e.g., "renewal" vs "extension" vs "application")
@@ -133,7 +135,10 @@ async def generate_query_variants(
 
 
 async def enhance_query_for_google(query: str, context: dict[str, Any]) -> str:
-    """Enhance query for Google Search with appropriate handling for Japanese and English queries."""
+    """
+    Enhance query for Google Search with appropriate handling for Japanese and
+    English queries.
+    """
 
     enhanced = query
 
@@ -221,7 +226,9 @@ async def execute_parallel_searches(
         )
 
     logger.info(
-        f"⚡ Executing {len(search_tasks)} parallel searches ({len([t for t in search_tasks if t[0] == 'vector'])} vector + {len([t for t in search_tasks if t[0] == 'google'])} google)..."
+        f"⚡ Executing {len(search_tasks)} parallel searches "
+        f"({len([t for t in search_tasks if t[0] == 'vector'])} vector + "
+        f"{len([t for t in search_tasks if t[0] == 'google'])} google)..."
     )
     results = await asyncio.gather(
         *[task[2] for task in search_tasks], return_exceptions=True
@@ -370,7 +377,8 @@ def create_merged_search_result(
     return MergedSearchResult(
         vector_results=unique_vector,
         google_results=google_results_str,
-        merged_summary=f"Found {total_results} results from multi-query bilingual search (English + Japanese)",
+        merged_summary=f"Found {total_results} results from multi-query bilingual "
+        "search (English + Japanese)",
         confidence_score=0.8 if (unique_vector or unique_google) else 0.2,
         sources=sources[:10],  # Limit to top 10 sources
         recommendations=[],
@@ -383,7 +391,8 @@ async def search_node(
 ) -> JapanHelpdeskState:
     """
     Search node with multi-query strategy.
-    Generates multiple query variants and executes parallel searches for comprehensive results.
+    Generates multiple query variants and executes parallel searches for comprehensive
+    results.
     """
     start_time = time.time()
 

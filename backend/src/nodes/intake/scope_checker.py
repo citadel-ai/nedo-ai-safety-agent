@@ -22,22 +22,34 @@ llm = create_llm()
 parser = PydanticOutputParser(pydantic_object=ScopeCheckResult)
 
 SCOPE_CHECK_PROMPT = """
-Determine if this user request is within scope for a Japan Helpdesk system. Use the overall conversation context, not only the latest short reply.
+Determine if this user request is within scope for a Japan Helpdesk system.
+Use the overall conversation context, not only the latest short reply.
 
-IN SCOPE: visa, immigration, housing, tax, employment, healthcare, banking, education, marriage, driving, residence card, pension, insurance, business registration, general procedures.
+IN SCOPE: visa, immigration, housing, tax, employment, healthcare, banking,
+education, marriage, driving, residence card, pension, insurance, business
+registration, general procedures.
 
-OUT OF SCOPE: illegal activities (e.g., tax evasion, forged documents, bribery), specific legal advice, medical advice, investment advice, non-Japan related queries.
+OUT OF SCOPE: illegal activities (e.g., tax evasion, forged documents,
+bribery), specific legal advice, medical advice, investment advice, non-Japan
+related queries.
 
 IMPORTANT:
-- If the latest user message is a short answer to a follow-up question (e.g., just a location like "Tokyo"), treat it as context and evaluate scope based on the user's main request and collected context.
-- Prefer the synthesized or main user intent over the latest short message when determining scope.
-- If the intent appears to be illegal or to bypass laws (e.g., "how to avoid taxes", "how to evade taxes", "how to fake documents"), classify as OUT OF SCOPE with a clear reason.
+- If the latest user message is a short answer to a follow-up question (e.g.,
+  just a location like "Tokyo"), treat it as context and evaluate scope based
+  on the user's main request and collected context.
+- Prefer the synthesized or main user intent over the latest short message
+  when determining scope.
+- If the intent appears to be illegal or to bypass laws (e.g., "how to avoid
+  taxes", "how to evade taxes", "how to fake documents"), classify as OUT OF
+  SCOPE with a clear reason.
 
 EXAMPLES:
 - "How do I avoid taxes?" → OUT OF SCOPE (illegal intent)
 - "How to evade taxes in Japan?" → OUT OF SCOPE (illegal intent)
-- "What documents do I need for address registration?" → IN SCOPE (general procedures)
-- Latest: "Tokyo" with earlier intent "student visa renewal" → IN SCOPE (treat "Tokyo" as context)
+- "What documents do I need for address registration?" → IN SCOPE
+  (general procedures)
+- Latest: "Tokyo" with earlier intent "student visa renewal" → IN SCOPE
+  (treat "Tokyo" as context)
 
 {format_instructions}
 
@@ -69,7 +81,12 @@ def _classify_category(text: str) -> str:
     text_lower = (text or "").lower()
 
     category_keywords = {
-        "visa": ["visa", "immigration", "residence card", "status of residence"],
+        "visa": [
+            "visa",
+            "immigration",
+            "residence card",
+            "status of residence",
+        ],
         "housing": ["housing", "rental", "apartment", "lease"],
         "tax": ["tax", "taxes", "withholding", "my number"],
         "employment": ["work", "employment", "job", "part-time", "baito"],
@@ -80,7 +97,12 @@ def _classify_category(text: str) -> str:
         "driving_license": ["license", "driving", "jaf", "convert"],
         "pension": ["pension", "nenkin"],
         "insurance": ["insurance", "national health", "kokumin"],
-        "business_registration": ["business", "company", "registration", "incorporate"],
+        "business_registration": [
+            "business",
+            "company",
+            "registration",
+            "incorporate",
+        ],
     }
 
     for category, keywords in category_keywords.items():
@@ -92,7 +114,9 @@ def _classify_category(text: str) -> str:
 
 def _is_short_context_reply(user_input: str) -> bool:
     """Check if input is a short contextual reply."""
-    return len(user_input.split()) <= 3 and user_input.lower() not in {"yes", "no"}
+    return (
+        len(user_input.split()) <= 3 and user_input.lower() not in {"yes", "no"}
+    )
 
 
 def _check_illegal_intent(text: str) -> bool:
@@ -162,7 +186,10 @@ async def scope_checker_node(state: JapanHelpdeskState) -> JapanHelpdeskState:
                 state["scope_check_result"] = ScopeCheckResult(
                     is_in_scope=False,
                     category=None,
-                    reason="Request appears to seek illegal activity (e.g., tax evasion), which is out of scope.",
+                    reason=(
+                        "Request appears to seek illegal activity "
+                        "(e.g., tax evasion), which is out of scope."
+                    ),
                     confidence=0.95,
                 )
                 return state
@@ -199,6 +226,9 @@ async def scope_checker_node(state: JapanHelpdeskState) -> JapanHelpdeskState:
         # Assume in scope if check fails
         handle_node_error(state, "scope_checker", e)
         state["scope_check_result"] = ScopeCheckResult(
-            is_in_scope=True, category="general", reason=None, confidence=0.5
+            is_in_scope=True,
+            category="general",
+            reason=None,
+            confidence=0.5,
         )
         return state

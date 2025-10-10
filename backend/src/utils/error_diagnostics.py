@@ -1,4 +1,6 @@
-"""Error Diagnostics - Comprehensive error tracking and debugging for workflow issues."""
+"""
+Error Diagnostics - Comprehensive error tracking and debugging for workflow issues.
+"""
 
 import logging
 import traceback
@@ -65,7 +67,8 @@ class WorkflowDiagnostics:
 
             if before_val != after_val:
                 changes[field] = (
-                    f"{self._summarize_value(before_val)} → {self._summarize_value(after_val)}"
+                    f"{self._summarize_value(before_val)} → ",
+                    f"{self._summarize_value(after_val)}",
                 )
 
         return changes
@@ -123,13 +126,16 @@ def diagnose_intake_failure(state: dict[str, Any]) -> str:
                 f"   is_complete: {getattr(intake_session, 'is_complete', 'N/A')}"
             )
             issues.append(
-                f"   conversation_history: {len(getattr(intake_session, 'conversation_history', []))} messages"
+                "   conversation_history: "
+                f"{len(getattr(intake_session, 'conversation_history', []))} messages"
             )
             issues.append(
-                f"   required_context: {getattr(intake_session, 'required_context_fields', [])}"
+                "   required_context: "
+                f"{getattr(intake_session, 'required_context_fields', [])}"
             )
             issues.append(
-                f"   missing_context: {getattr(intake_session, 'missing_context_fields', [])}"
+                "   missing_context: "
+                f"{getattr(intake_session, 'missing_context_fields', [])}"
             )
 
     final_response = state.get("final_response")
@@ -215,7 +221,8 @@ def create_detailed_error_response(
     completed_steps = state.get("completed_steps", [])
     response_parts.append(f"**Processing Stage**: {stage}")
     response_parts.append(
-        f"**Completed Steps**: {', '.join(completed_steps) if completed_steps else 'None'}"
+        "**Completed Steps**: "
+        f"{', '.join(completed_steps) if completed_steps else 'None'}"
     )
     response_parts.append("")
 

@@ -9,10 +9,16 @@ from pydantic import BaseModel, Field
 class AdversarialInputResult(BaseModel):
     """Result of adversarial input detection."""
 
-    is_adversarial: bool = Field(description="True if input is adversarial/malicious")
-    threat_type: str | None = Field(default=None, description="Type of threat detected")
+    is_adversarial: bool = Field(
+        description="True if input is adversarial/malicious"
+    )
+    threat_type: str | None = Field(
+        default=None, description="Type of threat detected"
+    )
     confidence: float = Field(description="Confidence score (0.0 to 1.0)")
-    reason: str = Field(description="Explanation of why input was flagged or approved")
+    reason: str = Field(
+        description="Explanation of why input was flagged or approved"
+    )
     sanitized_query: str | None = Field(
         default=None, description="Cleaned version if applicable"
     )
@@ -96,9 +102,13 @@ class IntakeSession(BaseModel):
 class ScopeCheckResult(BaseModel):
     """Result of scope checking for legal queries."""
 
-    is_in_scope: bool = Field(description="Whether query is within supported scope")
+    is_in_scope: bool = Field(
+        description="Whether query is within supported scope"
+    )
     category: str | None = Field(description="Category of the query")
-    reason: str | None = Field(description="Reason for rejection if out of scope")
+    reason: str | None = Field(
+        description="Reason for rejection if out of scope"
+    )
     confidence: float = Field(description="Confidence score between 0 and 1")
 
 
@@ -141,11 +151,19 @@ class LegalResponse(BaseModel):
     """Structured response for legal queries."""
 
     summary: str = Field(description="Brief summary of the issue and guidance")
-    disclaimers: list[str] = Field(description="Important disclaimers and limitations")
-    next_steps: list[str] = Field(description="Recommended next steps for the user")
-    useful_offices: list[ContactInfo] = Field(description="Relevant government offices")
+    disclaimers: list[str] = Field(
+        description="Important disclaimers and limitations"
+    )
+    next_steps: list[str] = Field(
+        description="Recommended next steps for the user"
+    )
+    useful_offices: list[ContactInfo] = Field(
+        description="Relevant government offices"
+    )
     useful_phrases: list[str] = Field(description="Useful Japanese phrases")
-    confidence_level: str = Field(description="Confidence level: high, medium, or low")
+    confidence_level: str = Field(
+        description="Confidence level: high, medium, or low"
+    )
     sources: list[str] = Field(description="Sources of information used")
 
 
@@ -218,7 +236,10 @@ class AgentPlan(BaseModel):
 
 
 class JapanHelpdeskState(TypedDict):
-    """Enhanced state for the Japan Helpdesk LangGraph workflow with agentic capabilities."""
+    """
+    Enhanced state for the Japan Helpdesk LangGraph workflow
+    with agentic capabilities.
+    """
 
     # Input and user information
     user_input: str
@@ -234,11 +255,11 @@ class JapanHelpdeskState(TypedDict):
     # Agent results
     adversarial_result: AdversarialInputResult | None
     intake_session: IntakeSession | None
-    scope_check_result: ScopeCheckResult | None  # Consistent key across nodes/routers
+    scope_check_result: ScopeCheckResult | None  # Consistent key across nodes
     search_results: (
         MergedSearchResult | None
     )  # RAG results: Vector DB + Google Search combined
-    legal_check_result: LegalAdviceCheck | None  # Consistent key across nodes/routers
+    legal_check_result: LegalAdviceCheck | None  # Consistent key across nodes
     grounding_check: Any | None  # Grounding validation result
 
     # Agentic capabilities
@@ -251,11 +272,11 @@ class JapanHelpdeskState(TypedDict):
     # Final response
     final_response: str | None
     confidence_score: float
-    sources: list[str]  # Fixed: removed operator.add
-    recommendations: list[str]  # Fixed: removed operator.add
+    sources: list[str]
+    recommendations: list[str]
 
     # Error handling
-    errors: list[str]  # Fixed: removed operator.add
+    errors: list[str]
     fallback_used: bool
 
     # Observability metadata

@@ -67,17 +67,20 @@ parser = PydanticOutputParser(pydantic_object=MultiStepProcedure)
 
 
 PROCEDURE_ANALYSIS_PROMPT = """
-You are an expert at breaking down complex administrative procedures in Japan into clear, actionable steps.
+You are an expert at breaking down complex administrative procedures in Japan into
+clear, actionable steps.
 
 **User Query**: "{user_query}"
 **User Context**: {user_context}
 **Search Results Summary**: {search_summary}
 
-**Your Task**: Analyze if this query involves a multi-step procedure. If yes, break it down into clear, sequential steps.
+**Your Task**: Analyze if this query involves a multi-step procedure,
+If yes, break it down into clear, sequential steps.
 
 **Examples of Multi-Step Procedures**:
 - Visa renewal (gather docs → apply → wait → receive)
-- Getting married (marriage registration → visa change → update residence card → insurance)
+- Getting married (marriage registration → visa change → update residence card →
+  insurance)
 - Moving apartments (notify old ward → notify new ward → update bank → update work)
 - Opening bank account (choose bank → gather docs → visit branch → activate account)
 
@@ -122,17 +125,20 @@ async def procedure_formatter_node(
     start_time = time.time()
 
     try:
-        # Get user query - use main_request from intake if available to avoid using quick-reply answers
+        # Get user query - use main_request from intake if available to avoid using
+        # quick-reply answers
         intake = state.get("intake_session")
         user_query = state["user_input"]
 
-        # Prefer the original main request over the latest user input (which might be a quick-reply answer)
+        # Prefer the original main request over the latest user input (which might be a
+        # quick-reply answer)
         if intake and hasattr(intake, "collected_info") and intake.collected_info:
             main_request = intake.collected_info.get("main_request")
             if main_request:
                 user_query = main_request
                 logger.info(
-                    f"📋 Using original main_request: '{main_request}' instead of latest input: '{state['user_input']}'"
+                    f"📋 Using original main_request: '{main_request}' "
+                    f"instead of latest input: '{state['user_input']}'"
                 )
 
         # Build context
@@ -245,7 +251,8 @@ async def procedure_formatter_node(
             # Format procedure into recommendations
             recommendations = []
             recommendations.append(
-                f"**{procedure.procedure_name}** (Est. time: {procedure.total_estimated_time})"
+                f"**{procedure.procedure_name}** "
+                f"(Est. time: {procedure.total_estimated_time})"
             )
             recommendations.append("")
 

@@ -11,7 +11,9 @@ logger = logging.getLogger(__name__)
 
 @observe(name="response_synthesizer_node")
 async def response_synthesizer_node(state: JapanHelpdeskState) -> JapanHelpdeskState:
-    """Synthesize final response from all gathered information with citation tracking."""
+    """
+    Synthesize final response from all gathered information with citation tracking.
+    """
     start_time = time.time()
 
     try:
@@ -20,7 +22,8 @@ async def response_synthesizer_node(state: JapanHelpdeskState) -> JapanHelpdeskS
         confidence_scores = []
         citations = []  # Track sources for grounding validation
 
-        # Add search results summary with citation tracking (RAG: Vector DB + Google Search)
+        # Add search results summary with citation tracking
+        # (RAG: Vector DB + Google Search)
         if state.get("search_results"):
             response_parts.append(state["search_results"].merged_summary)
             confidence_scores.append(state["search_results"].confidence_score)
@@ -33,7 +36,8 @@ async def response_synthesizer_node(state: JapanHelpdeskState) -> JapanHelpdeskS
         # Add multi-step procedure recommendations (CRITICAL!)
         if state.get("recommendations") and len(state["recommendations"]) > 0:
             logger.info(
-                f"🔧 RESPONSE SYNTH - Including {len(state['recommendations'])} recommendation lines"
+                f"🔧 RESPONSE SYNTH - Including {len(state['recommendations'])} "
+                f"recommendation lines"
             )
             logger.info("🔧 RESPONSE SYNTH - First 5 lines:")
             for line in state["recommendations"][:5]:
@@ -46,11 +50,15 @@ async def response_synthesizer_node(state: JapanHelpdeskState) -> JapanHelpdeskS
             user_context = getattr(intake_session, "collected_info", {}) or {}
             if user_context.get("location"):
                 response_parts.append(
-                    f"\n**Location-Specific Note:** Based on your location in {user_context['location']}, please verify local requirements with your municipal office."
+                    f"\n**Location-Specific Note:** Based on your location in "
+                    f"{user_context['location']}, please verify local requirements "
+                    "with your municipal office."
                 )
             if user_context.get("urgency"):
                 response_parts.append(
-                    f"\n**Urgency Note:** Given the {user_context['urgency']} nature of your request, consider contacting the relevant office directly."
+                    f"\n**Urgency Note:** Given the {user_context['urgency']} nature "
+                    "of your request, consider contacting the relevant office "
+                    "directly."
                 )
 
         # Synthesize final response
@@ -70,18 +78,19 @@ async def response_synthesizer_node(state: JapanHelpdeskState) -> JapanHelpdeskS
                 for i, source in enumerate(unique_sources, 1):
                     final_response += f"\n{i}. {source}"
                 logger.info(
-                    f"📚 Added {len(unique_sources)} sources to response for grounding transparency"
+                    f"📚 Added {len(unique_sources)} sources to response for "
+                    f"grounding transparency"
                 )
 
             # Add standard disclaimers
-            final_response += "\n\n**Important Disclaimers:**"
             final_response += (
-                "\n- This information is for general guidance only and not legal advice"
-            )
-            final_response += "\n- Always verify current requirements with official government sources"
-            final_response += "\n- Consider consulting with qualified professionals for complex situations"
-            final_response += (
-                "\n- Requirements may vary by location and individual circumstances"
+                "\n\n**Important Disclaimers:**\n"
+                "- This information is for general guidance only and not legal advice\n"
+                "- Always verify current requirements with official \n"
+                "government sources\n"
+                "- Consider consulting with qualified professionals for \n"
+                "complex situations\n"
+                "- Requirements may vary by location and individual circumstances"
             )
 
             # Calculate overall confidence
@@ -92,19 +101,23 @@ async def response_synthesizer_node(state: JapanHelpdeskState) -> JapanHelpdeskS
             )
 
         else:
-            final_response = """I apologize, but I couldn't find specific information for your query.
-
-**General Guidance:**
-- Visit the relevant government office website (.go.jp domains)
-- Contact your local municipal office (市役所) for general procedures
-- For visa/immigration matters, contact the Immigration Services Agency
-- Consider bringing a Japanese speaker if language is a barrier
-
-**Emergency Contacts:**
-- Immigration Services Agency: https://www.moj.go.jp/isa/index.html
-- Your local city hall (市役所)
-
-Please try rephrasing your question or provide more specific details about your situation."""
+            final_response = (
+                "I apologize, but I couldn't find specific information for your query.",
+                "\n\n",
+                "**General Guidance:**",
+                "- Visit the relevant government office website (.go.jp domains)",
+                "- Contact your local municipal office (市役所) for general procedures",
+                "- For visa/immigration matters, contact the Immigration Services "
+                "Agency",
+                "- Consider bringing a Japanese speaker if language is a barrier",
+                "",
+                "**Emergency Contacts:**",
+                "- Immigration Services Agency: https://www.moj.go.jp/isa/index.html",
+                "- Your local city hall (市役所)",
+                "",
+                "Please try rephrasing your question or provide more specific details ",
+                "about your situation.",
+            )
             overall_confidence = 0.0
 
         # Update state
@@ -126,7 +139,8 @@ Please try rephrasing your question or provide more specific details about your 
 
         # Fallback response
         state["final_response"] = (
-            "I apologize, but I encountered an error while preparing your response. Please try again or contact support."
+            "I apologize, but I encountered an error while preparing your response. "
+            "Please try again or contact support."
         )
         state["confidence_score"] = 0.0
 

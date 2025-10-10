@@ -52,30 +52,41 @@ session_manager = get_session_manager()
 session_store = session_manager._sessions
 
 AUTONOMOUS_INTAKE_PROMPT = """
-You are an autonomous intake agent for a Japan helpdesk system. Your role is to intelligently analyze ANY user query and determine what contextual information is needed to provide accurate, personalized assistance.
+You are an autonomous intake agent for a Japan helpdesk system. Your role is
+to intelligently analyze ANY user query and determine what contextual
+information is needed to provide accurate, personalized assistance.
 
 🧠 AUTONOMOUS CONTEXT ANALYSIS:
 For EVERY user query, think through these questions:
 
 1. **WHAT TYPE OF ASSISTANCE?** (Analyze the user's intent)
    - Office/contact information → NEEDS: Location
-   - Visa/immigration procedures → NEEDS: Current visa type, expiration date, location
-   - Legal procedures (divorce, marriage, etc.) → NEEDS: Location, timeline, current status
-   - Financial services (banking, taxes) → NEEDS: Visa type, location, current status
+   - Visa/immigration procedures → NEEDS: Current visa type, expiration
+     date, location
+   - Legal procedures (divorce, marriage, etc.) → NEEDS: Location, timeline,
+     current status
+   - Financial services (banking, taxes) → NEEDS: Visa type, location,
+     current status
    - Healthcare/insurance → NEEDS: Visa type, location, current coverage
    - Employment issues → NEEDS: Visa type, current status, location
    - Housing/utilities → NEEDS: Location, visa type, timeline
    - General information → MAY NEED: Context depends on specificity
 
 2. **WHAT CONTEXT IS MISSING?** (Dynamic analysis)
-   - Does the query mention location? If not, is location needed for this type of request?
-   - Does the query mention visa type? If not, do visa rules affect the answer?
-   - Does the query mention timeline/urgency? If not, are there time-sensitive aspects?
-   - Does the query mention current status? If not, does current situation affect options?
+   - Does the query mention location? If not, is location needed for this
+     type of request?
+   - Does the query mention visa type? If not, do visa rules affect the
+     answer?
+   - Does the query mention timeline/urgency? If not, are there time-sensitive
+     aspects?
+   - Does the query mention current status? If not, does current situation
+     affect options?
 
 3. **WHAT'S THE MOST CRITICAL MISSING PIECE?** (Prioritization)
-   - Location: Critical for office referrals, local procedures, contact information
-   - Visa type: Critical for eligibility, available options, required documents
+   - Location: Critical for office referrals, local procedures, contact
+     information
+   - Visa type: Critical for eligibility, available options, required
+     documents
    - Timeline: Critical for urgent matters, deadlines, appointment scheduling
    - Current status: Critical for ongoing procedures, next steps
 
@@ -90,27 +101,38 @@ Collected Info: {collected_info}
 🎯 INTELLIGENT QUESTIONING EXAMPLES:
 
 **Visa Extension Query**: "How do I extend my visa?"
-→ ANALYSIS: Needs visa type (different procedures), expiration date (urgency), location (office)
-→ QUESTION: "What type of visa are you currently on, and when does it expire? This helps me guide you to the right extension procedure."
+→ ANALYSIS: Needs visa type (different procedures), expiration date
+  (urgency), location (office)
+→ QUESTION: "What type of visa are you currently on, and when does it
+  expire? This helps me guide you to the right extension procedure."
 
 **Banking Query**: "How do I open a bank account?"
-→ ANALYSIS: Needs visa type (eligibility), location (branch), timeline (urgency)
-→ QUESTION: "What type of visa are you on, and which city are you in? Different banks have different requirements for foreign residents."
+→ ANALYSIS: Needs visa type (eligibility), location (branch), timeline
+  (urgency)
+→ QUESTION: "What type of visa are you on, and which city are you in?
+  Different banks have different requirements for foreign residents."
 
 **Healthcare Query**: "How do I get health insurance?"
-→ ANALYSIS: Needs visa type (eligibility), location (office), current coverage (status)
-→ QUESTION: "What's your current visa status, and are you currently covered by any insurance? This determines which health insurance options are available to you."
+→ ANALYSIS: Needs visa type (eligibility), location (office), current
+  coverage (status)
+→ QUESTION: "What's your current visa status, and are you currently covered
+  by any insurance? This determines which health insurance options are
+  available to you."
 
 **Employment Query**: "Can I work part-time?"
-→ ANALYSIS: Needs visa type (work restrictions), current status (permission status)
-→ QUESTION: "What type of visa are you currently on? Work permissions vary significantly by visa type."
+→ ANALYSIS: Needs visa type (work restrictions), current status (permission
+  status)
+→ QUESTION: "What type of visa are you currently on? Work permissions vary
+  significantly by visa type."
 
 🎯 SMART QUESTIONING STRATEGY:
 1. **Analyze the query autonomously** - don't rely on keyword matching
 2. **Ask for the MOST CRITICAL missing context first**
 3. **ONE focused question per turn** - don't overwhelm users
-4. **Explain WHY you need the information** - build trust and understanding
-5. **Be conversational and empathetic** - this is often stressful for users
+4. **Explain WHY you need the information** - build trust and
+   understanding
+5. **Be conversational and empathetic** - this is often stressful for
+   users
 
 {format_instructions}
 
@@ -124,12 +146,16 @@ Set is_complete = True when you have enough context to provide:
 - **Timeline-appropriate urgency** (if timing matters)
 - **Status-appropriate next steps** (if current situation matters)
 
-**THINK AUTONOMOUSLY**: Don't just match keywords. Analyze what the user is actually trying to accomplish and what context would make your response genuinely helpful vs generic.
+**THINK AUTONOMOUSLY**: Don't just match keywords. Analyze what the user is
+actually trying to accomplish and what context would make your response
+genuinely helpful vs generic.
 """
 
 
-def get_or_create_session(user_id: str, session_id: str | None = None) -> IntakeSession:
-    """Get existing session or create new one using centralized session manager."""
+def get_or_create_session(
+    user_id: str, session_id: str | None = None
+) -> IntakeSession:
+    """Get or create session using centralized session manager."""
     return session_manager.get_or_create_session(user_id, session_id)
 
 
@@ -147,13 +173,17 @@ async def intake_agent_node(state: JapanHelpdeskState) -> JapanHelpdeskState:
         # Update session with new input
         session.conversation_history.append(f"User: {state['user_input']}")
 
-        # CRITICAL: Set main_request on first interaction if not already set
-        if not session.collected_info or "main_request" not in session.collected_info:
+        # CRITICAL: Set main_request on first interaction if not set
+        if (
+            not session.collected_info
+            or "main_request" not in session.collected_info
+        ):
             if not session.collected_info:
                 session.collected_info = {}
             session.collected_info["main_request"] = state["user_input"]
             logger.info(
-                f"🔵 INTAKE AGENT - Set initial main_request: '{state['user_input']}'"
+                f"🔵 INTAKE AGENT - Set initial main_request: "
+                f"'{state['user_input']}'"
             )
 
         # Maintain a rolling conversation summary (last ~10 exchanges)
@@ -191,8 +221,10 @@ async def intake_agent_node(state: JapanHelpdeskState) -> JapanHelpdeskState:
         response = await llm.ainvoke(messages)
         content = response.content or ""
         logger.info(f"🔵 INTAKE AGENT - LLM response length: {len(content)} chars")
+        preview_text = content[:300]
+        ellipsis = "..." if len(content) > 300 else ""
         logger.info(
-            f"🔵 INTAKE AGENT - LLM preview: {content[:300]}{'...' if len(content) > 300 else ''}"
+            f"🔵 INTAKE AGENT - LLM preview: {preview_text}{ellipsis}"
         )
 
         # Extract robust JSON and parse
@@ -201,7 +233,8 @@ async def intake_agent_node(state: JapanHelpdeskState) -> JapanHelpdeskState:
             updated_session = parser.parse(json_text)
         except Exception as parse_err:
             logger.warning(
-                f"🟡 INTAKE AGENT - Primary parse failed, attempting direct Pydantic parse: {parse_err}"
+                f"🟡 INTAKE AGENT - Primary parse failed, "
+                f"attempting direct Pydantic parse: {parse_err}"
             )
             try:
                 updated_session = IntakeSession.model_validate_json(json_text)
@@ -210,7 +243,9 @@ async def intake_agent_node(state: JapanHelpdeskState) -> JapanHelpdeskState:
                 raise
 
         logger.info(
-            f"🔵 INTAKE AGENT - Parsed session: is_complete={updated_session.is_complete}, next_questions={len(updated_session.next_questions)}"
+            f"🔵 INTAKE AGENT - Parsed session: "
+            f"is_complete={updated_session.is_complete}, "
+            f"next_questions={len(updated_session.next_questions)}"
         )
         if updated_session.next_questions:
             logger.info(
@@ -218,7 +253,8 @@ async def intake_agent_node(state: JapanHelpdeskState) -> JapanHelpdeskState:
             )
         else:
             logger.warning(
-                f"🟡 INTAKE AGENT - next_questions is empty! Required fields: {updated_session.required_context_fields}"
+                f"🟡 INTAKE AGENT - next_questions is empty! "
+                f"Required fields: {updated_session.required_context_fields}"
             )
 
         # Ensure correct session and user IDs
@@ -226,17 +262,18 @@ async def intake_agent_node(state: JapanHelpdeskState) -> JapanHelpdeskState:
         updated_session.user_id = session.user_id
 
         # CRITICAL: Preserve main_request from original session if it exists
-        # The LLM might not always include it in collected_info when processing follow-ups
+        # The LLM might not always include it in collected_info when
+        # processing follow-ups
         if session.collected_info and "main_request" in session.collected_info:
             if not updated_session.collected_info:
                 updated_session.collected_info = {}
             # Only preserve if the LLM didn't explicitly update it
             if "main_request" not in updated_session.collected_info:
-                updated_session.collected_info["main_request"] = session.collected_info[
-                    "main_request"
-                ]
+                main_req = session.collected_info["main_request"]
+                updated_session.collected_info["main_request"] = main_req
                 logger.info(
-                    f"🔵 INTAKE AGENT - Preserved main_request: '{session.collected_info['main_request']}'"
+                    f"🔵 INTAKE AGENT - Preserved main_request: "
+                    f"'{main_req}'"
                 )
 
         # Update session in centralized manager
@@ -249,11 +286,12 @@ async def intake_agent_node(state: JapanHelpdeskState) -> JapanHelpdeskState:
 
         # Set final_response based on completion and questions
         if updated_session.next_questions:
-            # Has questions to ask (either clarifying questions OR rejection message)
+            # Has questions (either clarifying questions OR rejection message)
             question = updated_session.next_questions[0]
             state["final_response"] = question
             logger.info(
-                f"🔵 INTAKE AGENT - Set final_response from next_questions: '{question[:100]}...'"
+                f"🔵 INTAKE AGENT - Set final_response from next_questions: "
+                f"'{question[:100]}...'"
             )
 
             # Generate quick-reply suggestions for this question
@@ -262,16 +300,18 @@ async def intake_agent_node(state: JapanHelpdeskState) -> JapanHelpdeskState:
             )
             updated_session.suggested_answers = suggestions
             logger.info(
-                f"🔵 INTAKE AGENT - Generated {len(suggestions)} quick-reply suggestions"
+                f"🔵 INTAKE AGENT - Generated {len(suggestions)} "
+                f"quick-reply suggestions"
             )
 
             # Add to conversation history
             updated_session.conversation_history.append(f"Agent: {question}")
             session_manager.update_session(updated_session)
         elif not updated_session.is_complete:
-            # No questions but not complete - this shouldn't happen, but handle it
+            # No questions but not complete - shouldn't happen, but handle it
             logger.warning(
-                "🟡 INTAKE AGENT - Incomplete but no questions! Continuing workflow..."
+                "🟡 INTAKE AGENT - Incomplete but no questions! "
+                "Continuing workflow..."
             )
         else:
             # Complete and no questions - ready for next stage
@@ -282,9 +322,14 @@ async def intake_agent_node(state: JapanHelpdeskState) -> JapanHelpdeskState:
         state["processing_time"] += processing_time
         state["tokens_used"] += len(response.content.split())
 
-        # Langfuse v3 automatically captures input/output and timing via @observe decorator
+        # Langfuse v3 automatically captures input/output via @observe
+        final_resp_len = (
+            len(state.get("final_response", ""))
+            if state.get("final_response")
+            else 0
+        )
         logger.info(
-            f"🔵 INTAKE AGENT END - final_response length: {len(state.get('final_response', '')) if state.get('final_response') else 0}"
+            f"🔵 INTAKE AGENT END - final_response length: {final_resp_len}"
         )
 
         return state
@@ -303,22 +348,44 @@ async def intake_agent_node(state: JapanHelpdeskState) -> JapanHelpdeskState:
             word in user_input_lower
             for word in ["visa", "extend", "renew", "immigration"]
         ):
-            next_question = "To help you with your visa question, could you tell me: What type of visa are you currently on, and when does it expire?"
+            next_question = (
+                "To help you with your visa question, could you tell me: "
+                "What type of visa are you currently on, and when does it "
+                "expire?"
+            )
             required_fields = ["visa_type", "timeline"]
         elif any(
-            word in user_input_lower for word in ["office", "where", "which", "contact"]
+            word in user_input_lower
+            for word in ["office", "where", "which", "contact"]
         ):
-            next_question = "To direct you to the right office, which city or prefecture in Japan are you located in?"
+            next_question = (
+                "To direct you to the right office, which city or "
+                "prefecture in Japan are you located in?"
+            )
             required_fields = ["user_location"]
-        elif any(word in user_input_lower for word in ["work", "job", "employment"]):
-            next_question = "To advise you on work-related matters, what type of visa are you currently on?"
+        elif any(
+            word in user_input_lower for word in ["work", "job", "employment"]
+        ):
+            next_question = (
+                "To advise you on work-related matters, what type of visa "
+                "are you currently on?"
+            )
             required_fields = ["visa_type"]
-        elif any(word in user_input_lower for word in ["bank", "account", "money"]):
-            next_question = "To help you with banking, what type of visa are you on, and which city are you in?"
+        elif any(
+            word in user_input_lower for word in ["bank", "account", "money"]
+        ):
+            next_question = (
+                "To help you with banking, what type of visa are you on, "
+                "and which city are you in?"
+            )
             required_fields = ["visa_type", "user_location"]
         else:
             # Generic fallback question
-            next_question = "To provide you with accurate information, could you tell me: What type of visa are you on, and which city in Japan are you located in?"
+            next_question = (
+                "To provide you with accurate information, could you tell "
+                "me: What type of visa are you on, and which city in Japan "
+                "are you located in?"
+            )
             required_fields = ["visa_type", "user_location"]
 
         # Create fallback session with helpful question (outside the else block)
@@ -349,10 +416,13 @@ async def intake_agent_node(state: JapanHelpdeskState) -> JapanHelpdeskState:
         if next_question:
             state["final_response"] = next_question
             logger.info(
-                f"🟡 INTAKE AGENT FALLBACK - Set fallback question: '{next_question}'"
+                f"🟡 INTAKE AGENT FALLBACK - Set fallback question: "
+                f"'{next_question}'"
             )
         else:
-            logger.error("🔴 INTAKE AGENT FALLBACK - No fallback question generated!")
+            logger.error(
+                "🔴 INTAKE AGENT FALLBACK - No fallback question generated!"
+            )
 
         # Langfuse v3 automatically captures exceptions via @observe decorator
 
