@@ -27,10 +27,7 @@ setup_logging()
 logger = logging.getLogger(__name__)
 
 settings = load_settings()
-if (
-    settings.app_env in [Env.STG, Env.Env.PROD]
-    and settings.app_context != Context.CLOUD
-):
+if settings.app_env in [Env.STG, Env.PROD] and settings.app_context != Context.CLOUD:
     raise ValueError("Production environment must be run in cloud context")
 
 logging.debug(settings)
