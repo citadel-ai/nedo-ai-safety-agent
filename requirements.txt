@@ -1,0 +1,19 @@
+# Core dependencies
+langgraph>=0.2.0
+langchain>=0.3.0
+langchain-google-community>=2.0.0
+langchain-google-vertexai>=2.0.0
+python-dotenv>=1.0.0
+
+# FastAPI server
+fastapi>=0.115.0
+uvicorn>=0.30.0
+
+# Google Cloud
+google-cloud-aiplatform>=1.70.0
+google-cloud-discoveryengine>=0.13.0
+google-genai>=0.3.0  # For Google Maps grounding
+
+# Observability
+langfuse>=3.0.0  # Langfuse v3 for LLM observability
+langsmith>=0.1.0  # LangSmith for LangChain/LangGraph tracing

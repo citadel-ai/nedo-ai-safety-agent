@@ -1,0 +1,30 @@
+# Google Cloud Configuration
+GOOGLE_CLOUD_PROJECT=your-project-id
+
+# Vertex AI Search Configuration
+# Your data store ID (format: projects/*/locations/*/collections/default_collection/data-stores/*)
+VERTEX_AI_SEARCH_DATA_STORE_ID=your-data-store-id
+
+# Your engine ID (format: same as data store ID, but used for answer method)
+# Note: For answer method, use engine ID instead of data store ID
+VERTEX_AI_SEARCH_ENGINE_ID=your-engine-id
+
+# Google Places API (Optional - for location search in "Useful Places")
+# Get your API key from: https://console.cloud.google.com/apis/credentials
+GOOGLE_PLACES_API_KEY=your-places-api-key
+
+# Observability Configuration (Optional)
+
+# Langfuse - LLM observability and tracing
+LANGFUSE_ENABLED=false
+LANGFUSE_PUBLIC_KEY=your-public-key
+LANGFUSE_SECRET_KEY=your-secret-key
+LANGFUSE_HOST=https://cloud.langfuse.com
+
+# LangSmith - LangChain/LangGraph tracing
+# Get your API key from: https://smith.langchain.com
+LANGCHAIN_TRACING_V2=false
+LANGCHAIN_API_KEY=your-langsmith-api-key
+LANGCHAIN_PROJECT=japan-procedures-agent
+LANGCHAIN_ENDPOINT=https://api.smith.langchain.com
+
