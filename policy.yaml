@@ -1,6 +1,0 @@
-bindings:
-- members:
-  - allUsers
-  role: roles/run.invoker
-etag: BwYWja0YfJA=
-version: 1

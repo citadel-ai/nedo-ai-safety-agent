@@ -1,0 +1,63 @@
+[project]
+name = "nedo-ai-safety-agent"
+version = "0.1.0"
+description = "AI agent for helping people navigate Japan's bureaucratic procedures"
+readme = "README.md"
+requires-python = ">=3.11"
+license = { text = "MIT" }
+authors = [
+    { name = "NEDO AI Safety Agent Team" }
+]
+
+dependencies = [
+    # Core LangChain/LangGraph
+    "langgraph>=0.2.0",
+    "langchain>=0.3.0",
+    "langchain-google-community>=2.0.0",
+    "langchain-google-vertexai>=2.0.0",
+    "python-dotenv>=1.0.0",
+    
+    # FastAPI server
+    "fastapi>=0.115.0",
+    "uvicorn[standard]>=0.30.0",
+    
+    # Google Cloud
+    "google-cloud-aiplatform>=1.70.0",
+    "google-cloud-discoveryengine>=0.13.0",
+    "google-genai>=0.3.0",  # For Google Maps grounding
+    
+    # Observability
+    "langfuse>=3.0.0",  # Langfuse v3 for LLM observability
+    "langsmith>=0.1.0",  # LangSmith for LangChain/LangGraph tracing
+]
+
+[dependency-groups]
+dev = [
+    "ruff>=0.8.0",
+    "pytest>=8.0.0",
+    "pytest-asyncio>=0.24.0",
+    "pytest-cov>=6.0.0",
+    "httpx>=0.27.0",
+    "mypy>=1.13.0",
+    "ipython>=8.12.0",
+    "jupyter>=1.0.0",
+]
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.hatch.build.targets.wheel]
+packages = ["backend"]
+
+[tool.ruff]
+target-version = "py311"
+line-length = 100
+
+[tool.ruff.lint]
+select = ["E", "F", "I"]  # Errors, pyflakes, import sorting
+ignore = ["E501"]  # Line too long
+
+[tool.ruff.lint.per-file-ignores]
+"__init__.py" = ["F401"]  # Allow unused imports
+
