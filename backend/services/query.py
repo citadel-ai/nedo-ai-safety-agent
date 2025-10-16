@@ -2,12 +2,13 @@
 Query processing service.
 """
 
-from typing import List, Dict
+from typing import Dict, List
+
 from langchain_core.messages import HumanMessage
 
 from ..core.graph import graph
-from ..utils.logging_config import get_logger
 from ..utils.langfuse_config import get_langfuse_handler
+from ..utils.logging_config import get_logger
 
 logger = get_logger(__name__)
 
@@ -47,8 +48,9 @@ def query_agent(question: str, thread_id: str, conversation_mode: str = None) ->
             )
             visa_type = collected_facts.get("Visa Type", "unknown")
             location = collected_facts.get("Location", "unknown")
-        except:
+        except Exception as e:
             visa_type = location = "unknown"
+            logger.error(f"❌ Error getting state: {str(e)}", exc_info=True)
 
         # Build dynamic tags
         tags = ["japan-procedures", "conversation"]

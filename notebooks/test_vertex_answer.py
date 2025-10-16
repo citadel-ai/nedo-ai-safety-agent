@@ -40,11 +40,6 @@ import os
 import sys
 from pathlib import Path
 
-# Setup path
-notebook_dir = Path(__file__).parent
-parent_dir = notebook_dir.parent
-sys.path.insert(0, str(parent_dir))
-
 from dotenv import load_dotenv
 from google.cloud import discoveryengine_v1
 
@@ -52,6 +47,11 @@ from backend.utils.citation_extractor import (
     extract_citations_from_answer_response,
     format_citation_display,
 )
+
+# Setup path
+notebook_dir = Path(__file__).parent
+parent_dir = notebook_dir.parent
+sys.path.insert(0, str(parent_dir))
 
 load_dotenv(parent_dir / ".env")
 
