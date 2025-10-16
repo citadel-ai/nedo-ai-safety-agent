@@ -10,12 +10,20 @@ from fastapi.responses import FileResponse
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 from pathlib import Path
+from typing import List, Optional
 
 from ..services.context import set_user_context
 from ..services.query import query_agent, get_thread_state
 from ..utils.config import Config
 from ..utils.logging_config import setup_logging
 from ..utils.langfuse_config import initialize_langfuse, flush_langfuse
+from ..evaluation.benchmarks import get_benchmark_manager
+from ..evaluation.metrics import get_metrics_collector
+from ..evaluation.alerts import get_alert_manager
+from ..evaluation.audit import get_audit_logger
+from ..middleware.pii_filter import PIIFilterMiddleware
+from ..middleware.metrics import MetricsMiddleware
+from ..middleware.safety import SafetyMiddleware
 
 # Setup logging
 setup_logging()
@@ -41,6 +49,11 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+# Add evaluation middleware
+app.add_middleware(SafetyMiddleware)
+app.add_middleware(PIIFilterMiddleware)
+app.add_middleware(MetricsMiddleware)
 
 
 # Add shutdown event to flush Langfuse traces
@@ -204,6 +217,289 @@ async def remove_fact(thread_id: str, request: RemoveFactRequest):
         raise
     except Exception as e:
         logger.error(f"Exception in remove_fact: {str(e)}", exc_info=True)
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+# ==================== Feedback API ====================
+
+class FeedbackRatingRequest(BaseModel):
+    thread_id: str
+    query: str
+    rating: int  # 1-5 stars
+    comment: Optional[str] = None
+
+
+class FeedbackFlagRequest(BaseModel):
+    thread_id: str
+    query: str
+    reason: str
+    details: Optional[str] = None
+
+
+@app.post("/api/feedback/rating")
+async def submit_rating(request: FeedbackRatingRequest):
+    """
+    Submit user rating for a response.
+    
+    Args:
+        request: FeedbackRatingRequest with rating (1-5)
+        
+    Returns:
+        Success confirmation
+    """
+    try:
+        # Validate rating
+        if not (1 <= request.rating <= 5):
+            raise HTTPException(status_code=400, detail="Rating must be between 1 and 5")
+        
+        # Log to audit
+        audit_logger = get_audit_logger()
+        audit_logger.log_user_action(
+            thread_id=request.thread_id,
+            action_type="feedback",
+            details={
+                "rating": request.rating,
+                "comment": request.comment,
+                "query": request.query[:100]
+            }
+        )
+        
+        return {
+            "status": "success",
+            "message": "Feedback recorded",
+            "rating": request.rating
+        }
+        
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@app.post("/api/feedback/flag")
+async def flag_response(request: FeedbackFlagRequest):
+    """
+    Flag a response as incorrect or problematic.
+    
+    Args:
+        request: FeedbackFlagRequest with reason
+        
+    Returns:
+        Success confirmation
+    """
+    try:
+        # Log to audit
+        audit_logger = get_audit_logger()
+        audit_logger.log_user_action(
+            thread_id=request.thread_id,
+            action_type="flag_response",
+            details={
+                "reason": request.reason,
+                "details": request.details,
+                "query": request.query[:100]
+            }
+        )
+        
+        return {
+            "status": "success",
+            "message": "Response flagged for review"
+        }
+        
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+# ==================== Metrics API ====================
+
+@app.get("/api/metrics/realtime")
+async def get_realtime_metrics():
+    """
+    Get real-time metrics snapshot.
+    
+    Returns:
+        Current system metrics
+    """
+    try:
+        metrics_collector = get_metrics_collector()
+        return metrics_collector.get_realtime_metrics()
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@app.get("/api/metrics/nodes")
+async def get_node_metrics():
+    """
+    Get per-node performance metrics.
+    
+    Returns:
+        Node-level latency statistics
+    """
+    try:
+        metrics_collector = get_metrics_collector()
+        return metrics_collector.get_node_metrics()
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+# ==================== Alerts API ====================
+
+@app.get("/api/alerts/active")
+async def get_active_alerts(
+    unacknowledged_only: bool = False,
+    severity: Optional[str] = None
+):
+    """
+    Get active alerts.
+    
+    Args:
+        unacknowledged_only: Only return unacknowledged alerts
+        severity: Filter by severity level
+        
+    Returns:
+        List of active alerts
+    """
+    try:
+        alert_manager = get_alert_manager()
+        
+        # Parse severity if provided
+        from ..evaluation.alerts import AlertSeverity
+        severity_enum = None
+        if severity:
+            try:
+                severity_enum = AlertSeverity(severity)
+            except ValueError:
+                raise HTTPException(
+                    status_code=400,
+                    detail=f"Invalid severity: {severity}"
+                )
+        
+        alerts = alert_manager.get_active_alerts(
+            severity=severity_enum,
+            unacknowledged_only=unacknowledged_only
+        )
+        
+        return {
+            "count": len(alerts),
+            "alerts": [a.to_dict() for a in alerts]
+        }
+        
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@app.get("/api/alerts/summary")
+async def get_alerts_summary():
+    """
+    Get alert summary statistics.
+    
+    Returns:
+        Alert statistics
+    """
+    try:
+        alert_manager = get_alert_manager()
+        return alert_manager.get_alert_summary()
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+# ==================== Benchmarks API ====================
+
+class BenchmarkCreateRequest(BaseModel):
+    query: str
+    context: dict
+    expected_answer_elements: List[str]
+    category: str
+    created_by: str
+    must_include_citations: bool = True
+    tags: Optional[List[str]] = None
+    notes: Optional[str] = None
+
+
+@app.post("/api/benchmarks/create")
+async def create_benchmark(request: BenchmarkCreateRequest):
+    """
+    Create a new benchmark (SME function).
+    
+    Args:
+        request: BenchmarkCreateRequest
+        
+    Returns:
+        Created benchmark
+    """
+    try:
+        benchmark_manager = get_benchmark_manager()
+        
+        benchmark = benchmark_manager.create_benchmark(
+            query=request.query,
+            context=request.context,
+            expected_answer_elements=request.expected_answer_elements,
+            category=request.category,
+            created_by=request.created_by,
+            must_include_citations=request.must_include_citations,
+            tags=request.tags,
+            notes=request.notes
+        )
+        
+        return benchmark.to_dict()
+        
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@app.get("/api/benchmarks/list")
+async def list_benchmarks(
+    category: Optional[str] = None,
+    tags: Optional[str] = None  # Comma-separated
+):
+    """
+    List benchmarks with optional filters.
+    
+    Args:
+        category: Filter by category
+        tags: Filter by tags (comma-separated)
+        
+    Returns:
+        List of benchmarks
+    """
+    try:
+        benchmark_manager = get_benchmark_manager()
+        
+        # Parse tags
+        tags_list = tags.split(",") if tags else None
+        
+        benchmarks = benchmark_manager.list_benchmarks(
+            category=category,
+            tags=tags_list
+        )
+        
+        return {
+            "count": len(benchmarks),
+            "benchmarks": [b.to_dict() for b in benchmarks]
+        }
+        
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@app.get("/api/benchmarks/results")
+async def get_benchmark_results(limit: int = 10):
+    """
+    Get historical benchmark results.
+    
+    Args:
+        limit: Number of runs to return
+        
+    Returns:
+        Benchmark run history
+    """
+    try:
+        benchmark_manager = get_benchmark_manager()
+        results = benchmark_manager.get_results_history(limit=limit)
+        
+        return {
+            "count": len(results),
+            "runs": results
+        }
+        
+    except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
 

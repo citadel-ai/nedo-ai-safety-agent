@@ -13,7 +13,24 @@ VERTEX_AI_SEARCH_ENGINE_ID=your-engine-id
 # Get your API key from: https://console.cloud.google.com/apis/credentials
 GOOGLE_PLACES_API_KEY=your-places-api-key
 
-# Observability Configuration (Optional)
+# ==================== Evaluation Configuration ====================
+
+# Safety & Compliance
+PII_DETECTION_ENABLED=true
+PII_MASKING_MODE=log_only  # Options: 'log_only' or 'mask_output'
+SAFETY_SCORE_THRESHOLD=0.80
+
+# Quality
+BENCHMARK_MODE=enabled  # Options: 'enabled' or 'disabled'
+MIN_CITATION_COVERAGE=0.70
+QUALITY_SCORE_THRESHOLD=0.75
+
+# Monitoring
+METRICS_ENABLED=true
+LATENCY_ALERT_THRESHOLD_MS=5000
+COST_ALERT_THRESHOLD_USD=0.10
+
+# ==================== Observability Configuration (Optional) ====================
 
 # Langfuse - LLM observability and tracing
 LANGFUSE_ENABLED=false

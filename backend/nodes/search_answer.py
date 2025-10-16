@@ -11,8 +11,18 @@ from ..tools.vertex_answer import vertex_answer_tool
 from ..utils.citation_extractor import extract_citations_from_answer_response
 from ..utils.logging_config import get_logger
 from ..utils.langfuse_config import trace_node
+from ..evaluation.safety import SafetyEvaluator
+from ..evaluation.quality import QualityEvaluator
+from ..evaluation.audit import get_audit_logger
+from ..evaluation.alerts import get_alert_manager
 
 logger = get_logger(__name__)
+
+# Initialize evaluation components
+safety_evaluator = SafetyEvaluator()
+quality_evaluator = QualityEvaluator()
+audit_logger = get_audit_logger()
+alert_manager = get_alert_manager()
 
 
 @trace_node("search_and_respond_with_answer")
@@ -99,12 +109,105 @@ def search_and_respond_with_answer(
             if cit.get('url'):
                 logger.info(f"       URL: {cit['url']}")
         
+        # ==================== EVALUATION HOOKS ====================
+        
+        # Get thread_id for logging
+        thread_id = config.get("configurable", {}).get("thread_id", "unknown")
+        
+        # 1. Safety Evaluation (PII + Content Safety)
+        safety_result = safety_evaluator.evaluate(
+            text=answer_text,
+            citations=citations,
+            check_pii=True,
+            check_content=True
+        )
+        
+        # Log PII detection if found
+        if safety_result.get("pii", {}).get("has_pii"):
+            pii_data = safety_result["pii"]
+            audit_logger.log_pii_detection(
+                thread_id=thread_id,
+                pii_types=pii_data["pii_types"],
+                risk_level=pii_data["risk_level"],
+                location="response"
+            )
+            
+            # Alert if high risk
+            if pii_data["risk_level"] in ['medium', 'high']:
+                alert_manager.alert_pii_detected(
+                    pii_types=pii_data["pii_types"],
+                    risk_level=pii_data["risk_level"],
+                    location="response",
+                    thread_id=thread_id
+                )
+        
+        # Log safety issues
+        if not safety_result.get("safety", {}).get("is_safe", True):
+            safety_data = safety_result["safety"]
+            audit_logger.log_safety_violation(
+                thread_id=thread_id,
+                violation_type="content_safety",
+                details=safety_data
+            )
+            alert_manager.alert_safety_violation(
+                violation_type="content_safety",
+                details=safety_data,
+                thread_id=thread_id
+            )
+        
+        # 2. Quality Evaluation
+        quality_metrics = quality_evaluator.evaluate_response(
+            query=query_text,
+            response=answer_text,
+            citations=citations
+        )
+        
+        # Log quality issues
+        if quality_metrics.quality_score < quality_evaluator.quality_threshold:
+            audit_logger.log_event(
+                event_type=audit_logger.log_event.__self__.__class__.__name__,  # Using a workaround
+                thread_id=thread_id,
+                details={
+                    "event": "low_quality_response",
+                    "quality_score": quality_metrics.quality_score,
+                    "issues": quality_metrics.issues
+                }
+            )
+            alert_manager.alert_low_quality(
+                quality_score=quality_metrics.quality_score,
+                issues=quality_metrics.issues,
+                thread_id=thread_id
+            )
+        
+        # 3. Task Completion Evaluation
+        conversation_length = len(state.get("messages", []))
+        task_result = quality_evaluator.evaluate_task_completion(
+            query=query_text,
+            response=answer_text,
+            conversation_length=conversation_length,
+            error=None
+        )
+        
+        # 4. Log response to audit
+        audit_logger.log_response(
+            thread_id=thread_id,
+            response=answer_text,
+            citations_count=len(citations),
+            quality_score=quality_metrics.quality_score
+        )
+        
         # ✅ Return only updates (LangGraph merges into state)
         state_updates = {
             "messages": [AIMessage(content=answer_text)],
             "answer": answer_text,
             "citations": citations,
-            "error": None
+            "error": None,
+            # Add evaluation results to state
+            "quality_score": quality_metrics.quality_score,
+            "safety_score": safety_result.get("safety", {}).get("safety_score", 1.0),
+            "task_completed": task_result.task_completed,
+            "completion_quality": task_result.completion_quality,
+            "requires_followup": task_result.requires_followup
         }
         
         # Add session ID if we got one

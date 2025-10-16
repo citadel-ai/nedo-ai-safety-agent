@@ -1,0 +1,93 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Benchmark Schema",
+  "description": "Schema for gold-standard benchmark test cases",
+  "type": "object",
+  "required": ["version", "benchmarks"],
+  "properties": {
+    "version": {
+      "type": "string",
+      "description": "Schema version"
+    },
+    "updated_at": {
+      "type": "string",
+      "format": "date-time",
+      "description": "Last update timestamp"
+    },
+    "benchmarks": {
+      "type": "array",
+      "description": "List of benchmark test cases",
+      "items": {
+        "$ref": "#/definitions/benchmark"
+      }
+    }
+  },
+  "definitions": {
+    "benchmark": {
+      "type": "object",
+      "required": ["id", "query", "context", "expected_answer_elements", "must_include_citations", "category", "created_by", "created_at"],
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Unique benchmark identifier (e.g., visa-renewal-001)"
+        },
+        "query": {
+          "type": "string",
+          "description": "User query to test"
+        },
+        "context": {
+          "type": "object",
+          "description": "User context for the query",
+          "properties": {
+            "visa_type": {
+              "type": "string",
+              "description": "Visa type (e.g., Work Visa, Student Visa)"
+            },
+            "location": {
+              "type": "string",
+              "description": "Location (e.g., Tokyo, Osaka)"
+            }
+          }
+        },
+        "expected_answer_elements": {
+          "type": "array",
+          "description": "Key facts that should appear in the answer",
+          "items": {
+            "type": "string"
+          },
+          "minItems": 1
+        },
+        "must_include_citations": {
+          "type": "boolean",
+          "description": "Whether citations are required"
+        },
+        "category": {
+          "type": "string",
+          "description": "Benchmark category (e.g., visa-renewal, residence-registration)",
+          "examples": ["visa-renewal", "residence-registration", "health-insurance", "tax-procedures"]
+        },
+        "created_by": {
+          "type": "string",
+          "description": "SME who created this benchmark (email or ID)"
+        },
+        "created_at": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Creation timestamp"
+        },
+        "tags": {
+          "type": "array",
+          "description": "Optional tags for filtering",
+          "items": {
+            "type": "string"
+          }
+        },
+        "notes": {
+          "type": "string",
+          "description": "Optional notes about this benchmark"
+        }
+      }
+    }
+  }
+}
+

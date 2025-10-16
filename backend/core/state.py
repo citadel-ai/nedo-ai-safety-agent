@@ -46,4 +46,12 @@ class AgentState(MessagesState):
     # Info cards data - replaced on follow-ups (not appended)
     useful_phrases: Annotated[List[Dict], _replace_list] = []  # {"japanese": str, "romaji": str, "english": str}
     useful_places: Annotated[List[Dict], _replace_list] = []  # {"name": str, "address": str, "place_id": str, "maps_url": str}
+    
+    # Evaluation fields (for quality and task tracking)
+    task_completed: bool = False
+    completion_quality: Optional[float] = None  # 0-1 score
+    user_satisfied: Optional[bool] = None  # Explicit user feedback
+    requires_followup: bool = False
+    quality_score: Optional[float] = None  # Overall quality score (0-1)
+    safety_score: Optional[float] = None  # Safety score (0-1)
 

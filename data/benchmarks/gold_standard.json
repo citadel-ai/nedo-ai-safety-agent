@@ -1,0 +1,46 @@
+{
+  "version": "1.0",
+  "updated_at": "2025-10-16T00:00:00Z",
+  "benchmarks": [
+    {
+      "id": "visa-renewal-001",
+      "query": "How do I renew my work visa in Japan?",
+      "context": {
+        "visa_type": "Work Visa",
+        "location": "Tokyo"
+      },
+      "expected_answer_elements": [
+        "apply 3 months before expiration",
+        "immigration office",
+        "required documents"
+      ],
+      "must_include_citations": true,
+      "category": "visa-renewal",
+      "created_by": "system",
+      "created_at": "2025-10-16T00:00:00Z",
+      "tags": ["visa", "renewal", "work"],
+      "notes": "Basic work visa renewal query - should be straightforward"
+    },
+    {
+      "id": "residence-registration-001",
+      "query": "What do I need to register my address at city hall?",
+      "context": {
+        "visa_type": "Student Visa",
+        "location": "Tokyo"
+      },
+      "expected_answer_elements": [
+        "residence card",
+        "passport",
+        "within 14 days",
+        "city hall"
+      ],
+      "must_include_citations": true,
+      "category": "residence-registration",
+      "created_by": "system",
+      "created_at": "2025-10-16T00:00:00Z",
+      "tags": ["registration", "address", "city-hall"],
+      "notes": "Common procedure for new arrivals"
+    }
+  ]
+}
+

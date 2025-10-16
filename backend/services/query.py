@@ -61,6 +61,8 @@ def query_agent(question: str, thread_id: str, conversation_mode: str = None) ->
             "visa_type": visa_type,
             "location": location,
             "query_type": "conversation",
+            # Evaluation metadata (will be populated by nodes)
+            "evaluation_enabled": True,
         }
     
     logger.info(f"💬 Query for thread {thread_id}: {question}")
@@ -85,7 +87,8 @@ def query_agent(question: str, thread_id: str, conversation_mode: str = None) ->
     # Convert dict to list format for backward compatibility with frontend
     collected_facts_list = [f"{key}: {value}" for key, value in collected_facts.items()]
     
-    return {
+    # Build response with evaluation metrics
+    response = {
         "query": question,
         "answer": result.get("answer", ""),
         "citations": result.get("citations", []),
@@ -94,8 +97,36 @@ def query_agent(question: str, thread_id: str, conversation_mode: str = None) ->
         "location": location,  # For backward compatibility with frontend
         "collected_facts": collected_facts_list,  # Convert to list for frontend
         "useful_phrases": result.get("useful_phrases", []),
-        "useful_places": result.get("useful_places", [])
+        "useful_places": result.get("useful_places", []),
+        # Include evaluation metrics if available
+        "quality_score": result.get("quality_score"),
+        "safety_score": result.get("safety_score"),
+        "task_completed": result.get("task_completed", False),
+        "requires_followup": result.get("requires_followup", False)
     }
+    
+    # Log evaluation metrics to Langfuse if handler is available
+    if langfuse_handler and result.get("quality_score") is not None:
+        try:
+            from ..utils.langfuse_config import get_langfuse_client
+            client = get_langfuse_client()
+            if client:
+                client.event(
+                    name="evaluation_metrics",
+                    metadata={
+                        "quality_score": result.get("quality_score"),
+                        "safety_score": result.get("safety_score"),
+                        "task_completed": result.get("task_completed"),
+                        "requires_followup": result.get("requires_followup"),
+                        "citations_count": len(result.get("citations", []))
+                    },
+                    session_id=thread_id,
+                    level="info"
+                )
+        except Exception as e:
+            logger.warning(f"Failed to log evaluation metrics to Langfuse: {e}")
+    
+    return response
 
 
 def get_thread_state(thread_id: str) -> dict:
