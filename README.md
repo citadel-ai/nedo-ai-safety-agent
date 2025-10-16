@@ -85,6 +85,25 @@ gcloud auth application-default login
 
 #### 3. Install Dependencies
 
+**Recommended: Using uv (10-100x faster)**
+
+```bash
+# Install uv if you haven't already
+curl -LsSf https://astral.sh/uv/install.sh | sh
+
+# Create virtual environment and install dependencies
+uv venv
+source .venv/bin/activate
+uv pip install -e ".[dev]"  # includes dev tools like ruff, pytest
+
+# Frontend dependencies
+cd frontend
+npm install
+cd ..
+```
+
+**Alternative: Using pip**
+
 ```bash
 # Python dependencies
 python3 -m venv venv
@@ -96,6 +115,8 @@ cd frontend
 npm install
 cd ..
 ```
+
+See [README_UV_SETUP.md](README_UV_SETUP.md) for detailed uv usage and benefits.
 
 #### 4. Run the Application
 

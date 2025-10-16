@@ -88,9 +88,6 @@ def query_agent(question: str, thread_id: str, conversation_mode: str = None) ->
     visa_type = collected_facts.get("Visa Type")
     location = collected_facts.get("Location")
 
-    # Convert dict to list format for backward compatibility with frontend
-    collected_facts_list = [f"{key}: {value}" for key, value in collected_facts.items()]
-
     return {
         "query": question,
         "answer": result.get("answer", ""),
@@ -98,7 +95,7 @@ def query_agent(question: str, thread_id: str, conversation_mode: str = None) ->
         "error": result.get("error"),
         "visa_type": visa_type,  # For backward compatibility with frontend
         "location": location,  # For backward compatibility with frontend
-        "collected_facts": collected_facts_list,  # Convert to list for frontend
+        "collected_facts": collected_facts,  # Send as dict
         "useful_phrases": result.get("useful_phrases", []),
         "useful_places": result.get("useful_places", []),
     }

@@ -4,9 +4,12 @@ Citation extraction utilities for Vertex AI Search responses.
 Extracts document references, titles, URIs, and page numbers from raw search responses.
 """
 
+import logging
 import re
 from typing import Any, Dict, List
 from urllib.parse import quote
+
+logger = logging.getLogger(__name__)
 
 
 def gs_uri_to_public_url(gs_uri: str) -> str:
@@ -119,7 +122,7 @@ def extract_citations_from_raw_response(raw_response) -> List[Dict[str, Any]]:
 
     except Exception as e:
         # Log error but don't crash
-        print(f"⚠️  Error extracting citations: {e}")
+        logger.error(f"Error extracting citations: {e}", exc_info=True)
 
     return citations
 
@@ -299,9 +302,6 @@ def extract_citations_from_answer_response(answer_response) -> List[Dict[str, An
 
     except Exception as e:
         # Log error but don't crash
-        print(f"⚠️  Error extracting citations from answer response: {e}")
-        import traceback
-
-        traceback.print_exc()
+        logger.error(f"Error extracting citations from answer response: {e}", exc_info=True)
 
     return citations

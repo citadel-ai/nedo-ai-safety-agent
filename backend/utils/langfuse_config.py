@@ -70,13 +70,6 @@ def initialize_langfuse():
         return None
 
     try:
-        # Configure environment variables for Langfuse SDK
-        import os
-
-        os.environ["LANGFUSE_PUBLIC_KEY"] = Config.LANGFUSE_PUBLIC_KEY
-        os.environ["LANGFUSE_SECRET_KEY"] = Config.LANGFUSE_SECRET_KEY
-        os.environ["LANGFUSE_HOST"] = Config.LANGFUSE_HOST
-
         # Initialize Langfuse v3 client and handler
         _langfuse_client = get_client()
         _langfuse_handler = CallbackHandler()

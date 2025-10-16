@@ -26,7 +26,12 @@ class Config:
 
     # API Configuration
     API_HOST = os.getenv("API_HOST", "0.0.0.0")
-    API_PORT = int(os.getenv("PORT", os.getenv("API_PORT", "8000")))
+    # API_PORT precedence: PORT (Cloud Run standard) > API_PORT > 8000 (default)
+    _port = os.getenv("PORT")
+    if _port is not None:
+        API_PORT = int(_port)
+    else:
+        API_PORT = int(os.getenv("API_PORT", "8000"))
 
     @classmethod
     def validate(cls):

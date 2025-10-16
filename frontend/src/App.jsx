@@ -127,10 +127,10 @@ function App() {
         // In reality, the agents run in parallel and finish together
         
         // Update collected facts from LangGraph state
-        if (response.collected_facts && response.collected_facts.length > 0) {
-          setCollectedFacts(response.collected_facts.map((fact) => ({
-            label: fact.split(':')[0],
-            value: fact.split(':')[1]?.trim() || fact
+        if (response.collected_facts && Object.keys(response.collected_facts).length > 0) {
+          setCollectedFacts(Object.entries(response.collected_facts).map(([key, value]) => ({
+            label: key,
+            value: value
           })));
         }
         

@@ -91,7 +91,7 @@ class QueryResponse(BaseModel):
     answer: str
     citations: list[Citation] = []  # Changed from list[str] to list[Citation]
     error: str | None = None
-    collected_facts: list[str] = []
+    collected_facts: dict[str, str] = {}
     useful_phrases: list[UsefulPhrase] = []
     useful_places: list[UsefulPlace] = []
 

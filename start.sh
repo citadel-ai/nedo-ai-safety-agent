@@ -13,8 +13,10 @@ BLUE='\033[0;34m'
 NC='\033[0m' # No Color
 
 # Check if virtual environment exists
-if [ ! -d "venv" ]; then
-    echo "❌ Virtual environment not found. Please run: python3 -m venv venv && source venv/bin/activate && pip install -r requirements.txt"
+if [ ! -d ".venv" ]; then
+    echo "❌ Virtual environment not found."
+    echo "Please run: uv venv && source .venv/bin/activate && uv pip install -e '.[dev]'"
+    echo "Or if you don't have uv: curl -LsSf https://astral.sh/uv/install.sh | sh"
     exit 1
 fi
 
@@ -36,7 +38,7 @@ mkdir -p .pids
 
 echo -e "${BLUE}Starting backend server...${NC}"
 # Activate virtual environment and start backend in background
-source venv/bin/activate
+source .venv/bin/activate
 python run_server.py > logs/backend.log 2>&1 &
 BACKEND_PID=$!
 echo $BACKEND_PID > .pids/backend.pid
