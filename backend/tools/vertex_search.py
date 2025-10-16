@@ -30,24 +30,23 @@ When answering:
 
 Focus on accuracy and practical guidance for people navigating Japanese administrative processes."""
 
+
 def create_vertex_search_tool() -> VertexAISearchSummaryTool:
     """Create and configure the Vertex AI Search Summary Tool."""
     return VertexAISearchSummaryTool(
         project_id=Config.GOOGLE_CLOUD_PROJECT,
         data_store_id=Config.VERTEX_AI_SEARCH_DATA_STORE_ID,
-        location_id='global',
-        engine_data_type=0, # Unstructured data source
+        location_id="global",
+        engine_data_type=0,  # Unstructured data source
         # Use same config as regular tool for consistency
         summary_result_count=5,
         summary_include_citations=True,
-        
         # Extractive segments (not answers)
-        get_extractive_answers=False, # https://cloud.google.com/generative-ai-app-builder/docs/snippets
+        get_extractive_answers=False,  # https://cloud.google.com/generative-ai-app-builder/docs/snippets
         max_extractive_segment_count=3,
         return_extractive_segment_score=True,
         num_previous_segments=1,
         num_next_segments=1,
-        
         # Safety filters
         summary_spec_kwargs={
             "language_code": "en",
@@ -56,17 +55,16 @@ def create_vertex_search_tool() -> VertexAISearchSummaryTool:
             "ignore_low_relevant_content": True,
             "use_semantic_chunks": True,
         },
-
         summary_prompt=SUMMARY_PROMPT,
         name="Japan Procedures Search",
-        description="Search for information about official procedures in Japan"
+        description="Search for information about official procedures in Japan",
     )
 
 
 # Create a raw response tool for extracting citations
 class VertexAISearchRawTool(VertexAISearchSummaryTool):
     """Extended tool that returns the raw search response for citation extraction."""
-    
+
     def _run(self, query: str) -> Any:
         """Get raw search response with full metadata."""
         request = self._create_search_request(query)
@@ -79,20 +77,17 @@ def create_raw_search_tool() -> VertexAISearchRawTool:
     return VertexAISearchRawTool(
         project_id=Config.GOOGLE_CLOUD_PROJECT,
         data_store_id=Config.VERTEX_AI_SEARCH_DATA_STORE_ID,
-        location_id='global',
+        location_id="global",
         engine_data_type=0,
-        
         # Use same config as regular tool for consistency
         summary_result_count=5,
         summary_include_citations=True,
-        
         # Extractive segments (not answers)
-        get_extractive_answers=False, # https://cloud.google.com/generative-ai-app-builder/docs/snippets
+        get_extractive_answers=False,  # https://cloud.google.com/generative-ai-app-builder/docs/snippets
         max_extractive_segment_count=3,
         return_extractive_segment_score=True,
         num_previous_segments=1,
         num_next_segments=1,
-        
         # Safety filters
         summary_spec_kwargs={
             "language_code": "en",
@@ -101,14 +96,12 @@ def create_raw_search_tool() -> VertexAISearchRawTool:
             "ignore_low_relevant_content": True,
             "use_semantic_chunks": True,
         },
-        
         summary_prompt=SUMMARY_PROMPT,
         name="Japan Procedures Search (Raw)",
-        description="Search for information with full citation metadata"
+        description="Search for information with full citation metadata",
     )
 
 
 # Initialize tools once at module level
 vertex_search_tool = create_vertex_search_tool()
 vertex_search_raw_tool = create_raw_search_tool()
-

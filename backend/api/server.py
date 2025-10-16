@@ -100,13 +100,13 @@ class QueryResponse(BaseModel):
 async def root():
     """Serve the React frontend."""
     index_file = DIST_DIR / "index.html"
-    
+
     if index_file.exists():
         return FileResponse(str(index_file))
     return {
         "message": "Japan Procedures Agent API",
         "docs": "/docs",
-        "note": "Frontend not built yet. Run: cd frontend && npm run build"
+        "note": "Frontend not built yet. Run: cd frontend && npm run build",
     }
 
 
@@ -114,10 +114,10 @@ async def root():
 async def set_context(request: UserContextRequest):
     """
     Set user context (visa type, location, and conversation mode) for a thread.
-    
+
     This initializes the LangGraph checkpoint with user context.
     Must be called before /api/query for a new thread.
-    
+
     All state is managed via LangGraph checkpointing - no duplicate storage.
     """
     try:
@@ -125,7 +125,7 @@ async def set_context(request: UserContextRequest):
             thread_id=request.thread_id,
             visa_type=request.visa_type,
             location=request.location,
-            conversation_mode=request.conversation_mode
+            conversation_mode=request.conversation_mode,
         )
         return result
     except Exception as e:
@@ -136,14 +136,14 @@ async def set_context(request: UserContextRequest):
 async def query(request: QueryRequest):
     """
     Query the agent with a question.
-    
+
     Uses LangGraph checkpointing for state persistence.
     State is automatically loaded and saved via thread_id.
     No manual session management needed.
-    
+
     Args:
         request: QueryRequest with question, thread_id, and optional conversation_mode
-        
+
     Returns:
         QueryResponse with answer, citations, collected facts
     """
@@ -151,7 +151,7 @@ async def query(request: QueryRequest):
         result = query_agent(
             question=request.question,
             thread_id=request.thread_id,
-            conversation_mode=request.conversation_mode
+            conversation_mode=request.conversation_mode,
         )
         return QueryResponse(**result)
     except Exception as e:
@@ -162,7 +162,7 @@ async def query(request: QueryRequest):
 async def get_thread(thread_id: str):
     """
     Get current state of a conversation thread.
-    
+
     Useful for debugging or displaying thread info.
     All state comes from LangGraph checkpointing.
     """
@@ -180,20 +180,22 @@ class RemoveFactRequest(BaseModel):
 async def remove_fact(thread_id: str, request: RemoveFactRequest):
     """
     Remove a specific fact from collected_facts.
-    
+
     Args:
         thread_id: Thread identifier
         request: RemoveFactRequest with fact_key to remove
-    
+
     Returns:
         Updated collected_facts dict
     """
     import logging
+
     logger = logging.getLogger(__name__)
     logger.info(f"DELETE request for thread {thread_id}, fact_key: {request.fact_key}")
-    
+
     try:
         from backend.services.query import remove_collected_fact
+
         result = remove_collected_fact(thread_id, request.fact_key)
         logger.info(f"Remove fact result: {result}")
         if "error" in result:
@@ -220,10 +222,10 @@ if DIST_DIR.exists():
 
 if __name__ == "__main__":
     import uvicorn
+
     uvicorn.run(
         "backend.api.server:app",
         host=Config.API_HOST,
         port=Config.API_PORT,
-        reload=True
+        reload=True,
     )
-

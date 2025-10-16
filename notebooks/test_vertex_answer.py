@@ -47,19 +47,25 @@ sys.path.insert(0, str(parent_dir))
 
 # Load environment
 from dotenv import load_dotenv
-load_dotenv(parent_dir / '.env')
+
+load_dotenv(parent_dir / ".env")
 
 # Imports
 from google.cloud import discoveryengine_v1
 
 # Import citation extractor
-from backend.utils.citation_extractor import extract_citations_from_answer_response, format_citation_display
+from backend.utils.citation_extractor import (
+    extract_citations_from_answer_response,
+    format_citation_display,
+)
 
 # Configuration
-PROJECT_ID = os.getenv('GOOGLE_CLOUD_PROJECT')
-ENGINE_ID = os.getenv('VERTEX_AI_SEARCH_ENGINE_ID') or os.getenv('VERTEX_AI_SEARCH_DATA_STORE_ID')
-LOCATION = 'global'
-SERVING_CONFIG = 'default_serving_config'
+PROJECT_ID = os.getenv("GOOGLE_CLOUD_PROJECT")
+ENGINE_ID = os.getenv("VERTEX_AI_SEARCH_ENGINE_ID") or os.getenv(
+    "VERTEX_AI_SEARCH_DATA_STORE_ID"
+)
+LOCATION = "global"
+SERVING_CONFIG = "default_serving_config"
 
 print(f"Configuration:")
 print(f"  Project: {PROJECT_ID}")
@@ -83,9 +89,9 @@ print()
 # ============================================================================
 # TEST 1: First Query - Create Session
 # ============================================================================
-print("="*80)
+print("=" * 80)
 print("TEST 1: First Query - Create Session")
-print("="*80)
+print("=" * 80)
 
 session_wildcard = (
     f"projects/{PROJECT_ID}/locations/{LOCATION}/"
@@ -102,7 +108,6 @@ request_1 = discoveryengine_v1.AnswerQueryRequest(
     serving_config=serving_config_path,
     query=discoveryengine_v1.Query(text=query_1),
     session=session_wildcard,
-    
     # Query Understanding Spec - aligns with search method's query processing
     query_understanding_spec=discoveryengine_v1.AnswerQueryRequest.QueryUnderstandingSpec(
         query_rephraser_spec=discoveryengine_v1.AnswerQueryRequest.QueryUnderstandingSpec.QueryRephraserSpec(
@@ -116,7 +121,6 @@ request_1 = discoveryengine_v1.AnswerQueryRequest(
             ]
         ),
     ),
-    
     # Answer Generation Spec - aligns with search method's summary_spec
     answer_generation_spec=discoveryengine_v1.AnswerQueryRequest.AnswerGenerationSpec(
         model_spec=discoveryengine_v1.AnswerQueryRequest.AnswerGenerationSpec.ModelSpec(
@@ -126,16 +130,13 @@ request_1 = discoveryengine_v1.AnswerQueryRequest(
             preamble="You are a helpful assistant for Japanese official procedures.",
         ),
         include_citations=True,
-        
         # Safety filters - aligns with vertex_search.py safety settings
         ignore_adversarial_query=False,  # Let query classification handle it
         ignore_non_answer_seeking_query=False,  # Let query classification handle it
         ignore_jail_breaking_query=True,  # Same as search method
         ignore_low_relevant_content=False,  # Answer method handles this differently
-        
         answer_language_code="en",
     ),
-    
     # Search Spec - aligns with search method's result count and extractive settings
     search_spec=discoveryengine_v1.AnswerQueryRequest.SearchSpec(
         search_params=discoveryengine_v1.AnswerQueryRequest.SearchSpec.SearchParams(
@@ -143,12 +144,10 @@ request_1 = discoveryengine_v1.AnswerQueryRequest(
             # Note: extractive segments handled differently in answer method
         ),
     ),
-    
     # Related Questions Spec - NEW: Generate follow-up questions
     related_questions_spec=discoveryengine_v1.AnswerQueryRequest.RelatedQuestionsSpec(
         enable=True,  # Generate related questions for user
     ),
-    
     # User tracking
     user_pseudo_id="test-user-multiturn",
 )
@@ -156,43 +155,43 @@ request_1 = discoveryengine_v1.AnswerQueryRequest(
 response_1 = client.answer_query(request_1)
 
 print("ANSWER:")
-print("-"*80)
-if hasattr(response_1, 'answer') and response_1.answer:
+print("-" * 80)
+if hasattr(response_1, "answer") and response_1.answer:
     print(response_1.answer.answer_text)
     print()
-    
+
     # Extract citations using proper mapping
     citations = extract_citations_from_answer_response(response_1)
     print(f"Citations (deduplicated): {len(citations)}")
-    
+
     # Show citation details
     if citations:
         print("\nCitation Details:")
         for citation in citations:
             print(f"  {format_citation_display(citation)}")
             print(f"      URL: {citation['url']}")
-            if citation['pages']:
+            if citation["pages"]:
                 print(f"      Pages: {', '.join(str(p) for p in citation['pages'])}")
 
 # Extract session ID
 session_id = None
-if hasattr(response_1, 'session') and response_1.session:
+if hasattr(response_1, "session") and response_1.session:
     session_name = response_1.session.name
-    session_id = session_name.split('/sessions/')[-1]
+    session_id = session_name.split("/sessions/")[-1]
     print(f"\n✨ Created session: {session_id}")
 else:
     print(f"\n⚠️ No session in response")
 
 # Show related questions if available
-if hasattr(response_1, 'related_questions') and response_1.related_questions:
+if hasattr(response_1, "related_questions") and response_1.related_questions:
     print(f"\n🔗 Related Questions ({len(response_1.related_questions)}):")
     for q in response_1.related_questions:
         print(f"  - {q}")
 
 # Show query classification results
-if hasattr(response_1, 'answer') and response_1.answer:
+if hasattr(response_1, "answer") and response_1.answer:
     answer = response_1.answer
-    if hasattr(answer, 'answer_skipped_reasons') and answer.answer_skipped_reasons:
+    if hasattr(answer, "answer_skipped_reasons") and answer.answer_skipped_reasons:
         print(f"\n⚠️ Answer skipped reasons: {answer.answer_skipped_reasons}")
 
 print()
@@ -201,33 +200,31 @@ print()
 # TEST 2: Follow-up Query - Test Session Continuity
 # ============================================================================
 if session_id:
-    print("="*80)
+    print("=" * 80)
     print("TEST 2: Follow-up Query - Test Session Continuity")
-    print("="*80)
-    
+    print("=" * 80)
+
     session_path = (
         f"projects/{PROJECT_ID}/locations/{LOCATION}/"
         f"collections/default_collection/engines/{ENGINE_ID}/"
         f"sessions/{session_id}"
     )
-    
+
     query_2 = "What documents do I need?"
     print(f"Query: {query_2}")
     print(f"Session: ...{session_id[-8:]} (reusing)")
     print()
-    
+
     request_2 = discoveryengine_v1.AnswerQueryRequest(
         serving_config=serving_config_path,
         query=discoveryengine_v1.Query(text=query_2),
         session=session_path,
-        
         query_understanding_spec=discoveryengine_v1.AnswerQueryRequest.QueryUnderstandingSpec(
             query_rephraser_spec=discoveryengine_v1.AnswerQueryRequest.QueryUnderstandingSpec.QueryRephraserSpec(
                 disable=False,
                 max_rephrase_steps=1,
             ),
         ),
-        
         answer_generation_spec=discoveryengine_v1.AnswerQueryRequest.AnswerGenerationSpec(
             model_spec=discoveryengine_v1.AnswerQueryRequest.AnswerGenerationSpec.ModelSpec(
                 model_version="gemini-2.0-flash-001/answer_gen/v1",
@@ -242,47 +239,48 @@ if session_id:
             ignore_low_relevant_content=False,
             answer_language_code="en",
         ),
-        
         search_spec=discoveryengine_v1.AnswerQueryRequest.SearchSpec(
             search_params=discoveryengine_v1.AnswerQueryRequest.SearchSpec.SearchParams(
                 max_return_results=5,
             ),
         ),
-        
         related_questions_spec=discoveryengine_v1.AnswerQueryRequest.RelatedQuestionsSpec(
             enable=True,
         ),
-        
         user_pseudo_id="test-user-multiturn",
     )
-    
+
     response_2 = client.answer_query(request_2)
-    
+
     print("ANSWER (Should understand context - healthcare insurance):")
-    print("-"*80)
-    if hasattr(response_2, 'answer') and response_2.answer:
-        print(response_2.answer.answer_text[:500] + "..." if len(response_2.answer.answer_text) > 500 else response_2.answer.answer_text)
-        
+    print("-" * 80)
+    if hasattr(response_2, "answer") and response_2.answer:
+        print(
+            response_2.answer.answer_text[:500] + "..."
+            if len(response_2.answer.answer_text) > 500
+            else response_2.answer.answer_text
+        )
+
         # Extract and show citations
         citations_2 = extract_citations_from_answer_response(response_2)
         print(f"\nCitations (deduplicated): {len(citations_2)}")
         if citations_2:
             for citation in citations_2[:3]:  # Show first 3
                 print(f"  {format_citation_display(citation)}")
-    
-    if hasattr(response_2, 'related_questions') and response_2.related_questions:
+
+    if hasattr(response_2, "related_questions") and response_2.related_questions:
         print(f"\n🔗 Related Questions:")
         for q in response_2.related_questions:
             print(f"  - {q}")
-    
+
     print()
 
 # ============================================================================
 # TEST 3: Test with More Search Results
 # ============================================================================
-print("="*80)
+print("=" * 80)
 print("TEST 3: Test with More Search Results")
-print("="*80)
+print("=" * 80)
 
 query_3 = "What are the visa requirements for students in Japan?"
 print(f"Query: {query_3}")
@@ -297,14 +295,12 @@ request_3 = discoveryengine_v1.AnswerQueryRequest(
         f"collections/default_collection/engines/{ENGINE_ID}/"
         f"sessions/-"
     ),
-    
     query_understanding_spec=discoveryengine_v1.AnswerQueryRequest.QueryUnderstandingSpec(
         query_rephraser_spec=discoveryengine_v1.AnswerQueryRequest.QueryUnderstandingSpec.QueryRephraserSpec(
             disable=False,
             max_rephrase_steps=1,
         ),
     ),
-    
     answer_generation_spec=discoveryengine_v1.AnswerQueryRequest.AnswerGenerationSpec(
         model_spec=discoveryengine_v1.AnswerQueryRequest.AnswerGenerationSpec.ModelSpec(
             model_version="gemini-2.0-flash-001/answer_gen/v1",
@@ -312,28 +308,29 @@ request_3 = discoveryengine_v1.AnswerQueryRequest(
         include_citations=True,
         answer_language_code="en",
     ),
-    
     # Increased search results
     search_spec=discoveryengine_v1.AnswerQueryRequest.SearchSpec(
         search_params=discoveryengine_v1.AnswerQueryRequest.SearchSpec.SearchParams(
             max_return_results=10,  # More results for comprehensive answer
         ),
     ),
-    
     related_questions_spec=discoveryengine_v1.AnswerQueryRequest.RelatedQuestionsSpec(
         enable=True,
     ),
-    
     user_pseudo_id="test-user-multiturn",
 )
 
 response_3 = client.answer_query(request_3)
 
 print("ANSWER:")
-print("-"*80)
-if hasattr(response_3, 'answer') and response_3.answer:
-    print(response_3.answer.answer_text[:500] + "..." if len(response_3.answer.answer_text) > 500 else response_3.answer.answer_text)
-    
+print("-" * 80)
+if hasattr(response_3, "answer") and response_3.answer:
+    print(
+        response_3.answer.answer_text[:500] + "..."
+        if len(response_3.answer.answer_text) > 500
+        else response_3.answer.answer_text
+    )
+
     # Extract and show citations
     citations_3 = extract_citations_from_answer_response(response_3)
     print(f"\nCitations (deduplicated): {len(citations_3)}")
@@ -344,9 +341,9 @@ print()
 # ============================================================================
 # TEST 4: Test Query Classification (Out of Scope)
 # ============================================================================
-print("="*80)
+print("=" * 80)
 print("TEST 4: Test Query Classification (Out of Scope)")
-print("="*80)
+print("=" * 80)
 
 query_4 = "What's the best ramen restaurant in Tokyo?"
 print(f"Query: {query_4}")
@@ -361,7 +358,6 @@ request_4 = discoveryengine_v1.AnswerQueryRequest(
         f"collections/default_collection/engines/{ENGINE_ID}/"
         f"sessions/-"
     ),
-    
     query_understanding_spec=discoveryengine_v1.AnswerQueryRequest.QueryUnderstandingSpec(
         query_classification_spec=discoveryengine_v1.AnswerQueryRequest.QueryUnderstandingSpec.QueryClassificationSpec(
             types=[
@@ -370,7 +366,6 @@ request_4 = discoveryengine_v1.AnswerQueryRequest(
             ]
         ),
     ),
-    
     answer_generation_spec=discoveryengine_v1.AnswerQueryRequest.AnswerGenerationSpec(
         model_spec=discoveryengine_v1.AnswerQueryRequest.AnswerGenerationSpec.ModelSpec(
             model_version="gemini-2.0-flash-001/answer_gen/v1",
@@ -379,28 +374,31 @@ request_4 = discoveryengine_v1.AnswerQueryRequest(
         ignore_non_answer_seeking_query=True,  # Should skip answer for this
         answer_language_code="en",
     ),
-    
     search_spec=discoveryengine_v1.AnswerQueryRequest.SearchSpec(
         search_params=discoveryengine_v1.AnswerQueryRequest.SearchSpec.SearchParams(
             max_return_results=5,
         ),
     ),
-    
     user_pseudo_id="test-user-multiturn",
 )
 
 response_4 = client.answer_query(request_4)
 
 print("RESULT:")
-print("-"*80)
-if hasattr(response_4, 'answer') and response_4.answer:
+print("-" * 80)
+if hasattr(response_4, "answer") and response_4.answer:
     if response_4.answer.answer_text:
         print(f"Answer provided: {response_4.answer.answer_text[:200]}...")
     else:
         print("No answer text")
-    
-    if hasattr(response_4.answer, 'answer_skipped_reasons') and response_4.answer.answer_skipped_reasons:
-        print(f"\n✅ Answer skipped reasons: {response_4.answer.answer_skipped_reasons}")
+
+    if (
+        hasattr(response_4.answer, "answer_skipped_reasons")
+        and response_4.answer.answer_skipped_reasons
+    ):
+        print(
+            f"\n✅ Answer skipped reasons: {response_4.answer.answer_skipped_reasons}"
+        )
     else:
         print("\nNo skip reasons (answer was generated)")
 
@@ -409,23 +407,31 @@ print()
 # ============================================================================
 # DEDUPLICATION DEMO
 # ============================================================================
-print("="*80)
+print("=" * 80)
 print("CITATION DEDUPLICATION DEMO")
-print("="*80)
+print("=" * 80)
 print("\nThe answer method returns multiple citation objects that may reference")
 print("the same document (from different chunks). Our extractor deduplicates by URI")
 print("and aggregates page numbers.")
 print()
 
-if 'citations' in locals() and citations:
+if "citations" in locals() and citations:
     print(f"Example from first query:")
-    print(f"  Raw answer.citations count: {len(response_1.answer.citations) if hasattr(response_1, 'answer') else 0}")
+    print(
+        f"  Raw answer.citations count: {len(response_1.answer.citations) if hasattr(response_1, 'answer') else 0}"
+    )
     print(f"  Deduplicated citations: {len(citations)}")
-    print(f"  References in response: {len(response_1.references) if hasattr(response_1, 'references') else 0}")
+    print(
+        f"  References in response: {len(response_1.references) if hasattr(response_1, 'references') else 0}"
+    )
     print()
     print("Deduplicated documents:")
     for citation in citations:
-        pages_str = f"pages {', '.join(str(p) for p in citation['pages'])}" if citation['pages'] else "no page info"
+        pages_str = (
+            f"pages {', '.join(str(p) for p in citation['pages'])}"
+            if citation["pages"]
+            else "no page info"
+        )
         print(f"  • {citation['title'][:60]}... ({pages_str})")
         print(f"    {citation['gs_uri']}")
 
@@ -434,9 +440,9 @@ print()
 # ============================================================================
 # SUMMARY
 # ============================================================================
-print("="*80)
+print("=" * 80)
 print("SUMMARY")
-print("="*80)
+print("=" * 80)
 print("✅ Test 1: Session creation and basic query")
 if session_id:
     print(f"✅ Session ID: {session_id}")

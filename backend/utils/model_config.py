@@ -11,4 +11,3 @@ SEARCH_MODEL = "gemini-2.5-pro"
 # Temperature settings
 DEFAULT_TEMPERATURE = 0
 CREATIVE_TEMPERATURE = 0.7
-

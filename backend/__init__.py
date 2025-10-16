@@ -5,4 +5,3 @@ A LangGraph-based agent for answering questions about Japanese official procedur
 """
 
 __version__ = "1.0.0"
-

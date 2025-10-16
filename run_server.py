@@ -11,5 +11,5 @@ if __name__ == "__main__":
         "backend.api.server:app",
         host=Config.API_HOST,
         port=Config.API_PORT,
-        reload=True
+        reload=True,
     )

@@ -42,35 +42,40 @@ Focus on accuracy and practical guidance for people navigating Japanese administ
 class VertexAIAnswerTool(BaseTool):
     """
     Vertex AI Search Answer tool with session support.
-    
+
     LangGraph pattern: Extract thread_id from RunnableConfig
     Maps thread_id to Vertex AI Search session for multi-turn conversations.
     """
+
     name: str = "vertex_answer_search"
     description: str = "Search for information about Japanese official procedures with multi-turn conversation support"
-    
+
     # Config
     project_id: str = Field(default_factory=lambda: Config.GOOGLE_CLOUD_PROJECT)
-    engine_id: str = Field(default_factory=lambda: Config.VERTEX_AI_SEARCH_ENGINE_ID)  # Can be engine or data store ID
+    engine_id: str = Field(
+        default_factory=lambda: Config.VERTEX_AI_SEARCH_ENGINE_ID
+    )  # Can be engine or data store ID
     location_id: str = "global"
-    serving_config_id: str = "default_serving_config"  # Changed to match official example
-    
+    serving_config_id: str = (
+        "default_serving_config"  # Changed to match official example
+    )
+
     # Private client (initialized on first use)
     _client: Optional[discoveryengine_v1.ConversationalSearchServiceClient] = None
-    
+
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
-    
+
     def _get_client(self) -> discoveryengine_v1.ConversationalSearchServiceClient:
         """Lazy initialization of the client."""
         if self._client is None:
             self._client = discoveryengine_v1.ConversationalSearchServiceClient()
         return self._client
-    
+
     def _build_serving_config_name(self) -> str:
         """
         Build the serving config resource name.
-        
+
         Uses engines path (not dataStores) as per official answer method docs.
         """
         return (
@@ -78,16 +83,16 @@ class VertexAIAnswerTool(BaseTool):
             f"collections/default_collection/engines/{self.engine_id}/"
             f"servingConfigs/{self.serving_config_id}"
         )
-    
+
     def _build_session_name(self, session_id: str = None) -> str:
         """
         Build session resource name.
-        
+
         Uses engines path (not dataStores) as per official answer method docs.
-        
+
         Args:
             session_id: Existing session ID, or None to use wildcard for auto-creation
-        
+
         Returns:
             Session resource name
         """
@@ -98,50 +103,49 @@ class VertexAIAnswerTool(BaseTool):
             f"collections/default_collection/engines/{self.engine_id}/"
             f"sessions/{sid}"
         )
-    
+
     def _run(self, query: str, run_manager=None, **kwargs) -> Any:
         """
         Execute answer query with session support.
-        
+
         Thread ID extracted from config automatically by LangGraph.
-        
+
         Args:
             query: The search query
             **kwargs: Additional arguments including 'config' and 'session_id'
-            
+
         Returns:
             AnswerQueryResponse with answer and citations
         """
         # Get config from kwargs (passed by LangGraph)
         config: RunnableConfig = kwargs.get("config", {})
         thread_id = config.get("configurable", {}).get("thread_id", "default")
-        
+
         # Get existing session ID (if any) from kwargs
         existing_session_id = kwargs.get("session_id")
-        
+
         logger.info(f"🔍 Answer query for thread_id: {thread_id}")
         logger.info(f"📝 Query: {query[:100]}...")
-        
+
         # Get client
         client = self._get_client()
-        
+
         # Build resource names
         serving_config = self._build_serving_config_name()
-        
+
         # Build session name - use existing session or create new one
         session = self._build_session_name(existing_session_id)
-        
+
         if existing_session_id:
             logger.info(f"📍 Using existing session: {existing_session_id}")
         else:
             logger.info(f"📍 Creating new session (auto-assign)")
-        
+
         # Build answer query request WITH session support (matching official example)
         request = discoveryengine_v1.AnswerQueryRequest(
             serving_config=serving_config,
             query=discoveryengine_v1.Query(text=query),
             session=session,  # ✅ Enable multi-turn with sessions
-            
             # Query understanding spec (from official example) - improves multi-turn
             query_understanding_spec=discoveryengine_v1.AnswerQueryRequest.QueryUnderstandingSpec(
                 query_rephraser_spec=discoveryengine_v1.AnswerQueryRequest.QueryUnderstandingSpec.QueryRephraserSpec(
@@ -155,7 +159,6 @@ class VertexAIAnswerTool(BaseTool):
                     ]
                 ),
             ),
-            
             # Answer generation specification (matching official example)
             answer_generation_spec=discoveryengine_v1.AnswerQueryRequest.AnswerGenerationSpec(
                 model_spec=discoveryengine_v1.AnswerQueryRequest.AnswerGenerationSpec.ModelSpec(
@@ -171,32 +174,32 @@ class VertexAIAnswerTool(BaseTool):
                 ignore_low_relevant_content=False,  # Let model decide
                 answer_language_code="en",
             ),
-            
             # Search specification
             search_spec=discoveryengine_v1.AnswerQueryRequest.SearchSpec(
                 search_params=discoveryengine_v1.AnswerQueryRequest.SearchSpec.SearchParams(
                     max_return_results=5,  # Similar to summary_result_count
                 ),
             ),
-            
             # User tracking (from official example)
             user_pseudo_id=f"thread-{thread_id}",  # Track by thread for analytics
         )
-        
+
         try:
             # Call answer method
             logger.info("🌐 Calling Vertex AI Answer method...")
             response = client.answer_query(request)
-            
+
             logger.info(f"✅ Got answer response: ")
             logger.info(response)
-            if hasattr(response, 'answer') and response.answer:
-                logger.info(f"📄 Answer text length: {len(response.answer.answer_text)} chars")
-                if hasattr(response.answer, 'citations'):
+            if hasattr(response, "answer") and response.answer:
+                logger.info(
+                    f"📄 Answer text length: {len(response.answer.answer_text)} chars"
+                )
+                if hasattr(response.answer, "citations"):
                     logger.info(f"📚 Citations count: {len(response.answer.citations)}")
-            
+
             return response
-            
+
         except Exception as e:
             logger.error(f"❌ Error calling answer_query: {str(e)}")
             raise
@@ -209,4 +212,3 @@ def create_vertex_answer_tool() -> VertexAIAnswerTool:
 
 # Initialize tool once at module level
 vertex_answer_tool = create_vertex_answer_tool()
-
