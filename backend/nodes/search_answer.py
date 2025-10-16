@@ -53,7 +53,7 @@ def search_and_respond_with_answer(
             context_parts = [f"{k}: {v}" for k, v in collected_facts.items() if v]
             if context_parts:
                 query = f"{query_text} (Context: {', '.join(context_parts)})"
-                logger.info(f"🔧 Enhanced query with context")
+                logger.info("🔧 Enhanced query with context")
 
         logger.info(f"🔍 Answer Query: {query[:100]}...")
         logger.info(f"📋 Collected Facts: {collected_facts}")
@@ -90,7 +90,7 @@ def search_and_respond_with_answer(
                 new_session_id = session_name.split("/sessions/")[-1]
                 if not existing_session_id:
                     logger.info(f"✨ Created new session: {new_session_id}")
-                logger.info(f"💾 Storing session ID for future turns")
+                logger.info("💾 Storing session ID for future turns")
 
         # Extract citations (new format for answer response)
         citations = extract_citations_from_answer_response(raw_response)

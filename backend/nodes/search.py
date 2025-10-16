@@ -2,15 +2,12 @@
 Search node for the LangGraph agent with citation extraction.
 """
 
-from typing import List, Dict, Any
 from langchain_core.messages import HumanMessage, AIMessage
-import re
 
 from ..core.state import AgentState
-from ..tools.vertex_search import vertex_search_tool, vertex_search_raw_tool
+from ..tools.vertex_search import vertex_search_raw_tool
 from ..utils.citation_extractor import (
     extract_citations_from_raw_response,
-    extract_inline_citation_numbers,
 )
 from ..utils.logging_config import get_logger
 

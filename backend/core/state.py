@@ -4,7 +4,6 @@ State definitions for the LangGraph agent.
 
 from typing import Annotated, List, Dict, Optional
 from langgraph.graph import MessagesState
-import operator
 
 
 def _merge_dicts(existing: Dict, new: Dict) -> Dict:

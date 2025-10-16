@@ -214,7 +214,7 @@ Assess the continuity:"""
         result = structured_llm.invoke(prompt)
 
         if result.continuity == "drift":
-            logger.warning(f"⚠️ CONTEXT DRIFT detected!")
+            logger.warning("⚠️ CONTEXT DRIFT detected!")
             logger.info(f"   Previous topic: {result.previous_topic}")
             logger.info(f"   New topic: {result.new_topic}")
             logger.info(f"   Reason: {result.reason}")

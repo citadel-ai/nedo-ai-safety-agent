@@ -139,7 +139,7 @@ class VertexAIAnswerTool(BaseTool):
         if existing_session_id:
             logger.info(f"📍 Using existing session: {existing_session_id}")
         else:
-            logger.info(f"📍 Creating new session (auto-assign)")
+            logger.info("📍 Creating new session (auto-assign)")
 
         # Build answer query request WITH session support (matching official example)
         request = discoveryengine_v1.AnswerQueryRequest(
@@ -189,7 +189,7 @@ class VertexAIAnswerTool(BaseTool):
             logger.info("🌐 Calling Vertex AI Answer method...")
             response = client.answer_query(request)
 
-            logger.info(f"✅ Got answer response: ")
+            logger.info("✅ Got answer response: ")
             logger.info(response)
             if hasattr(response, "answer") and response.answer:
                 logger.info(

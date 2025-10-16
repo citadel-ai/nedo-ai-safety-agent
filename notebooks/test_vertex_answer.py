@@ -45,19 +45,15 @@ notebook_dir = Path(__file__).parent
 parent_dir = notebook_dir.parent
 sys.path.insert(0, str(parent_dir))
 
-# Load environment
 from dotenv import load_dotenv
-
-load_dotenv(parent_dir / ".env")
-
-# Imports
 from google.cloud import discoveryengine_v1
 
-# Import citation extractor
 from backend.utils.citation_extractor import (
     extract_citations_from_answer_response,
     format_citation_display,
 )
+
+load_dotenv(parent_dir / ".env")
 
 # Configuration
 PROJECT_ID = os.getenv("GOOGLE_CLOUD_PROJECT")
@@ -67,7 +63,7 @@ ENGINE_ID = os.getenv("VERTEX_AI_SEARCH_ENGINE_ID") or os.getenv(
 LOCATION = "global"
 SERVING_CONFIG = "default_serving_config"
 
-print(f"Configuration:")
+print("Configuration:")
 print(f"  Project: {PROJECT_ID}")
 print(f"  Engine: {ENGINE_ID}")
 print(f"  Location: {LOCATION}")
@@ -180,7 +176,7 @@ if hasattr(response_1, "session") and response_1.session:
     session_id = session_name.split("/sessions/")[-1]
     print(f"\n✨ Created session: {session_id}")
 else:
-    print(f"\n⚠️ No session in response")
+    print("\n⚠️ No session in response")
 
 # Show related questions if available
 if hasattr(response_1, "related_questions") and response_1.related_questions:
@@ -269,7 +265,7 @@ if session_id:
                 print(f"  {format_citation_display(citation)}")
 
     if hasattr(response_2, "related_questions") and response_2.related_questions:
-        print(f"\n🔗 Related Questions:")
+        print("\n🔗 Related Questions:")
         for q in response_2.related_questions:
             print(f"  - {q}")
 
@@ -284,7 +280,7 @@ print("=" * 80)
 
 query_3 = "What are the visa requirements for students in Japan?"
 print(f"Query: {query_3}")
-print(f"max_return_results: 10 (increased from 5)")
+print("max_return_results: 10 (increased from 5)")
 print()
 
 request_3 = discoveryengine_v1.AnswerQueryRequest(
@@ -334,7 +330,7 @@ if hasattr(response_3, "answer") and response_3.answer:
     # Extract and show citations
     citations_3 = extract_citations_from_answer_response(response_3)
     print(f"\nCitations (deduplicated): {len(citations_3)}")
-    print(f"Note: With max_return_results=10, we get more source documents")
+    print("Note: With max_return_results=10, we get more source documents")
 
 print()
 
@@ -416,7 +412,7 @@ print("and aggregates page numbers.")
 print()
 
 if "citations" in locals() and citations:
-    print(f"Example from first query:")
+    print("Example from first query:")
     print(
         f"  Raw answer.citations count: {len(response_1.answer.citations) if hasattr(response_1, 'answer') else 0}"
     )

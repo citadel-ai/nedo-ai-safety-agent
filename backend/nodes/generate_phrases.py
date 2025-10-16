@@ -70,7 +70,7 @@ def generate_useful_phrases(state: AgentState) -> AgentState:
         visa_type = collected_facts.get("Visa Type", "")
         location = collected_facts.get("Location", "")
 
-        logger.info(f"💬 Generating useful phrases for topic")
+        logger.info("💬 Generating useful phrases for topic")
 
         # Use LLM with structured output
         structured_llm = llm.with_structured_output(UsefulPhrases)

@@ -7,8 +7,8 @@ NOT procedural details (those go in the main answer).
 DYNAMIC: Decides fact keys based on context, doesn't use hardcoded categories.
 """
 
-from typing import Dict, List
-from langchain_core.messages import HumanMessage, AIMessage
+from typing import List
+from langchain_core.messages import HumanMessage
 from pydantic import BaseModel, Field
 from langchain_google_vertexai import ChatVertexAI
 
@@ -87,7 +87,7 @@ def extract_facts_from_conversation(state: AgentState) -> AgentState:
             else "None yet"
         )
 
-        logger.info(f"📊 Extracting USER facts from conversation")
+        logger.info("📊 Extracting USER facts from conversation")
         logger.info(f"📚 Existing facts: {len(existing_facts)} facts already collected")
 
         # Use LLM with structured output to extract facts

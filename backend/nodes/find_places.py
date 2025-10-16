@@ -5,7 +5,7 @@ Uses ChatVertexAI with a custom Google Maps tool (which wraps genai.Client inter
 to maintain consistency with the rest of the codebase while leveraging real Google Maps data.
 """
 
-from typing import List, Dict, Any
+from typing import List
 from langchain_core.messages import HumanMessage
 from langchain_google_vertexai import ChatVertexAI
 from pydantic import BaseModel, Field

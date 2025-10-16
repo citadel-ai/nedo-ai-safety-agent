@@ -21,7 +21,6 @@ from ..nodes.search_answer import search_and_respond_with_answer
 from ..nodes.extract_facts import extract_facts_from_conversation
 from ..nodes.generate_phrases import generate_useful_phrases
 from ..nodes.find_places import find_useful_places
-from ..utils.config import Config
 from ..utils.logging_config import get_logger
 
 logger = get_logger(__name__)
