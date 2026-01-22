@@ -14,6 +14,9 @@ import ErrorAlert from './components/ErrorAlert';
 import { setUserContext, sendMessage, removeFact } from './api';
 import './index.css';
 
+// App version - update this when deploying new versions
+const APP_VERSION = '1.0.0';
+
 function App() {
   const [threadId] = useState(() => `thread-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`);
   const [hasContext, setHasContext] = useState(false);
@@ -165,7 +168,7 @@ function App() {
 
   // Main layout - form or chat in same position
   return (
-    <div className="w-full min-h-screen lg:h-screen">
+    <div className="w-full min-h-screen lg:h-screen relative">
       {/* Error Alert */}
       <ErrorAlert message={errorMessage} onDismiss={() => setErrorMessage(null)} />
       {/* Main Layout */}
@@ -208,6 +211,11 @@ function App() {
             />
           </div>
         </div>
+      </div>
+      
+      {/* Version indicator */}
+      <div className="fixed bottom-2 right-2 text-xs text-gray-400 select-none pointer-events-none">
+        v{APP_VERSION}
       </div>
     </div>
   );
