@@ -97,18 +97,6 @@ class QueryResponse(BaseModel):
     trace_id: str | None = None  # For user feedback tracking via Langfuse
 
 
-@app.get("/")
-async def root():
-    """Serve the React frontend."""
-    index_file = DIST_DIR / "index.html"
-
-    if index_file.exists():
-        return FileResponse(str(index_file))
-    return {
-        "message": "Japan Procedures Agent API",
-        "docs": "/docs",
-        "note": "Frontend not built yet. Run: cd frontend && npm run build",
-    }
 
 
 @app.post("/api/context")
@@ -268,9 +256,13 @@ async def health():
     return {"status": "healthy", "service": "japan_procedures_agent"}
 
 
-# Mount React build assets if they exist
+# Mount React build assets and static files if they exist
 if DIST_DIR.exists():
+    # Mount assets directory
     app.mount("/assets", StaticFiles(directory=str(DIST_DIR / "assets")), name="assets")
+    # Serve static files from root (favicon, images, etc.)
+    # This needs to be last to avoid overriding API routes
+    app.mount("/", StaticFiles(directory=str(DIST_DIR), html=True), name="static")
 
 
 if __name__ == "__main__":
