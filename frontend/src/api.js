@@ -98,3 +98,33 @@ export async function checkHealth() {
   return response.json();
 }
 
+/**
+ * Submit user feedback (thumbs up/down) for a response
+ * @param {string} traceId - The trace ID from the response
+ * @param {number} value - 1 for thumbs up, 0 for thumbs down
+ * @param {string} [comment] - Optional comment
+ */
+export async function submitFeedback(traceId, value, comment = null) {
+  const body = {
+    trace_id: traceId,
+    value,
+  };
+
+  if (comment) {
+    body.comment = comment;
+  }
+
+  const response = await fetch('/api/feedback', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(body),
+  });
+
+  if (!response.ok) {
+    const errorData = await response.json().catch(() => ({}));
+    throw new Error(errorData.detail || `Failed to submit feedback (${response.status})`);
+  }
+
+  return response.json();
+}
+

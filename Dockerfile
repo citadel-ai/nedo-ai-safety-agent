@@ -23,19 +23,17 @@ FROM python:3.11-slim AS backend
 
 WORKDIR /app
 
-# Install system dependencies and uv
+# Install system dependencies
 RUN apt-get update && apt-get install -y \
     gcc \
     g++ \
-    curl \
-    && curl -LsSf https://astral.sh/uv/install.sh | sh \
     && rm -rf /var/lib/apt/lists/*
 
-# Add uv to PATH
-ENV PATH="/root/.cargo/bin:$PATH"
+# Install uv using pip
+RUN pip install --no-cache-dir uv
 
-# Copy dependency files
-COPY pyproject.toml .
+# Copy dependency files (including README.md referenced in pyproject.toml)
+COPY pyproject.toml README.md ./
 
 # Install Python dependencies using uv (production only, no dev deps)
 RUN uv pip install --system --no-cache .

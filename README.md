@@ -160,13 +160,9 @@ See [DEPLOYMENT_GUIDE.md](DEPLOYMENT_GUIDE.md) for complete deployment instructi
 
 **⚠️ Apple Silicon Users**: If you're on M1/M2/M3 Mac, the deployment script automatically handles the architecture conversion (ARM64 → AMD64). See [ARCHITECTURE_NOTE.md](ARCHITECTURE_NOTE.md) for details.
 
-**Easy deployment with scripts:**
+**Quick deployment:**
 
 ```bash
-# Step 1: Set up secrets in Secret Manager (one-time setup)
-./setup-secrets.sh
-
-# Step 2: Deploy to Cloud Run
 ./deploy-to-cloud-run.sh
 ```
 
@@ -195,14 +191,6 @@ gcloud run deploy ${SERVICE_NAME} \
   --set-env-vars "VERTEX_AI_SEARCH_ENGINE_ID=your-engine-id" \
   --set-secrets "LANGFUSE_PUBLIC_KEY=langfuse-public-key:latest" \
   --set-secrets "LANGFUSE_SECRET_KEY=langfuse-secret-key:latest"
-```
-
-### Continuous Deployment
-
-Use the included `cloudbuild.yaml` for automated deployments:
-
-```bash
-gcloud builds submit --config cloudbuild.yaml
 ```
 
 ## Usage
@@ -329,7 +317,7 @@ Both backend and frontend support hot reload in development mode:
 - **start.sh**: Convenience script to start everything
 - **stop.sh**: Convenience script to stop everything
 - **Dockerfile**: Production-ready Docker image
-- **cloudbuild.yaml**: Cloud Build CI/CD configuration
+- **deploy-to-cloud-run.sh**: Deployment script for Google Cloud Run
 
 ## Documentation
 

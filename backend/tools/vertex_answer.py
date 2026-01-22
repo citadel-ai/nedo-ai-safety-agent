@@ -162,7 +162,7 @@ class VertexAIAnswerTool(BaseTool):
             # Answer generation specification (matching official example)
             answer_generation_spec=discoveryengine_v1.AnswerQueryRequest.AnswerGenerationSpec(
                 model_spec=discoveryengine_v1.AnswerQueryRequest.AnswerGenerationSpec.ModelSpec(
-                    model_version="gemini-2.0-flash-001/answer_gen/v1",  # Latest stable version
+                    model_version="stable",  # Latest stable version
                 ),
                 prompt_spec=discoveryengine_v1.AnswerQueryRequest.AnswerGenerationSpec.PromptSpec(
                     preamble=ANSWER_PROMPT,

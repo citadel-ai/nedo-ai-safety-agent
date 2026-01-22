@@ -11,7 +11,7 @@ import CollectedFacts from './components/CollectedFacts';
 import UsefulPhrases from './components/UsefulPhrases';
 import UsefulPlaces from './components/UsefulPlaces';
 import ErrorAlert from './components/ErrorAlert';
-import { setUserContext, sendMessage, removeFact } from './api';
+import { setUserContext, sendMessage, removeFact, submitFeedback } from './api';
 import './index.css';
 
 // App version - update this when deploying new versions
@@ -57,6 +57,17 @@ function App() {
     } catch (error) {
       console.error('Error setting context:', error);
       setErrorMessage('Failed to set context. Please check that the backend is running and try again.');
+    }
+  };
+
+  // Handle user feedback (thumbs up/down)
+  const handleFeedback = async (traceId, value) => {
+    try {
+      await submitFeedback(traceId, value);
+      console.log(`Feedback submitted: ${value === 1 ? 'thumbs up' : 'thumbs down'} for trace ${traceId}`);
+    } catch (error) {
+      console.error('Error submitting feedback:', error);
+      // Don't show error alert for feedback - it's not critical to the user experience
     }
   };
 
@@ -123,6 +134,7 @@ function App() {
           content: response.answer,
           timestamp: new Date(),
           citations: response.citations || [],
+          traceId: response.trace_id,  // For user feedback tracking
         };
         setMessages((prev) => [...prev, assistantMessage]);
         
@@ -190,6 +202,7 @@ function App() {
                   setHasSentFirstMessage(false);
                   // Next query will send 'multi' mode to backend
                 }}
+                onFeedback={handleFeedback}
               />
             )}
           </div>

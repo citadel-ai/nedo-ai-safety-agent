@@ -2,12 +2,12 @@
 Query processing service.
 """
 
-from typing import Dict, List
+from typing import Dict, List, Optional
 
 from langchain_core.messages import HumanMessage
 
 from ..core.graph import graph
-from ..utils.langfuse_config import get_langfuse_handler
+from ..utils.langfuse_config import get_langfuse_handler, get_langfuse_client
 from ..utils.logging_config import get_logger
 
 logger = get_logger(__name__)
@@ -30,7 +30,7 @@ def query_agent(question: str, thread_id: str, conversation_mode: str = None) ->
         conversation_mode: Optional - allows switching mode mid-conversation ('single' or 'multi')
 
     Returns:
-        Dictionary with answer, citations, collected facts, and metadata
+        Dictionary with answer, citations, collected facts, metadata, and trace_id
     """
     # Build config with thread_id
     config = {"configurable": {"thread_id": thread_id}}
@@ -83,6 +83,16 @@ def query_agent(question: str, thread_id: str, conversation_mode: str = None) ->
     # State is automatically loaded from checkpoint and merged with input
     result = graph.invoke(input_data, config)
 
+    # Extract trace_id from the Langfuse handler AFTER invocation
+    # The handler exposes last_trace_id after the chain runs
+    trace_id = None
+    if langfuse_handler:
+        trace_id = getattr(langfuse_handler, "last_trace_id", None)
+        if trace_id:
+            logger.info(f"📊 Langfuse trace_id: {trace_id}")
+        else:
+            logger.warning("⚠️ Could not extract trace_id from Langfuse handler")
+
     # Extract context from collected_facts (now a dict)
     collected_facts: Dict[str, str] = result.get("collected_facts", {})
     visa_type = collected_facts.get("Visa Type")
@@ -98,7 +108,52 @@ def query_agent(question: str, thread_id: str, conversation_mode: str = None) ->
         "collected_facts": collected_facts,  # Send as dict
         "useful_phrases": result.get("useful_phrases", []),
         "useful_places": result.get("useful_places", []),
+        "trace_id": trace_id,  # For user feedback tracking via Langfuse
     }
+
+
+def submit_feedback(trace_id: str, value: int, comment: Optional[str] = None) -> dict:
+    """
+    Submit user feedback (thumbs up/down) to Langfuse.
+
+    Args:
+        trace_id: The Langfuse trace_id to attach the score to
+        value: 1 for thumbs up (positive), 0 for thumbs down (negative)
+        comment: Optional comment from the user
+
+    Returns:
+        Dictionary with status and any error message
+    """
+    langfuse_client = get_langfuse_client()
+
+    if not langfuse_client:
+        logger.warning("Langfuse not enabled - feedback not recorded")
+        return {"status": "skipped", "message": "Langfuse tracing is not enabled"}
+
+    try:
+        # Create a score for user feedback
+        # Using BOOLEAN data type: 1 = positive, 0 = negative
+        langfuse_client.create_score(
+            trace_id=trace_id,
+            name="user-feedback",
+            value=value,
+            data_type="BOOLEAN",
+            comment=comment,
+        )
+
+        # Flush to ensure the score is sent
+        langfuse_client.flush()
+
+        logger.info(
+            f"✅ User feedback recorded for trace {trace_id}: "
+            f"{'thumbs up' if value == 1 else 'thumbs down'}"
+        )
+
+        return {"status": "success", "trace_id": trace_id, "value": value}
+
+    except Exception as e:
+        logger.error(f"❌ Failed to record feedback: {str(e)}", exc_info=True)
+        return {"status": "error", "message": str(e)}
 
 
 def get_thread_state(thread_id: str) -> dict:

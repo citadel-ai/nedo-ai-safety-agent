@@ -69,12 +69,14 @@ export default function InitialForm({ onSubmit }) {
   return (
     <div className="h-full flex flex-col">
       {/* Header - matches Chat header */}
-      <div className="px-1 pb-3 sm:pb-4">
-        <div className="flex items-center gap-2 sm:gap-3">
-          <div className="w-8 h-8 sm:w-9 sm:h-9 rounded-lg bg-gray-900 text-white flex items-center justify-center shadow-md text-sm sm:text-base">JP</div>
-          <div>
-            <h1 className="text-lg sm:text-xl font-bold text-gray-900">Japan Helpdesk</h1>
-            <p className="text-xs text-gray-600">AI-powered assistant for official procedures</p>
+      <div className="pb-3 sm:pb-4">
+        <div className="max-w-2xl mx-auto px-1">
+          <div className="flex items-center gap-2 sm:gap-3">
+            <img src="/full-pic.png" alt="Japan Helpdesk" className="w-8 h-8 sm:w-9 sm:h-9 rounded-lg" />
+            <div>
+              <h1 className="text-lg sm:text-xl font-bold text-gray-900">Japan Helpdesk</h1>
+              <p className="text-xs text-gray-600">AI assistant for foreign residents</p>
+            </div>
           </div>
         </div>
       </div>

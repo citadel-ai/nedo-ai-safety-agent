@@ -113,14 +113,7 @@ docker run -p 8080:8080 \
 
 **⚠️ NEVER put secrets in `--set-env-vars`!** Use Secret Manager instead.
 
-#### Quick Setup with Script
-
-```bash
-# Interactive script to create all secrets
-./setup-secrets.sh
-```
-
-#### Manual Secret Setup
+#### Secret Setup
 
 ```bash
 # Create secrets (one-time setup)
@@ -249,44 +242,6 @@ docker push ${IMAGE_NAME}
 gcloud run deploy ${SERVICE_NAME} \
   --image ${IMAGE_NAME} \
   --region ${REGION}
-```
-
-### Continuous Deployment with Cloud Build
-
-Create `cloudbuild.yaml`:
-
-```yaml
-steps:
-  # Build the container image
-  - name: 'gcr.io/cloud-builders/docker'
-    args: ['build', '-t', 'gcr.io/$PROJECT_ID/japan-procedures-agent', '.']
-  
-  # Push the container image to Container Registry
-  - name: 'gcr.io/cloud-builders/docker'
-    args: ['push', 'gcr.io/$PROJECT_ID/japan-procedures-agent']
-  
-  # Deploy container image to Cloud Run
-  - name: 'gcr.io/google.com/cloudsdktool/cloud-sdk'
-    entrypoint: gcloud
-    args:
-      - 'run'
-      - 'deploy'
-      - 'japan-procedures-agent'
-      - '--image'
-      - 'gcr.io/$PROJECT_ID/japan-procedures-agent'
-      - '--region'
-      - 'us-central1'
-      - '--platform'
-      - 'managed'
-
-images:
-  - 'gcr.io/$PROJECT_ID/japan-procedures-agent'
-```
-
-Then trigger builds:
-
-```bash
-gcloud builds submit --config cloudbuild.yaml
 ```
 
 ---

@@ -1,6 +1,6 @@
 # Cloud Run Quick Start Guide
 
-**Deploy to Google Cloud Run in 2 simple steps!**
+**Deploy to Google Cloud Run quickly!**
 
 ## Prerequisites
 
@@ -8,27 +8,7 @@
 - `gcloud` CLI installed and authenticated: `gcloud auth login`
 - Docker installed
 
-## Step 1: Set Up Secrets (One-time Setup)
-
-Run the interactive script to securely store your API keys in Google Cloud Secret Manager:
-
-```bash
-./setup-secrets.sh
-```
-
-This will prompt you for:
-- `LANGFUSE_PUBLIC_KEY` (starts with `pk-`)
-- `LANGFUSE_SECRET_KEY` (starts with `sk-`)
-- `GOOGLE_PLACES_API_KEY` (optional)
-
-**Why Secret Manager?**
-- ✅ Secrets are encrypted at rest
-- ✅ Fine-grained access control
-- ✅ Automatic rotation support
-- ✅ Audit logs of secret access
-- ❌ NEVER put secrets in environment variables or git
-
-## Step 2: Deploy to Cloud Run
+## Deploy to Cloud Run
 
 Run the deployment script:
 
@@ -44,6 +24,8 @@ This will:
    - Auto-scaling (0-10 instances)
    - Health checks enabled
    - Secrets mounted from Secret Manager
+
+**Note:** For production deployments, consider setting up secrets in Google Cloud Secret Manager for sensitive data like Langfuse keys. See [DEPLOYMENT_GUIDE.md](DEPLOYMENT_GUIDE.md) for details.
 
 ## That's It! 🎉
 

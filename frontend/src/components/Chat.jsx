@@ -6,6 +6,70 @@
 import { useState, useRef, useEffect } from 'react';
 import ReactMarkdown from 'react-markdown';
 
+// Feedback Buttons Component for thumbs up/down
+function FeedbackButtons({ traceId, onFeedback }) {
+  const [feedbackGiven, setFeedbackGiven] = useState(null); // null, 'up', or 'down'
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
+  const handleFeedback = async (value) => {
+    if (feedbackGiven || isSubmitting || !traceId) return;
+    
+    setIsSubmitting(true);
+    try {
+      await onFeedback(traceId, value);
+      setFeedbackGiven(value === 1 ? 'up' : 'down');
+    } catch (error) {
+      console.error('Failed to submit feedback:', error);
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  // Don't show feedback buttons if no trace_id (Langfuse not enabled)
+  if (!traceId) return null;
+
+  return (
+    <div className="flex items-center gap-1 mt-2 pt-2 border-t border-gray-100">
+      <span className="text-xs text-gray-400 mr-2">Was this helpful?</span>
+      <button
+        onClick={() => handleFeedback(1)}
+        disabled={feedbackGiven !== null || isSubmitting}
+        className={`p-1.5 rounded-md transition-all ${
+          feedbackGiven === 'up'
+            ? 'bg-green-100 text-green-600'
+            : feedbackGiven !== null
+            ? 'text-gray-300 cursor-not-allowed'
+            : 'text-gray-400 hover:text-green-600 hover:bg-green-50'
+        }`}
+        title="Thumbs up"
+      >
+        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M14 10h4.764a2 2 0 011.789 2.894l-3.5 7A2 2 0 0115.263 21h-4.017c-.163 0-.326-.02-.485-.06L7 20m7-10V5a2 2 0 00-2-2h-.095c-.5 0-.905.405-.905.905 0 .714-.211 1.412-.608 2.006L7 11v9m7-10h-2M7 20H5a2 2 0 01-2-2v-6a2 2 0 012-2h2.5" />
+        </svg>
+      </button>
+      <button
+        onClick={() => handleFeedback(0)}
+        disabled={feedbackGiven !== null || isSubmitting}
+        className={`p-1.5 rounded-md transition-all ${
+          feedbackGiven === 'down'
+            ? 'bg-red-100 text-red-600'
+            : feedbackGiven !== null
+            ? 'text-gray-300 cursor-not-allowed'
+            : 'text-gray-400 hover:text-red-600 hover:bg-red-50'
+        }`}
+        title="Thumbs down"
+      >
+        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 14H5.236a2 2 0 01-1.789-2.894l3.5-7A2 2 0 018.736 3h4.018a2 2 0 01.485.06l3.76.94m-7 10v5a2 2 0 002 2h.096c.5 0 .905-.405.905-.904 0-.715.211-1.413.608-2.008L17 13V4m-7 10h2m5-10h2a2 2 0 012 2v6a2 2 0 01-2 2h-2.5" />
+        </svg>
+      </button>
+      {feedbackGiven && (
+        <span className="text-xs text-gray-500 ml-2">Thanks for your feedback!</span>
+      )}
+    </div>
+  );
+}
+
 // Collapsible Sources Component
 function CollapsibleSources({ citations }) {
   const [isOpen, setIsOpen] = useState(false);
@@ -84,7 +148,7 @@ function CollapsibleSources({ citations }) {
   );
 }
 
-export default function Chat({ messages, onSendMessage, isLoading, conversationMode = 'multi', hasSentFirstMessage = false, onSwitchToMultiTurn }) {
+export default function Chat({ messages, onSendMessage, isLoading, conversationMode = 'multi', hasSentFirstMessage = false, onSwitchToMultiTurn, onFeedback }) {
   const [input, setInput] = useState('');
   const [showScrollIndicator, setShowScrollIndicator] = useState(false);
   const messagesContainerRef = useRef(null);
@@ -184,12 +248,12 @@ export default function Chat({ messages, onSendMessage, isLoading, conversationM
   return (
     <div className="flex flex-col h-full">
       {/* Header */}
-      <div className="px-1 pb-3 sm:pb-4">
+      <div className="pb-3 sm:pb-4 px-2 sm:px-4 md:px-6">
         <div className="flex items-center gap-2 sm:gap-3">
-          <div className="w-8 h-8 sm:w-9 sm:h-9 rounded-lg bg-gray-900 text-white flex items-center justify-center shadow-md text-sm sm:text-base">JP</div>
+          <img src="/full-pic.png" alt="Japan Helpdesk" className="w-8 h-8 sm:w-9 sm:h-9 rounded-lg" />
           <div>
-            <h1 className="text-base sm:text-lg font-semibold leading-tight text-gray-900">Japan Helpdesk</h1>
-            <p className="text-xs sm:text-sm text-gray-500">Visas, housing, and everyday life</p>
+            <h1 className="text-lg sm:text-xl font-bold text-gray-900">Japan Helpdesk</h1>
+            <p className="text-xs text-gray-600">AI assistant for foreign residents</p>
           </div>
         </div>
       </div>
@@ -247,6 +311,7 @@ export default function Chat({ messages, onSendMessage, isLoading, conversationM
                     </ReactMarkdown>
                   </div>
                   {message.citations && <CollapsibleSources citations={message.citations} />}
+                  {onFeedback && <FeedbackButtons traceId={message.traceId} onFeedback={onFeedback} />}
                 </div>
               )}
             </div>

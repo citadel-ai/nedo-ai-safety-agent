@@ -12,7 +12,7 @@ from pydantic import BaseModel
 from pathlib import Path
 
 from ..services.context import set_user_context
-from ..services.query import query_agent, get_thread_state
+from ..services.query import query_agent, get_thread_state, submit_feedback
 from ..utils.config import Config
 from ..utils.logging_config import setup_logging
 from ..utils.langfuse_config import initialize_langfuse, flush_langfuse
@@ -94,6 +94,7 @@ class QueryResponse(BaseModel):
     collected_facts: dict[str, str] = {}
     useful_phrases: list[UsefulPhrase] = []
     useful_places: list[UsefulPlace] = []
+    trace_id: str | None = None  # For user feedback tracking via Langfuse
 
 
 @app.get("/")
@@ -174,6 +175,58 @@ async def get_thread(thread_id: str):
 
 class RemoveFactRequest(BaseModel):
     fact_key: str
+
+
+class FeedbackRequest(BaseModel):
+    trace_id: str
+    value: int  # 1 = thumbs up, 0 = thumbs down
+    comment: str | None = None
+
+
+class FeedbackResponse(BaseModel):
+    status: str
+    trace_id: str | None = None
+    value: int | None = None
+    message: str | None = None
+
+
+@app.post("/api/feedback", response_model=FeedbackResponse)
+async def feedback(request: FeedbackRequest):
+    """
+    Submit user feedback (thumbs up/down) for a response.
+
+    This logs the feedback as a score to Langfuse, allowing filtering
+    and analysis of user-rated responses for evaluation and testing.
+
+    Args:
+        request: FeedbackRequest with trace_id, value (1=positive, 0=negative), and optional comment
+
+    Returns:
+        FeedbackResponse with status
+    """
+    try:
+        # Validate value
+        if request.value not in (0, 1):
+            raise HTTPException(
+                status_code=400,
+                detail="Value must be 0 (thumbs down) or 1 (thumbs up)",
+            )
+
+        result = submit_feedback(
+            trace_id=request.trace_id,
+            value=request.value,
+            comment=request.comment,
+        )
+
+        if result.get("status") == "error":
+            raise HTTPException(status_code=500, detail=result.get("message"))
+
+        return FeedbackResponse(**result)
+
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
 
 
 @app.delete("/api/thread/{thread_id}/facts")
