@@ -101,23 +101,12 @@ def check_query_scope(
         query_text, messages[:-1], state.get("collected_facts", {})
     )
 
-
-# Minimum word count for a query to be considered specific enough
-# Queries below this threshold are likely too vague to process
-MIN_QUERY_WORDS = 7
-
-
 @trace_llm_call("basic_scope_check")
 def _check_basic_scope(query: str) -> Literal["in_scope", "out_of_scope"]:
     """
     Check if query is about Japanese procedures (basic scope check).
     Used for first message in conversation.
     """
-    # Quick validation: very short queries are usually too vague
-    word_count = len(query.split())
-    if word_count < MIN_QUERY_WORDS:
-        logger.info(f"⚠️ Query too short ({word_count} words) - requires more context")
-        return "out_of_scope"
 
     structured_llm = llm.with_structured_output(ScopeCheckResult)
 
