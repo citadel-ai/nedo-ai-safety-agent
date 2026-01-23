@@ -15,7 +15,7 @@ import { setUserContext, sendMessage, removeFact, submitFeedback } from './api';
 import './index.css';
 
 // App version - update this when deploying new versions
-const APP_VERSION = '1.0.0';
+const APP_VERSION = '1.0.1';
 
 function App() {
   const [threadId] = useState(() => `thread-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`);
