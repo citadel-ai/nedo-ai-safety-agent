@@ -250,7 +250,13 @@ export default function Chat({ messages, onSendMessage, isLoading, conversationM
       {/* Header */}
       <div className="pb-3 sm:pb-4 px-2 sm:px-4 md:px-6">
         <div className="flex items-center gap-2 sm:gap-3">
-          <img src="/full-pic.png" alt="Japan Helpdesk" className="w-8 h-8 sm:w-9 sm:h-9 rounded-lg" />
+          <button 
+            onClick={() => window.location.reload()} 
+            className="flex-shrink-0 hover:opacity-80 transition-opacity"
+            title="Refresh page"
+          >
+            <img src="/full-pic.png" alt="Japan Helpdesk" className="w-8 h-8 sm:w-9 sm:h-9 rounded-lg" />
+          </button>
           <div>
             <h1 className="text-lg sm:text-xl font-bold text-gray-900">Japan Helpdesk</h1>
             <p className="text-xs text-gray-600">AI assistant for foreign residents</p>

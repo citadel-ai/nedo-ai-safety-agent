@@ -3,18 +3,24 @@ Search node for the LangGraph agent with citation extraction.
 """
 
 from langchain_core.messages import HumanMessage, AIMessage
+from langchain_core.runnables import RunnableConfig
 
 from ..core.state import AgentState
 from ..tools.vertex_search import vertex_search_raw_tool
+from ..tools.vertex_answer import vertex_answer_tool
 from ..utils.citation_extractor import (
     extract_citations_from_raw_response,
+    extract_citations_from_answer_response,
 )
 from ..utils.logging_config import get_logger
 
 logger = get_logger(__name__)
 
 
-def search_and_respond(state: AgentState) -> AgentState:
+def search_and_respond(
+    state: AgentState,
+    config: RunnableConfig | None = None,  # LangGraph will pass this automatically
+) -> AgentState:
     """
     Execute Vertex AI Search and return response.
 
@@ -72,7 +78,65 @@ def search_and_respond(state: AgentState) -> AgentState:
                 raw_response.summary.summary_with_metadata.summary
             )  # summary_text will have [1] inline citations
 
+        # Detect summary fallback + whether we have references/results
+        has_summary = bool(getattr(raw_response, "summary", None))
+        has_summary_with_metadata = bool(
+            getattr(getattr(raw_response, "summary", None), "summary_with_metadata", None)
+        )
+        references_count = 0
+        try:
+            references = getattr(
+                getattr(raw_response.summary, "summary_with_metadata", None), "references", None
+            )
+            if references is not None:
+                references_count = len(references)
+        except Exception:
+            references_count = 0
+
+        results_count = 0
+        try:
+            results = getattr(raw_response, "results", None)
+            if results is not None:
+                results_count = len(results)
+        except Exception:
+            results_count = 0
+
+        summary_lower = (summary_text or "").lower()
+        summary_is_fallback = "summary could not be generated" in summary_lower
+
         logger.info(f"✅ Got response ({len(summary_text)} chars)")
+
+        # If Vertex summary couldn't be generated, fall back to Answer method.
+        # This avoids returning the placeholder text without citations even when results exist.
+        if summary_is_fallback or (has_summary_with_metadata and references_count == 0):
+            try:
+                raw_answer_response = vertex_answer_tool.invoke(
+                    query,
+                    config=config or {},
+                    session_id=None,  # single-turn: don't persist sessions
+                )
+
+                answer_text = ""
+                if hasattr(raw_answer_response, "answer") and raw_answer_response.answer:
+                    answer_text = raw_answer_response.answer.answer_text or ""
+
+                if not answer_text:
+                    answer_text = (
+                        "I couldn't generate an answer. Please try rephrasing your question."
+                    )
+
+                citations_data = extract_citations_from_answer_response(raw_answer_response)
+
+                ai_message = AIMessage(content=answer_text)
+                return {
+                    "messages": [ai_message],
+                    "answer": ai_message.content,
+                    "citations": citations_data,
+                    "error": None,
+                }
+            except Exception:
+                # If fallback fails, continue with original summary path.
+                pass
 
         # Extract structured citations with URLs
         citations_data = extract_citations_from_raw_response(raw_response)
