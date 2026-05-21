@@ -1,0 +1,631 @@
+
+
+
+
+
+
+
+
+
+
+
+
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+    <title>
+      出入国在留管理庁　電子届出システム
+    </title>
+    
+
+
+
+
+<META content="noindex,nofollow">
+
+<link href="/css/ens/bootstrap.css" media="all" rel="stylesheet" type="text/css">
+<link href="/css/ens/ENS.css" media="all" rel="stylesheet" type="text/css">
+<script src="/js/jquery.min.js"></script>
+<script type="text/javascript">
+
+
+
+
+var sendflag = false;
+var srUrl = 'https://www.ens-immi.moj.go.jp';
+var urlMethod = 'post';
+function linkSrvNA(fObj) {
+    var topUrl ='/NA01/NAA01S/NAA01STransfer';
+    linkSRV(fObj, topUrl);
+}
+function linkSrvNB(fObj) {
+    var topUrl = '/NB01/NBB01S/NBB01STransfer';
+    linkSRV(fObj, topUrl);
+}
+function linkSrvNC(fObj) {
+    var topUrl = '/NC01/NCA01S/NCA01STransfer';
+    linkSRVNC(fObj, topUrl);
+}
+function linkSrvND(fObj) {
+    var topUrl = '/ND01/NDA01S/NDA01STransfer';
+    fObj.action = topUrl;
+    fObj.method = urlMethod;
+    fObj.submit();
+    childClose();
+}
+function linkSRV(fObj, action) {
+    if(!sendflag){
+        url = srUrl;
+        url += action;
+
+        gng=document.getElementById("hdnGng");
+        if(gng){
+            url += "?hdnGng=";
+            url += gng.value;
+        }
+        fObj.action=url;
+        fObj.submit();
+        childClose();
+    }
+}
+function linkSRVNC(fObj, action) {
+    if(!sendflag){
+        url = srUrl;
+        url += action;
+        
+        fObj.action=url;
+        fObj.submit();
+        childClose();
+    }
+}
+function submitLinkForm(fObj,lang) {
+    url = fObj.action;
+    url += "?hdnGng=" + lang;
+    fObj.action=url;
+    document.forms[0].submit();
+    childClose();
+}
+function topCnfirmNochk(fObj, eName) {
+    if(!sendflag){
+        msg = '入力途中の場合，入力内容は破棄されます。トップ画面に戻りますがよろしいですか。';
+        if(window.confirm(msg)){
+            linkSrvNA(fObj, eName);
+        } 
+    } else {
+        return false;
+    }
+}
+function topNdCnfirmNochk(fObj) {
+    if(!sendflag){
+        msg = 'ログイン画面に戻りますがよろしいですか。';
+        if(window.confirm(msg)){
+            linkSrvND(fObj);
+        } 
+    } else {
+        return false;
+    }
+}
+function logoutCnfirmNoChk(fObj, eName) {
+    msg = 'ログアウトしてよろしいですか。';
+    
+    if(!sendflag){
+        if(window.confirm(msg)){
+            return linkSndNoChk(fObj, eName);
+        }
+    } else {
+        return false;
+    }
+}
+function backCnfirmNoChk(fObj) {
+    msg = '入力途中の場合，入力内容は破棄されます。前画面に戻りますがよろしいですか。';
+    
+    if(!sendflag){
+        if(window.confirm(msg)){
+            childClose();
+            return true;
+        } else {
+            return false;
+        }
+    } else {
+        return false;
+    }
+}
+function linkSndNoChk(fObj, eName) {
+    if(!sendflag){
+        newElem = document.createElement('input');
+        newElem.setAttribute('type','hidden');
+        newElem.name=eName;
+        newElem.value='1';
+        fObj.appendChild(newElem);
+        
+        fObj.submit();
+        childClose();
+        return false;
+    }
+}
+function isDblSendChk(fObj, eName) {
+    if (sendflag) { 
+        return false;
+    } else {
+        sendflag = true;
+        childClose();
+        newElem = document.createElement('input');
+        newElem.setAttribute('type','hidden');
+        newElem.name=eName;
+        newElem.value='1';
+        fObj.appendChild(newElem);
+        fObj.submit();
+        childClose();
+        return false;
+    }
+}
+function logoutCnfirm(fObj, eName) {
+    msg = 'ログアウトしてよろしいですか。 ';
+    
+    if(!sendflag){
+        if(window.confirm(msg)){
+            fObj.reset();
+            return linkSnd(fObj, eName);
+        } 
+    }
+}
+function backCnfirm(fObj,eName) {
+    msg = '入力途中の場合，入力内容は破棄されます。前画面に戻りますがよろしいですか。 ';
+    
+    if (!sendflag) { 
+        if(window.confirm(msg)){
+            fObj.reset();
+            return isDblSendChk(fObj,eName);
+        } else {
+            return false;
+        }
+    } else {
+        return false;
+    }
+}
+function linkSnd(fObj, eName) {
+    return isDblSendChk(fObj, eName);
+}
+function childClose(){
+    if(window.name == 'org_view' || window.name == 'org_view2'){
+        childWindowAry = 'NZA01S,NZA02S,NZA03S';
+        formNm = document.forms[0].name;
+        if(formNm != null && formNm != ''){
+            indexCnt = document.forms[0].name.indexOf('Form');
+            if(childWindowAry.indexOf(document.forms[0].name.substring(0,indexCnt),0) == -1){
+                window.close();
+            }
+        }
+    }
+    if(subWin!=null && !subWin.closed){
+        subWin.close();
+    }
+    if(subWin2!=null && !subWin2.closed){
+        subWin2.close();
+    }
+}
+var subWin = null;
+var subWin2 = null;
+function org_lists_link(objCd, objNm, idNmView){
+    if(sendflag){
+        return false;
+    }
+    if(subWin!=null && !subWin.closed){
+        subWin.close();
+    }
+    subWin=window.open('about:blank', 'org_view','width=850px,height=740,scrollbars=yes,lacation=no, status=no, menubar=no, resizable=yes, top = 0px,left=0px');
+    document.forms[0].target='org_view';
+    subWinRemoveSubmitElement();
+    subWinFormElementAdd('ENZA01STransfer', '0');
+    subWinFormElementAdd('ENZA01SSJKKCD', objCd.name);
+    subWinFormElementAdd('ENZA01SSJKKMS', objNm.name);
+    subWinFormElementAdd('ENZA01SSJKKMSVWID', idNmView);
+    var hdTokenKeepValue = setTokenKeep(document.forms[0]);
+    document.forms[0].submit();
+    document.forms[0].target='';
+    unsetTokenKeep(document.forms[0], hdTokenKeepValue);
+    subWin.focus();
+    return false;
+}
+function org_lists_updata(indexId){
+    try{
+        var objCd = subWinGetObj(self.document.forms[0], 'idLstNZA01SResultRow[' + indexId + '].hdnSzknNo');
+        var objMs = subWinGetObj(self.document.forms[0], 'idLstNZA01SResultRow[' + indexId + '].lblSzknName');
+        
+        subWinSetOpenerFormValue(opener.document.forms[0], 'ENZA01SSJKKCD', false, objCd.value);
+        subWinSetOpenerFormValue(opener.document.forms[0], 'ENZA01SSJKKMS', false, objMs.value);
+        subWinSetOpenerFormValue(opener.document.forms[0], 'ENZA01SSJKKMSVWID', true, objMs.value);
+    } catch(e) {
+    }
+    self.close();
+}
+function adress_lists_link(objCd, objNm, idNmView){
+    if(sendflag){
+        return false;
+    }
+    if(subWin!=null && !subWin.closed){
+        subWin.close();
+    }
+    subWin=window.open('about:blank', 'org_view','width=650px,height=650,scrollbars=yes,lacation=no, status=no, menubar=no, resizable=yes, top = 0px,left=0px');
+    document.forms[0].target='org_view';
+    
+    subWinRemoveSubmitElement();
+    subWinFormElementAdd('ENZA02STransfer', '0');
+    subWinFormElementAdd('ENZA02SADDRCD', objCd.name);
+    subWinFormElementAdd('ENZA02SADDRMS', objNm.name);
+    subWinFormElementAdd('ENZA02SADDRMSVWID', idNmView);
+    var hdTokenKeepValue = setTokenKeep(document.forms[0]);
+    document.forms[0].submit();
+    document.forms[0].target='';
+    unsetTokenKeep(document.forms[0], hdTokenKeepValue);
+    subWin.focus();
+    return false;
+}
+function adress_lists_updata(indexId){
+    try{
+        var objCd = subWinGetObj(self.document.forms[0], 'idLstNZA02SResultRow[' + indexId + '].hdnSktsCd');
+        var objMs = subWinGetObj(self.document.forms[0], 'idLstNZA02SResultRow[' + indexId + '].lblSktsMs');
+        subWinSetOpenerFormValue(opener.document.forms[0], 'ENZA02SADDRCD', false, objCd.value);
+        subWinSetOpenerFormValue(opener.document.forms[0], 'ENZA02SADDRMS', false, objMs.value);
+        subWinSetOpenerFormValue(opener.document.forms[0], 'ENZA02SADDRMSVWID', true, objMs.value);
+    } catch(e) {
+    }
+    self.close();
+}
+function adress_lists_link2(objCd, objNm, idNmView){
+    if(sendflag){
+        return false;
+    }
+    if(subWin2!=null && !subWin2.closed){
+        subWin2.close();
+    }
+    subWin2=window.open('about:blank', 'org_view2','width=650px,height=650,scrollbars=yes,lacation=no, status=no, menubar=no, resizable=yes, top = 0px,left=0px');
+    document.forms[0].target='org_view2';
+    subWinRemoveSubmitElement();
+    subWinFormElementAdd('ENZA02STransfer', '0');
+    subWinFormElementAdd('ENZA02SADDRCD', objCd.name);
+    subWinFormElementAdd('ENZA02SADDRMS', objNm.name);
+    subWinFormElementAdd('ENZA02SADDRMSVWID', idNmView);
+    var hdTokenKeepValue = setTokenKeep(document.forms[0]);
+    document.forms[0].submit();
+    document.forms[0].target='';
+    unsetTokenKeep(document.forms[0], hdTokenKeepValue);
+    subWin2.focus();
+    return false;
+}
+function err_lists_link(tdkdUktkNo, tdkdShbt, tdkdUktkNoEdbn){
+    if(sendflag){
+        return;
+    }
+    if(subWin!=null && !subWin.closed){
+        subWin.close();
+    }
+    subWin=window.open('about:blank','org_view','width=850px,height=560,scrollbars=yes,lacation=no, status=no, menubar=no, resizable=yes, top = 0px,left=0px');
+    document.forms[0].target='org_view';
+    subWinRemoveSubmitElement();
+    subWinFormElementAdd('ENZA03STransfer', '0');
+    subWinFormElementAdd('ENZA03TdkdUktkNo', tdkdUktkNo);
+    if(tdkdUktkNoEdbn != null && tdkdUktkNoEdbn != "") {
+        subWinFormElementAdd('ENZA03TdkdUktkNoEdbn', tdkdUktkNoEdbn);
+    } else {
+        subWinRemoveObj(document.forms[0], subWinCreateObj("ENZA03TdkdUktkNoEdbn"));
+    }
+    subWinFormElementAdd('ENZA03TdkdShbt', tdkdShbt);
+    var hdTokenKeepValue = setTokenKeep(document.forms[0]);
+    document.forms[0].submit();
+    document.forms[0].target='';
+    unsetTokenKeep(document.forms[0], hdTokenKeepValue);
+    subWin.focus();
+}
+function child_link(url){
+    subWin=window.open(url,'org_view','width=650px,height=440,scrollbars=yes,lacation=no, status=no, menubar=no, resizable=yes, top = 0px,left=0px');
+    subWin.focus();
+}
+function subWinFormElementAdd(pKoumokuId, pValue){
+    var pForm = document.forms[0];
+    var koumokuHdnElem = subWinCreateObj(pKoumokuId, pValue);
+    subWinRemoveObj(pForm, koumokuHdnElem);
+    subWinAppendObj(pForm, koumokuHdnElem);
+}
+function subWinCreateObj(pKoumokuId, pValue){
+    var koumokuHdnElem = document.createElement("input");
+    koumokuHdnElem.type = "hidden";
+    koumokuHdnElem.name = pKoumokuId;
+    koumokuHdnElem.id = pKoumokuId;
+    koumokuHdnElem.value = pValue;
+    return koumokuHdnElem;
+}
+function subWinRemoveObj(pForm, pHiddenObj){
+    var myElement = pForm.elements;
+    for(var i=0; i<myElement.length; i++){
+        if(myElement[i].type == 'hidden' && myElement[i].name == pHiddenObj.name){
+            pForm.removeChild(myElement[i]);
+        }
+    }
+}
+function subWinAppendObj(pForm, pHiddenObj){
+    pForm.appendChild(pHiddenObj);
+}
+function subWinRemoveSubmitElement(){
+    var pForm = document.forms[0];
+    
+    subWinRemoveObj(pForm, subWinCreateObj("ENZA01STransfer"));
+    subWinRemoveObj(pForm, subWinCreateObj("ENZA02STransfer"));
+    subWinRemoveObj(pForm, subWinCreateObj("ENZA03STransfer"));
+}
+function subWinGetObj(pForm, pName){
+    var myElement = pForm.elements;
+    for(var i=0; i<myElement.length; i++){
+        if(myElement[i].name == pName){
+            return myElement[i];
+        }
+    }
+    return null;
+}
+function subWinSetOpenerFormValue(pForm, pTargetNm, pIsSetFormElement, pValue){
+    var openerObj1 = subWinGetObj(pForm, pTargetNm);
+    var openerObj2 = null;
+    if(openerObj1 != null && openerObj1.value != "") {
+        if(pIsSetFormElement == true) {
+            openerObj2 = opener.document.getElementById(openerObj1.value);
+            if(openerObj2 != null) {
+                while(openerObj2.hasChildNodes()) {
+                    openerObj2.removeChild(openerObj2.lastChild);
+                }
+                openerObj2.appendChild(opener.document.createTextNode(pValue));
+                openerObj2.className = "";
+            }
+        } else {
+            openerObj2 = subWinGetObj(pForm, openerObj1.value);
+            if(openerObj2 != null) {
+                openerObj2.value = pValue;
+            }
+        }
+    }
+}
+function adress_lists_clear(objCd, objNm, idNmView){
+    if(objCd){
+        objCd.value = "";
+    }
+    if(objNm){
+        objNm.value = "";
+    }
+    document.getElementById(idNmView).firstChild.nodeValue = 'ボタンを押して一覧画面から選択してください。';
+    document.getElementById(idNmView).className = "before_link";
+}
+function setTokenKeep(pForm){
+    var hdTokenKeep = subWinGetObj(pForm, 'HD_TOKEN_KEEP');
+    var hdTokenKeepValue = "";
+    if (hdTokenKeep != null) {
+        hdTokenKeepValue = hdTokenKeep.value;
+        hdTokenKeep.value = 'true';
+    }
+    return hdTokenKeepValue;
+}
+function unsetTokenKeep(pForm, hdTokenKeepValue){
+    var hdTokenKeep = subWinGetObj(pForm, 'HD_TOKEN_KEEP');
+    if (hdTokenKeep != null) {
+        hdTokenKeep.value = hdTokenKeepValue;
+    }
+}
+
+</script>
+
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+
+  </head>
+  <body>
+  <form id="NAA01SDto" action="/NA01/NAA01S/NAA01SEventAction" method="POST">
+  <!DOCTYPE html>
+
+
+
+
+
+
+
+
+
+<div class="container">
+    <div class="col-md-12">
+        <div class="text-center">
+        <IMG class="header_img" src="/images/head.jpg" >
+        <div class="col-md-12 text-center">
+          <div class="h1">
+            電子届出システム
+          </div>
+        </div>
+          <BR>
+          <span id="ENAA01STransfer">
+            
+            
+            
+            
+                <a href="javascript:submitLinkForm(document.forms[0],'L1')" >日本語 Japanese</a>&nbsp;
+            
+            ，
+            
+            
+            
+                <a href="javascript:submitLinkForm(document.forms[0],'L2')" >英語 English</a>&nbsp;
+            
+            ，
+            
+            
+                <a href="javascript:submitLinkForm(document.forms[0],'L3')" >中国語 中文(简体字)</a>&nbsp;
+            
+            ，
+            
+            
+                <a href="javascript:submitLinkForm(document.forms[0],'L4')" >中国語 中文(繁体字)</a>&nbsp;
+            
+            ，
+            
+            
+                <a href="javascript:submitLinkForm(document.forms[0],'L5')" >韓国語 한국어</a>&nbsp;
+            
+            ，
+            
+            
+                <a href="javascript:submitLinkForm(document.forms[0],'L6')" >スペイン語 Español</a>&nbsp;
+            
+            ，
+            <br>
+            
+            
+                <a href="javascript:submitLinkForm(document.forms[0],'L7')" >ポルトガル語 Português</a>&nbsp;
+            
+            ，
+            
+            
+                <a href="javascript:submitLinkForm(document.forms[0],'L8')" >タガログ語 Tagalog</a>&nbsp;
+            
+          </span>
+        </div>
+    </div>
+</div>
+
+    <input id="naa01sdto-hdnGng" name="hdnGng" type="hidden" value="L1"/>
+    <div class="col-md-12" style="height: 20px;">
+    </div>
+    <div class="container">
+      <div class="col-xs-12">
+        <div class="col-xs-12">
+        </div>
+      </div>
+      <div class="col-xs-12">
+          <div class="alert-info h3">
+            連絡事項
+          </div>
+        <div class="col-md-12" style="height: 10px;">
+        </div>
+      </div>
+      <div class="col-md-12">
+          <div class="scroll">
+              ﻿<html><body style="FONT-SIZE:13;MARGIN:0px;border:none;padding:0px;FONT-FAMILY:'メイリオ','ＭＳ Ｐゴシック','MS PGothic',sans-serif;"><form>利用規約(2013年3月1日更新)(<a  target="_blank" href="/html/NBA_MSGr_L1.html">日本語 Japanese</a>、<a  target="_blank" href="/html/NBA_MSGr_L2.html">英語 English</a>、<a  target="_blank" href="/html/NBA_MSGr_L3.html">中国語 中文(简体字)</a>、<a  target="_blank" href="/html/NBA_MSGr_L4.html">中国語 中文(繁体字)</a>、<a  target="_blank" href="/html/NBA_MSGr_L5.html">韓国語 한국어</a>、<a  target="_blank" href="/html/NBA_MSGr_L6.html">スペイン語 Español</a>、<a  target="_blank" href="/html/NBA_MSGr_L7.html">ポルトガル語 Português</a>、<a  target="_blank" href="/html/NBA_MSGr_L8.html">タガログ語 Tagalog</a>)<BR><BR>[2025/12/3]<BR>＜システムメンテナンスのお知らせ＞<BR>　システムメンテナンスのため、以下の期間において、電子届出システムを御利用いただけません。<BR>　　令和7年12月8日(月)21時30分から23時30分まで<BR>　　※作業の進捗状況によって、時間が前後する場合がございます。<BR>　御不便をおかけして申し訳ございませんが、御理解のほどよろしくお願いいたします。<BR><BR>　Notice for Scheduled System Maintenance<BR>　Due to system maintenance, all services are not available during the following time.<BR>　　21:30 to 23:30 on Monday, December 8, 2025<BR>　　※ This time may change depending on the situation.<BR>　We apologize for the inconvenience and thank you for your understanding.<BR><BR>[2025/11/19]<BR>＜システムメンテナンスのお知らせ＞<BR>　システムメンテナンスのため、以下の期間において、システムの利用中に一時的にエラー画面が表示される場合があります。<BR>　その際は、数分程度時間をあけて、再度ログインしての御利用をお願いいたします。<BR>　また、システムからのメール送信が遅延する場合がありますのでご留意ください。<BR>　・令和7年11月27日(木)　21時00分から22時00分まで<BR>　御不便をおかけして申し訳ございませんが、御理解のほどよろしくお願いいたします。<BR><BR>[2025/11/19]<BR>＜システムメンテナンスのお知らせ＞<BR>　システムメンテナンスのため、以下の期間において、システムからのメール送信が遅延する場合があります。<BR>　　令和7年11月28日(金)11時00分から16時00分まで<BR>　なお、電子届出システムは御利用いただけます。<BR>　御不便をおかけして申し訳ございませんが、御理解のほどよろしくお願いいたします。<BR>　Notice for Scheduled System Maintenance<BR>　Due to system maintenance, we are expecting some delays in email deliveries during the following period.<BR>　11:00 to 16:00 on Friday, November 28, 2025<BR>　The E-Notification System will continue to be available for use during this period.<BR>　We apologize for the inconvenience and thank you for your understanding.<BR><BR>[2025/11/7]<BR>＜システムメンテナンスのお知らせ＞<BR>　システムメンテナンスのため、以下の期間において、電子届出システムを御利用いただけません。<BR>　　令和7年11月14日(金)23時00分から同年11月15日(土)2時00分まで<BR>　　※作業の進捗状況によって、時間が前後する場合がございます。<BR>　御不便をおかけして申し訳ございませんが、御理解のほどよろしくお願いいたします。<BR><BR>　Notice for Scheduled System Maintenance<BR>　Due to system maintenance, all services are not available during the following time.<BR>　23:00 on Friday, November 14, 2025 to 2:00 on Saturday, November 15, 2025<BR>※ This time may change depending on the situation.<BR>　We apologize for the inconvenience and thank you for your understanding.<BR><BR>[2024/10/4]<BR>＜一括届出テンプレートファイルの差し替えについて＞ <BR>令和6年10月4日付けで以下のとおり修正した一括届出テンプレートファイルに差し替えました。<BR>同日以降は、当庁ホームページに掲載の差替後のテンプレートファイルを御利用願います。<BR>○修正の概要<BR>令和6年7月31日（水）付実施の国籍選択欄の順番変更に伴い、一括届出テンプレート内国籍選択欄の順番を修正<BR><BR>[2023/01/04]<BR><a  target="_blank" href="https://www.moj.go.jp/isa/content/001385206.xlsx">受入れ一括届出用テンプレートのプルダウン一覧</a>を公開しますので、御活用ください。<BR><BR>[2021/07/30]<BR>電子届出システム（中長期在留者、所属機関用）では、一部の文字（JIS X 0208を除く一部の環境依存文字）での入力はできません。<BR>届出を入力する際に使用できない文字が含まれている場合はエラーになりますので、エラーとなった文字を別の漢字やひらがななど（常用漢字等サポートされている文字コード規格に準拠した文字）に置き換えて届出を提出してください。<BR>　例：河﨑　→　河崎　または　河さき　　Ⅲ（ローマ数字の３）　→　III（英字の「I」を３つ並べる）<BR><BR>[2019/04/01]<BR>2019年4月1日に「法務省入国管理局」は組織改編され、「法務省出入国在留管理庁」になりました。これにより、本システムにおける記載を変更しています。一部変更前の記載が残っている箇所がありますが、随時変更対応等を実施していますので、御了承願います。<BR>On April 1,2019,"Ministry of Justice Immigration Bureau"became "Ministry of Justice Immigration Services Agency".As a result,the description in this system is changed.However the discription before the changes is still left,please note that we are implementing change correspondence at any time.<BR><BR>[2013/06/24]<BR>平成２５年６月２４日から「入国管理局電子届出システム」の運用を開始します。<BR>Start of the Immigration Bureau's e-Notification System from June 24, 2013<BR>2013年6月24日　入国管理局电子申报系统开始启用。<BR>2013年6月24日　入國管理局電子申報系統開始啟用。<BR>2013년 6월 24일 입국관리국 전자신고시스템이 시작되었습니다.<BR>El 24 de junio de 2013 empezó el Sistema de Declaración Electrónica de la Oficina de Inmigración.<BR>24 de junho de 2013 Começou o Sistema de Notificação Eletrônica do Departamento de Controle de Imigração.<BR>Nagsimula na ang Electronic Notification System ng Kawanihan ng Imigrasyon mula noong ika-24 ng Hulyo, 2013.</form></body></html>
+          </div>
+          <div class="col-md-12" style="height: 10px;">
+          </div>
+          
+          <div>
+              <a href="javascript:child_link('/html/NZA_QUESTION.html')"     id="NAA_QUESTION.HTMLTransfer">
+                &nbsp;&nbsp;(１)よくある質問(Ｑ＆Ａ)
+              </a>
+          </div>
+          
+          <div>
+              <a href="javascript:child_link('/html/NZA_TARGET.html')" id="NAA_TARGET.HTMLTransfer">
+                &nbsp;&nbsp;(２)届出対象となる中長期在留者の一覧
+              </a>
+          </div>
+      </div>
+      <div class="col-xs-12" style="height: 20px;">
+      </div>
+        <div class="col-md-12">
+          <div class="alert-info h3">
+            ログイン(出入国管理及び難民認定法第１９条の１６及び第１９条の１７に基づく届出)
+          </div>
+        </div>
+        <div class="col-md-12" style="height: 10px;">
+        </div>
+        <div class="col-md-12">
+          <span>
+            ・中長期在留者の方でオンラインでの届出を希望の方は下記ボタンを押してください。
+          </span>
+        </div>
+        <div class="col-md-12" style="height: 10px;">
+        </div>
+        <div class="col-md-12" style="padding:0% 10% 0% 10%">
+          <a class="btn btn-primary btn-block" onClick="return linkSrvNB(document.forms[0]);" >中長期在留者はこちら</a>
+        </div>
+        <div class="col-md-6 col-md-offset-3">
+        </div>
+        <div class="col-md-12" style="height: 20px;">
+        </div>
+        <div class="col-md-12">
+          <span>
+            ・所属機関の方でオンラインでの届出を希望の方は下記ボタンを押してください。
+          </span>
+        </div>
+        <div class="col-md-12" style="height: 10px;">
+        </div>
+        <div class="col-md-12" style="padding:0% 10% 0% 10%">
+          <a class="btn btn-primary btn-block"  onClick="return linkSrvNC(document.forms[0]);" >所属機関はこちら</a>
+        </div>
+        <div class="col-md-12" style="height: 20px;">
+        </div>
+        <div class="col-md-12">
+          <div class="h3 alert-info">
+            各種窓口用届出書
+          </div>
+        </div>
+        <div class="col-md-12" style="height: 10px;">
+        </div>
+        <div class="col-md-12">
+          <span>
+            ・所属機関の方で利用者登録をされていない方は下記テンプレートをダウンロードして頂き，ご記入の上で地方入国管理官署窓口までお持ちください。
+          </span>
+        </div>
+        <div class="col-md-12">
+          <div class="col-xs-12">
+            <div class="col-md-12">
+              <a class="info_html2" href="/excel/FAA01L.pdf" >所属機関登録用テンプレートダウンロード</a>
+            </div>
+          </div>
+        </div>
+        <div class="col-md-12" style="height: 20px;">
+        </div>
+        <div class="col-md-12">
+         
+          
+            ﻿<html><body style="FONT-SIZE:13;MARGIN:0px;border:none;overflow:hidden;padding:0px;FONT-FAMILY:'メイリオ','ＭＳ Ｐゴシック','MS PGothic',sans-serif;"><form><TABLE border="0" cellspacing="0px" cellpadding="0px"> <COL style='width:25px'> <COL style='width:15px'>	<TR style="height:25px;vertical-align:top">		<TD colspan=3 style="FONT-SIZE:13">			・中長期在留者の方は下記のテンプレートを使用して地方入国管理官署窓口・郵送での届出も可能です。</TD></TR>	<TR style="height:25px;vertical-align:top">		<TD></TD>		<TD>・</TD>		<TD style="FONT-SIZE:16"><a target="_blank" href="http://www.moj.go.jp/isa/applications/procedures/nyuukokukanri10_00014.html"><font size=3>			活動機関に関する届出（教授，経営・管理，法律・会計業務，医療，教育，企業内転勤，技能実習，留学，研修，<BR>高度専門職１号（ハ），高度専門職２号（ハの活動を行う方））</font></a></TD></TR>	<TR style="height:25px;vertical-align:top">		<TD></TD>		<TD>・</TD>		<TD style="FONT-SIZE:16"><a target="_blank" href="http://www.moj.go.jp/isa/applications/procedures/nyuukokukanri10_00015.html"><font size=3>			契約機関に関する届出（研究，技術・人文知識・国際業務，介護，興行，技能，高度専門職１号（イ），<BR>高度専門職１号（ロ），高度専門職２号（イ又はロの活動を行う方），特定技能１号，特定技能２号）</font></a></TD></TR>	<TR style="height:25px;vertical-align:top">		<TD></TD>		<TD>・</TD>		<TD style="FONT-SIZE:16"><a target="_blank" href="http://www.moj.go.jp/isa/applications/procedures/nyuukokukanri10_00016.html"><font size=3>			配偶者に関する届出</font></a></TD></TR>	<TR style="height:25px;vertical-align:top">		<TD colspan=3 style="FONT-SIZE:13">			・所属機関の方は下記のテンプレートを使用して地方入国管理官署窓口・郵送での届出も可能です。</TD></TR>	<TR style="height:25px;vertical-align:top">		<TD></TD>		<TD>・</TD>		<TD style="FONT-SIZE:16"><a target="_blank" href="http://www.moj.go.jp/isa/applications/procedures/nyuukokukanri10_00017.html"><font size=3>			中長期在留者の受入れに関する届出</font></a></TD></TR>	<TR style="height:25px;vertical-align:top">		<TD></TD>		<TD>・</TD>		<TD style="FONT-SIZE:16"><a target="_blank" href="http://www.moj.go.jp/isa/applications/procedures/nyuukokukanri10_00018.html"><font size=3>			留学の在留資格を有する中長期在留者の受入れ状況に関する届出</font></a></TD></TR>	<TR style="height:45px;vertical-align:top">		<TD colspan=3 style="FONT-SIZE:13">			・利用者登録がお済みの所属機関の方で，電子届出システムの認証ＩＤの確認・パスワードの有効期限切れ等による再設定が必要な方は<BR>&nbsp;&nbsp;&nbsp;下記申請書に必要事項をご記入の上で地方入国管理官署窓口まで郵送か持参ください。</TD></TR>	<TR style="height:25px;vertical-align:top">		<TD></TD>		<TD>・</TD>		<TD style="FONT-SIZE:16"><a  target="_blank" href="/excel/FAA02L.pdf"><font size=3>			出入国在留管理庁電子届出システム認証ＩＤ・ＰＷ確認等申出書</font></a></TD></TR></TABLE></form></body></html>
+          
+          
+          
+          
+          
+          
+          
+          
+        
+        </div>
+        <div class="col-md-12" style="height: 50px;">
+        </div>
+        <div class="col-md-12">
+          <div class="h3 alert-info">
+            問い合わせ先 ヘルプデスク
+          </div>
+        </div>
+        <div class="col-md-12" style="height: 10px;">
+        </div>
+        <div class="col-md-12">
+          <html><body style="MARGIN:0px;border:none;padding:0px;FONT-FAMILY:'メイリオ','ＭＳ Ｐゴシック','MS PGothic',sans-serif;"><form>	<TABLE>		<TR>			<TD style="FONT-SIZE:13;">				&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<SPAN style="width:47px">TEL</span>: 050-3786-3053			</TD>		</TR>		<TR>			<TD style="FONT-SIZE:13;">				&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<SPAN style="width:47px">E-MAIL</span>: <A href="mailto:mjf.support.cw@hitachi-systems.com">mjf.support.cw@hitachi-systems.com</A>			</TD>		</TR>	</TABLE></form></body></html>
+        </div>
+        <div class="col-md-6 col-md-offset-3">
+        </div>
+      <div class="col-xs-12" style="height: 50px;">
+      </div>
+      <div>
+      </div>
+      <div>
+      </div>
+      <div>
+      </div>
+      <div class="col-xs-12">
+        
+
+<div class="col-xs-12 text-center alert-info">
+  <span> Copyright (C) Immigration Services Agency of Japan All Rights Reserved. </span>
+</div>
+<input type="hidden" name="PS_SCREEN_UNIQUE_ID" value="9a954e9d-6a50-4d5e-9990-d934fb00f65e" />
+<input type="hidden" name="HD_TRANSACTION_TOKEN" value="1756188195117917084" />
+<input type="hidden" name="HD_TOKEN_KEEP" value="" />
+
+      </div>
+    </div>
+    </form>
+  </body>
+</html>

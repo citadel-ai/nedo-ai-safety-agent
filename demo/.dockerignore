@@ -1,0 +1,67 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+venv/
+env/
+ENV/
+.venv
+
+# Node
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Git
+.git/
+.gitignore
+
+# Environment
+.env
+.env.*
+
+# Logs
+logs/
+*.log
+
+# PID files
+.pids/
+
+# Build artifacts
+dist/
+build/
+*.egg-info/
+
+# Documentation
+*.md
+!README.md
+
+# Test files
+test/
+tests/
+*.test.js
+*.test.ts
+*.spec.js
+*.spec.ts
+
+# Notebooks
+notebooks/
+*.ipynb
+
+# Misc
+.cursor/
+

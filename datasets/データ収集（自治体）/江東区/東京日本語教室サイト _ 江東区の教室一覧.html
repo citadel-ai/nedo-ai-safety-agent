@@ -1,0 +1,1449 @@
+<!doctype html>
+<html lang="ja">
+
+<head>
+  <!-- Required meta tags -->
+<meta charset="UTF-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge" />
+<meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+<!-- Normalize -->
+<link href="https://cdnjs.cloudflare.com/ajax/libs/normalize/8.0.0/normalize.css" rel="stylesheet">
+<!-- Bootstrap CSS -->
+<link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css"
+  integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T" crossorigin="anonymous">
+<link rel="stylesheet" href="/styles.css?20240925">
+<!-- font Awesome -->
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.6.0/css/all.min.css" integrity="sha512-Kc323vGBEqzTmouAECnVceyQqyqdsSiqLQISBL29aUW4U/M7pSPA/gEUZQqv1cwx4OnYxTxve5UMg5GT6L4JJg==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+<!-- MT Form -->
+<script src="https://form.movabletype.net/dist/parent-loader.js" defer async></script>
+
+
+<link rel="apple-touch-icon" sizes="180x180" href="/images/favicon/apple-touch-icon.png">
+<link rel="icon" type="image/png" sizes="32x32" href="/images/favicon/favicon-32x32.png">
+<link rel="icon" type="image/png" sizes="16x16" href="/images/favicon/favicon-16x16.png">
+<link rel="manifest" href="/images/favicon/site.webmanifest">
+<link rel="mask-icon" href="/images/favicon/safari-pinned-tab.svg" color="#5bbad5">
+<link rel="shortcut icon" href="/images/favicon/favicon.ico">
+<meta name="msapplication-TileColor" content="#da532c">
+<meta name="msapplication-config" content="/images/favicon/browserconfig.xml">
+<meta name="theme-color" content="#ffffff">
+
+<!-- SNSカード -->
+<meta name="twitter:card" content="summary_large_image" />
+<meta property="og:image" content="https://nihongo.tokyo-tsunagari.or.jp/images/sns_img.png"/>
+
+<!-- Global site tag (gtag.js) - Google Analytics -->
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-C14M6F0TK0"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+
+  gtag('config', 'G-C14M6F0TK0');
+</script>
+<script src="//msta.j-server.com/MSTA/LUC2NIHONG/js/msta.js"></script>
+
+<script>
+function trans_start( lang )
+{
+	document.cookie = 'msta_lang=' + lang + '; path=/';
+	location.href = '/english/jp-class/jp-ward/108-kotoku/';
+	return false;
+}
+</script>
+<style>
+	div#msta_langArea{display:none !important;}
+</style>
+
+  <title>
+    東京日本語教室サイト | 江東区の教室一覧
+  </title>
+</head>
+
+<body>
+  <noscript>
+    <span>本システムでは、JavaScriptを利用しています。JavaScriptを有効に設定してからご利用ください。</span>
+  </noscript>
+
+
+  <!-- ヘッダー -->
+  <header>
+    <!-- PC用 -->
+    <div class="pc-header">
+      <!-- search-menu -->
+      <div class="search-menu container-fluid d-none d-lg-block">
+        <div class="search-menu-inner">
+          <div class="row align-items-center">
+            <div class="col-4">
+              <a  href="/"><img src="/images/logo.svg" alt="東京日本語教室サイトのロゴ画像"></a>
+            </div>
+            <div class="col-8">
+              <div class="row py-3">
+                <div class="search-menu-box col-12 text-right small-font-size">
+                <form class="input-group w-auto mr-3" id="cse-search-box" action="/search.html">
+                    <input type="hidden" name="cx" value="4a3c7f4c28eaed5ad" />
+                    <input type="hidden" name="ie" value="UTF-8" />
+                    <input type="text" style="width: 13em;" placeholder="きょうしつ  を さがす" name="q" size="31" />
+                    <span class="input-group-btn">
+                      <button type="submit" class="btn btn-secondary btn-sm" style="margin-left:4px;" name="sa"><i class="fas fa-search"></i></button>
+                    </span>
+                  <input type="hidden" name="siteurl" value="https://nihongo.tokyo-tsunagari.or.jp/" />
+                  <input type="hidden" name="ref" value="https://nihongo.tokyo-tsunagari.or.jp/" />
+                  </form>
+                  <script type="text/javascript" src="https://cse.google.com/cse.js?cx=4a3c7f4c28eaed5ad"></script>
+                  <div class="hurigana-btn-box">
+                    <button type="button" class="btn hurigana-on-btn" id="hurigana_button_on">ふりがな ON</button>
+                    <button type="button" class="btn btn-secondary" id="hurigana_button_off">ふりがな OFF</button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <!-- language-menu -->
+    <div class="language-menu py-2 justify-content-around d-none d-lg-flex">
+        <div class="language-menu-inner">
+          <button type="button" class="language-menu-button" onclick="location.href='/jp-class/jp-ward/108-kotoku/'"><olang><ruby><rb>日本語</rb><rt>にほんご</rt></ruby></olang></button>
+          <button type="button" class="language-menu-button" onclick="return trans_start('en');"><olang>English</olang></button>
+          <button type="button" class="language-menu-button" onclick="return trans_start('zh');"><olang>簡体字</olang></button>
+          <button type="button" class="language-menu-button" onclick="return trans_start('tw');"><olang>繁体字</olang></button>
+          <button type="button" class="language-menu-button" onclick="return trans_start('ko');"><olang>한국어</olang></button>
+          <!-- 多言語 -->
+              <button id="language-multi" type="button" class="language-menu-toggle">ことば を えらぶ</button>
+              <div class="language-menu-dropdown">
+                <ul class="language-menu-dropdown-list">
+                    <li class="language-menu-dropdown-list-item"><button type="button" class="language-menu-dropdown-list-button" onclick="return trans_start('vi');"><olang>Tiếng Việt</olang></button></li>
+                    <li class="language-menu-dropdown-list-item"><button type="button" class="language-menu-dropdown-list-button" onclick="return trans_start('ph');"><olang>Filipino</olang></button></li>
+                    <li class="language-menu-dropdown-list-item"><button type="button" class="language-menu-dropdown-list-button" onclick="return trans_start('ne');"><olang>नेपाली</olang></button></li>
+                    <li class="language-menu-dropdown-list-item"><button type="button" class="language-menu-dropdown-list-button" onclick="return trans_start('my');"><olang>မြန်မာဘာသာစကား</olang></button></li>
+                    <li class="language-menu-dropdown-list-item"><button type="button" class="language-menu-dropdown-list-button" onclick="return trans_start('hi');"><olang>हिन्दी</olang></button></li>
+                    <li class="language-menu-dropdown-list-item"><button type="button" class="language-menu-dropdown-list-button" onclick="return trans_start('id');"><olang>Indonesia</olang></button></li>
+                    <li class="language-menu-dropdown-list-item"><button type="button" class="language-menu-dropdown-list-button" onclick="return trans_start('af');"><olang>Afrikaans</olang></button></li>
+                    <li class="language-menu-dropdown-list-item"><button type="button" class="language-menu-dropdown-list-button" onclick="return trans_start('sq');"><olang>Shqip</olang></button></li>
+                    <li class="language-menu-dropdown-list-item"><button type="button" class="language-menu-dropdown-list-button" onclick="return trans_start('am');"><olang>አማርኛ</olang></button></li>
+                    <li class="language-menu-dropdown-list-item"><button type="button" class="language-menu-dropdown-list-button" onclick="return trans_start('ar');"><olang>عربي</olang></button></li>
+                    <li class="language-menu-dropdown-list-item"><button type="button" class="language-menu-dropdown-list-button" onclick="return trans_start('hy');"><olang>Հայերեն</olang></button></li>
+                    <li class="language-menu-dropdown-list-item"><button type="button" class="language-menu-dropdown-list-button" onclick="return trans_start('as');"><olang>অসমীয়া</olang></button></li>
+                    <li class="language-menu-dropdown-list-item"><button type="button" class="language-menu-dropdown-list-button" onclick="return trans_start('az');"><olang>Azərbaycan</olang></button></li>
+                    <li class="language-menu-dropdown-list-item"><button type="button" class="language-menu-dropdown-list-button" onclick="return trans_start('ba');"><olang>Bashkir</olang></button></li>
+                    <li class="language-menu-dropdown-list-item"><button type="button" class="language-menu-dropdown-list-button" onclick="return trans_start('eu');"><olang>Euskara</olang></button></li>
+                    <li class="language-menu-dropdown-list-item"><button type="button" class="language-menu-dropdown-list-button" onclick="return trans_start('be');"><olang>беларуская</olang></button></li>
+                    <li class="language-menu-dropdown-list-item"><button type="button" class="language-menu-dropdown-list-button" onclick="return trans_start('bn');"><olang>বাংলা</olang></button></li>
+                    <li class="language-menu-dropdown-list-item"><button type="button" class="language-menu-dropdown-list-button" onclick="return trans_start('bs');"><olang>Bosanski</olang></button></li>
+                    <li class="language-menu-dropdown-list-item"><button type="button" class="language-menu-dropdown-list-button" onclick="return trans_start('bg');"><olang>Български</olang></button></li>
+                    <li class="language-menu-dropdown-list-item"><button type="button" class="language-menu-dropdown-list-button" onclick="return trans_start('ca');"><olang>Català</olang></button></li>
+                    <li class="language-menu-dropdown-list-item"><button type="button" class="language-menu-dropdown-list-button" onclick="return trans_start('ce');"><olang>Cebuano</olang></button></li>
+                    <li class="language-menu-dropdown-list-item"><button type="button" class="language-menu-dropdown-list-button" onclick="return trans_start('ny');"><olang>Chewa</olang></button></li>
+                    <li class="language-menu-dropdown-list-item"><button type="button" class="language-menu-dropdown-list-button" onclick="return trans_start('co');"><olang>Corsu</olang></button></li>
+                    <li class="language-menu-dropdown-list-item"><button type="button" class="language-menu-dropdown-list-button" onclick="return trans_start('hr');"><olang>Hrvatski</olang></button></li>
+                    <li class="language-menu-dropdown-list-item"><button type="button" class="language-menu-dropdown-list-button" onclick="return trans_start('cs');"><olang>Čeština</olang></button></li>
+                    <li class="language-menu-dropdown-list-item"><button type="button" class="language-menu-dropdown-list-button" onclick="return trans_start('da');"><olang>Dansk</olang></button></li>
+                    <li class="language-menu-dropdown-list-item"><button type="button" class="language-menu-dropdown-list-button" onclick="return trans_start('pr');"><olang>دری</olang></button></li>
+                    <li class="language-menu-dropdown-list-item"><button type="button" class="language-menu-dropdown-list-button" onclick="return trans_start('dv');"><olang>ދިވެހިބަސް</olang></button></li>
+                    <li class="language-menu-dropdown-list-item"><button type="button" class="language-menu-dropdown-list-button" onclick="return trans_start('nl');"><olang>Nederlands</olang></button></li>
+                    <li class="language-menu-dropdown-list-item"><button type="button" class="language-menu-dropdown-list-button" onclick="return trans_start('eo');"><olang>Esperanto</olang></button></li>
+                    <li class="language-menu-dropdown-list-item"><button type="button" class="language-menu-dropdown-list-button" onclick="return trans_start('et');"><olang>Eesti</olang></button></li>
+                    <li class="language-menu-dropdown-list-item"><button type="button" class="language-menu-dropdown-list-button" onclick="return trans_start('fj');"><olang>Na Vosa Vakaviti</olang></button></li>
+                    <li class="language-menu-dropdown-list-item"><button type="button" class="language-menu-dropdown-list-button" onclick="return trans_start('fi');"><olang>Suomi</olang></button></li>
+                    <li class="language-menu-dropdown-list-item"><button type="button" class="language-menu-dropdown-list-button" onclick="return trans_start('fr');"><olang>Français</olang></button></li>
+                    <li class="language-menu-dropdown-list-item"><button type="button" class="language-menu-dropdown-list-button" onclick="return trans_start('fy');"><olang>Frysk</olang></button></li>
+                    <li class="language-menu-dropdown-list-item"><button type="button" class="language-menu-dropdown-list-button" onclick="return trans_start('gl');"><olang>Galego</olang></button></li>
+                    <li class="language-menu-dropdown-list-item"><button type="button" class="language-menu-dropdown-list-button" onclick="return trans_start('ka');"><olang>ქართული</olang></button></li>
+                    <li class="language-menu-dropdown-list-item"><button type="button" class="language-menu-dropdown-list-button" onclick="return trans_start('de');"><olang>Deutsch</olang></button></li>
+                    <li class="language-menu-dropdown-list-item"><button type="button" class="language-menu-dropdown-list-button" onclick="return trans_start('el');"><olang>Ελληνικά</olang></button></li>
+                    <li class="language-menu-dropdown-list-item"><button type="button" class="language-menu-dropdown-list-button" onclick="return trans_start('gu');"><olang>ગુજરાતી</olang></button></li>
+                    <li class="language-menu-dropdown-list-item"><button type="button" class="language-menu-dropdown-list-button" onclick="return trans_start('ht');"><olang>Ayisyen</olang></button></li>
+                    <li class="language-menu-dropdown-list-item"><button type="button" class="language-menu-dropdown-list-button" onclick="return trans_start('ha');"><olang>Hausa</olang></button></li>
+                    <li class="language-menu-dropdown-list-item"><button type="button" class="language-menu-dropdown-list-button" onclick="return trans_start('hw');"><olang>ʻŌlelo Hawaiʻi</olang></button></li>
+                    <li class="language-menu-dropdown-list-item"><button type="button" class="language-menu-dropdown-list-button" onclick="return trans_start('he');"><olang>עברית</olang></button></li>
+                    <li class="language-menu-dropdown-list-item"><button type="button" class="language-menu-dropdown-list-button" onclick="return trans_start('hm');"><olang>Hmong</olang></button></li>
+                    <li class="language-menu-dropdown-list-item"><button type="button" class="language-menu-dropdown-list-button" onclick="return trans_start('mw');"><olang>Hmong Daw</olang></button></li>
+                    <li class="language-menu-dropdown-list-item"><button type="button" class="language-menu-dropdown-list-button" onclick="return trans_start('hu');"><olang>Magyar</olang></button></li>
+                    <li class="language-menu-dropdown-list-item"><button type="button" class="language-menu-dropdown-list-button" onclick="return trans_start('is');"><olang>Íslenskur</olang></button></li>
+                    <li class="language-menu-dropdown-list-item"><button type="button" class="language-menu-dropdown-list-button" onclick="return trans_start('ig');"><olang>asụsụ Igbo</olang></button></li>
+                    <li class="language-menu-dropdown-list-item"><button type="button" class="language-menu-dropdown-list-button" onclick="return trans_start('iu');"><olang>ᐃᓄᒃᑎᑐᑦ</olang></button></li>
+                    <li class="language-menu-dropdown-list-item"><button type="button" class="language-menu-dropdown-list-button" onclick="return trans_start('ga');"><olang>Gaeilge</olang></button></li>
+                    <li class="language-menu-dropdown-list-item"><button type="button" class="language-menu-dropdown-list-button" onclick="return trans_start('it');"><olang>Italiano</olang></button></li>
+                    <li class="language-menu-dropdown-list-item"><button type="button" class="language-menu-dropdown-list-button" onclick="return trans_start('jv');"><olang>Basa Jawa</olang></button></li>
+                    <li class="language-menu-dropdown-list-item"><button type="button" class="language-menu-dropdown-list-button" onclick="return trans_start('kn');"><olang>ಕನ್ನಡ</olang></button></li>
+                    <li class="language-menu-dropdown-list-item"><button type="button" class="language-menu-dropdown-list-button" onclick="return trans_start('kk');"><olang>Қазақ тілі</olang></button></li>
+                    <li class="language-menu-dropdown-list-item"><button type="button" class="language-menu-dropdown-list-button" onclick="return trans_start('km');"><olang>ខ្មែរ</olang></button></li>
+                    <li class="language-menu-dropdown-list-item"><button type="button" class="language-menu-dropdown-list-button" onclick="return trans_start('rw');"><olang>Kinyarwanda</olang></button></li>
+                    <li class="language-menu-dropdown-list-item"><button type="button" class="language-menu-dropdown-list-button" onclick="return trans_start('ku');"><olang>Kurdî</olang></button></li>
+                    <li class="language-menu-dropdown-list-item"><button type="button" class="language-menu-dropdown-list-button" onclick="return trans_start('ky');"><olang>Кыргызча</olang></button></li>
+                    <li class="language-menu-dropdown-list-item"><button type="button" class="language-menu-dropdown-list-button" onclick="return trans_start('lo');"><olang>ພາສາລາວ</olang></button></li>
+                    <li class="language-menu-dropdown-list-item"><button type="button" class="language-menu-dropdown-list-button" onclick="return trans_start('lv');"><olang>Latviešu</olang></button></li>
+                    <li class="language-menu-dropdown-list-item"><button type="button" class="language-menu-dropdown-list-button" onclick="return trans_start('lt');"><olang>Lietuvių</olang></button></li>
+                    <li class="language-menu-dropdown-list-item"><button type="button" class="language-menu-dropdown-list-button" onclick="return trans_start('lb');"><olang>Lëtzebuergesch</olang></button></li>
+                    <li class="language-menu-dropdown-list-item"><button type="button" class="language-menu-dropdown-list-button" onclick="return trans_start('mk');"><olang>македонски</olang></button></li>
+                    <li class="language-menu-dropdown-list-item"><button type="button" class="language-menu-dropdown-list-button" onclick="return trans_start('mg');"><olang>Malagasy</olang></button></li>
+                    <li class="language-menu-dropdown-list-item"><button type="button" class="language-menu-dropdown-list-button" onclick="return trans_start('ms');"><olang>Melayu</olang></button></li>
+                    <li class="language-menu-dropdown-list-item"><button type="button" class="language-menu-dropdown-list-button" onclick="return trans_start('ml');"><olang>മലയാളം</olang></button></li>
+                    <li class="language-menu-dropdown-list-item"><button type="button" class="language-menu-dropdown-list-button" onclick="return trans_start('mt');"><olang>Malti</olang></button></li>
+                    <li class="language-menu-dropdown-list-item"><button type="button" class="language-menu-dropdown-list-button" onclick="return trans_start('mi');"><olang>Māori</olang></button></li>
+                    <li class="language-menu-dropdown-list-item"><button type="button" class="language-menu-dropdown-list-button" onclick="return trans_start('mr');"><olang>मराठी</olang></button></li>
+                    <li class="language-menu-dropdown-list-item"><button type="button" class="language-menu-dropdown-list-button" onclick="return trans_start('mn');"><olang>Монгол</olang></button></li>
+                    <li class="language-menu-dropdown-list-item"><button type="button" class="language-menu-dropdown-list-button" onclick="return trans_start('no');"><olang>Norsk</olang></button></li>
+                    <li class="language-menu-dropdown-list-item"><button type="button" class="language-menu-dropdown-list-button" onclick="return trans_start('or');"><olang>ଓଡିଆ</olang></button></li>
+                    <li class="language-menu-dropdown-list-item"><button type="button" class="language-menu-dropdown-list-button" onclick="return trans_start('ps');"><olang>پښتو</olang></button></li>
+                    <li class="language-menu-dropdown-list-item"><button type="button" class="language-menu-dropdown-list-button" onclick="return trans_start('fa');"><olang>فارسی</olang></button></li>
+                    <li class="language-menu-dropdown-list-item"><button type="button" class="language-menu-dropdown-list-button" onclick="return trans_start('pl');"><olang>Język polski</olang></button></li>
+                    <li class="language-menu-dropdown-list-item"><button type="button" class="language-menu-dropdown-list-button" onclick="return trans_start('pt');"><olang>Português</olang></button></li>
+                    <li class="language-menu-dropdown-list-item"><button type="button" class="language-menu-dropdown-list-button" onclick="return trans_start('pa');"><olang>ਪੰਜਾਬੀ</olang></button></li>
+                    <li class="language-menu-dropdown-list-item"><button type="button" class="language-menu-dropdown-list-button" onclick="return trans_start('ot');"><olang>Hñähñu</olang></button></li>
+                    <li class="language-menu-dropdown-list-item"><button type="button" class="language-menu-dropdown-list-button" onclick="return trans_start('ro');"><olang>Română</olang></button></li>
+                    <li class="language-menu-dropdown-list-item"><button type="button" class="language-menu-dropdown-list-button" onclick="return trans_start('ru');"><olang>Русский</olang></button></li>
+                    <li class="language-menu-dropdown-list-item"><button type="button" class="language-menu-dropdown-list-button" onclick="return trans_start('sm');"><olang>Samoa</olang></button></li>
+                    <li class="language-menu-dropdown-list-item"><button type="button" class="language-menu-dropdown-list-button" onclick="return trans_start('gd');"><olang>Gàidhlig na h-Alba</olang></button></li>
+                    <li class="language-menu-dropdown-list-item"><button type="button" class="language-menu-dropdown-list-button" onclick="return trans_start('sr');"><olang>Српски</olang></button></li>
+                    <li class="language-menu-dropdown-list-item"><button type="button" class="language-menu-dropdown-list-button" onclick="return trans_start('sn');"><olang>Shona</olang></button></li>
+                    <li class="language-menu-dropdown-list-item"><button type="button" class="language-menu-dropdown-list-button" onclick="return trans_start('sd');"><olang>سنڌي</olang></button></li>
+                    <li class="language-menu-dropdown-list-item"><button type="button" class="language-menu-dropdown-list-button" onclick="return trans_start('si');"><olang>සිංහල</olang></button></li>
+                    <li class="language-menu-dropdown-list-item"><button type="button" class="language-menu-dropdown-list-button" onclick="return trans_start('sk');"><olang>Slovenčina</olang></button></li>
+                    <li class="language-menu-dropdown-list-item"><button type="button" class="language-menu-dropdown-list-button" onclick="return trans_start('sl');"><olang>Slovenščina</olang></button></li>
+                    <li class="language-menu-dropdown-list-item"><button type="button" class="language-menu-dropdown-list-button" onclick="return trans_start('so');"><olang>Soomaali</olang></button></li>
+                    <li class="language-menu-dropdown-list-item"><button type="button" class="language-menu-dropdown-list-button" onclick="return trans_start('st');"><olang>Sotho</olang></button></li>
+                    <li class="language-menu-dropdown-list-item"><button type="button" class="language-menu-dropdown-list-button" onclick="return trans_start('es');"><olang>Español</olang></button></li>
+                    <li class="language-menu-dropdown-list-item"><button type="button" class="language-menu-dropdown-list-button" onclick="return trans_start('su');"><olang>Basa Sunda</olang></button></li>
+                    <li class="language-menu-dropdown-list-item"><button type="button" class="language-menu-dropdown-list-button" onclick="return trans_start('sw');"><olang>Kiswahili</olang></button></li>
+                    <li class="language-menu-dropdown-list-item"><button type="button" class="language-menu-dropdown-list-button" onclick="return trans_start('sv');"><olang>Svenska</olang></button></li>
+                    <li class="language-menu-dropdown-list-item"><button type="button" class="language-menu-dropdown-list-button" onclick="return trans_start('ty');"><olang>Reo Tahiti</olang></button></li>
+                    <li class="language-menu-dropdown-list-item"><button type="button" class="language-menu-dropdown-list-button" onclick="return trans_start('tg');"><olang>тоҷикӣ</olang></button></li>
+                    <li class="language-menu-dropdown-list-item"><button type="button" class="language-menu-dropdown-list-button" onclick="return trans_start('ta');"><olang>தமிழ்</olang></button></li>
+                    <li class="language-menu-dropdown-list-item"><button type="button" class="language-menu-dropdown-list-button" onclick="return trans_start('tt');"><olang>Татар</olang></button></li>
+                    <li class="language-menu-dropdown-list-item"><button type="button" class="language-menu-dropdown-list-button" onclick="return trans_start('te');"><olang>తెలుగు</olang></button></li>
+                    <li class="language-menu-dropdown-list-item"><button type="button" class="language-menu-dropdown-list-button" onclick="return trans_start('th');"><olang>ภาษาไทย</olang></button></li>
+                    <li class="language-menu-dropdown-list-item"><button type="button" class="language-menu-dropdown-list-button" onclick="return trans_start('bo');"><olang>བོད་སྐད་</olang></button></li>
+                    <li class="language-menu-dropdown-list-item"><button type="button" class="language-menu-dropdown-list-button" onclick="return trans_start('ti');"><olang>ትግር</olang></button></li>
+                    <li class="language-menu-dropdown-list-item"><button type="button" class="language-menu-dropdown-list-button" onclick="return trans_start('to');"><olang>Lea Fakatonga</olang></button></li>
+                    <li class="language-menu-dropdown-list-item"><button type="button" class="language-menu-dropdown-list-button" onclick="return trans_start('tr');"><olang>Türkçe</olang></button></li>
+                    <li class="language-menu-dropdown-list-item"><button type="button" class="language-menu-dropdown-list-button" onclick="return trans_start('tk');"><olang>Türkmençe</olang></button></li>
+                    <li class="language-menu-dropdown-list-item"><button type="button" class="language-menu-dropdown-list-button" onclick="return trans_start('ug');"><olang>ئۇيغۇرچە</olang></button></li>
+                    <li class="language-menu-dropdown-list-item"><button type="button" class="language-menu-dropdown-list-button" onclick="return trans_start('uk');"><olang>Український</olang></button></li>
+                    <li class="language-menu-dropdown-list-item"><button type="button" class="language-menu-dropdown-list-button" onclick="return trans_start('ur');"><olang>اردو</olang></button></li>
+                    <li class="language-menu-dropdown-list-item"><button type="button" class="language-menu-dropdown-list-button" onclick="return trans_start('uz');"><olang>Oʻzbek</olang></button></li>
+                    <li class="language-menu-dropdown-list-item"><button type="button" class="language-menu-dropdown-list-button" onclick="return trans_start('cy');"><olang>Cymraeg</olang></button></li>
+                    <li class="language-menu-dropdown-list-item"><button type="button" class="language-menu-dropdown-list-button" onclick="return trans_start('xh');"><olang>Xhosa</olang></button></li>
+                    <li class="language-menu-dropdown-list-item"><button type="button" class="language-menu-dropdown-list-button" onclick="return trans_start('yi');"><olang>יידיש</olang></button></li>
+                    <li class="language-menu-dropdown-list-item"><button type="button" class="language-menu-dropdown-list-button" onclick="return trans_start('yo');"><olang>Yoruba</olang></button></li>
+                    <li class="language-menu-dropdown-list-item"><button type="button" class="language-menu-dropdown-list-button" onclick="return trans_start('yu');"><olang>Yucatec Maya</olang></button></li>
+                    <li class="language-menu-dropdown-list-item"><button type="button" class="language-menu-dropdown-list-button" onclick="return trans_start('zu');"><olang>Zulu</olang></button></li>
+                     </ul>
+
+              </div>
+    </div>
+      </div>
+      <!-- second-menu -->
+      <div class="second-menu py-2 justify-content-around d-none d-lg-flex">
+        <div class="second-menu-inner">
+          <div><a class="nav-link" href="/"><ruby>トップページ<rt>とっぷぺーじ</rt></ruby></a></div>
+          <div><a class="nav-link" href="/jp-class/index.html"><ruby>日本語教室<rt>にほんごきょうしつ</rt></ruby></a></div>
+          <div><a class="nav-link" href="/child-class/index.html"><ruby><rb>子</rb><rt>こ</rt></ruby>どもの<ruby><rb>日本語</rb><rt>にほんご</rt></ruby><ruby><rb>教室</rb><rt>きょうしつ</rt></ruby></a></div>
+          <div><a class="nav-link" href="/contact.html">お<ruby><rb>問</rb><rt>と</rt></ruby>い<ruby><rb>合</rb><rt>あ</rt></ruby>わせ</a></div>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- スマホ用 -->
+    <div class="sp-header d-lg-none">
+      <!-- スマホ用ロゴ -->
+      <div class="sp-logo">
+        <a href="/" class="w-100" style="margin: 0 auto 0 0;"><img src="/images/logo.svg" style="margin: 0 auto 0 0;" alt="東京日本語教室サイトのロゴ画像" class="h-100"></a>
+      </div>
+      <!-- ハンバーガーメニュー -->
+      <div id="hamburger">
+        <div class="icon">
+          <span></span>
+          <span></span>
+          <span></span>
+        </div>
+      </div>
+      <!-- ハンバーガーメニューの中身 -->
+      <nav class="sp-nav">
+        <ul>
+          <li class="noborder">
+            <button type="button" class="btn hurigana-on-btn" id="hurigana_button_on_sp">ふりがな ON</button>
+            <button type="button" class="btn btn-secondary" id="hurigana_button_off_sp">ふりがな OFF</button>
+          </li>
+          <li class="noborder">
+            <form class="d-inline-block input-group w-auto mr-3" id="cse-search-box" action="/search.html">
+              <input type="hidden" name="cx" value="4a3c7f4c28eaed5ad" />
+              <input type="hidden" name="ie" value="UTF-8" />
+              <input type="text" style="width: calc(100% - 55px); margin-left: 15px; border-radius: 4px; border: none;" placeholder="きょうしつ  を さがす" name="q" size="31" />
+              <span class="input-group-btn">
+                <button type="submit" class="btn btn-secondary btn-sm" style="margin-top:-6px;" name="sa"><i class="fas fa-search"></i></button>
+              </span>
+              <input type="hidden" name="siteurl" value="https://nihongo.tokyo-tsunagari.or.jp/" />
+              <input type="hidden" name="ref" value="https://nihongo.tokyo-tsunagari.or.jp/" />
+            </form>
+          </li>
+        </ul>
+        <ul>
+          <li><a href="/jp-class/index.html"><ruby>日本語教室<rt>にほんごきょうしつ</rt></ruby></a></li>
+          <li><a href="/child-class/index.html"><ruby><rb>子</rb><rt>こ</rt></ruby>どもの<ruby><rb>日本語</rb><rt>にほんご</rt></ruby><ruby><rb>教室</rb><rt>きょうしつ</rt></ruby></a></li>
+          <li><a href="/contact.html">お<ruby><rb>問</rb><rt>と</rt></ruby>い<ruby><rb>合</rb><rt>あ</rt></ruby>わせ</a></li>
+          <li><a href="/sitepolicy.html"><ruby>サイトポリシー<rt>さいとぽりしー</rt></ruby></a></li>
+          <li><a href="/privacy.html"><ruby><rb>個人情報</rb><rt>こじんじょうほう</rt></ruby><ruby><rb>保護</rb><rt>ほご</rt></ruby><ruby><rb>方針</rb><rt>ほうしん</rt></ruby></a></li>
+          <li><a href="/sitemap.html"><ruby>サイトマップ<rt>さいとまっぷ</rt></ruby></a></li>
+        </ul>
+      </nav>
+
+      <!-- アコーディオンメニュー -->
+      <div id="accordion">
+        <div class="accordion-title close_accordion">Language/语言/언어</div>
+      </div>
+      <!-- アコーディオンメニューの中身 -->
+      <div class="accordion-inner close_accordion">
+        <div class="language-menu">
+          <button type="button" class="language-menu-button" onclick="location.href='/jp-class/jp-ward/108-kotoku/'"><olang><ruby><rb>日本語</rb><rt>にほんご</rt></ruby></olang></button>
+          <button type="button" class="language-menu-button" onclick="return trans_start('en');"><olang>English</olang></button>
+          <button type="button" class="language-menu-button" onclick="return trans_start('zh');"><olang>簡体字</olang></button>
+          <button type="button" class="language-menu-button" onclick="return trans_start('tw');"><olang>繁体字</olang></button>
+          <button type="button" class="language-menu-button" onclick="return trans_start('ko');"><olang>한국어</olang></button>
+              <!-- 多言語 -->
+              <button id="language-multi-sp" type="button" class="language-menu-toggle">ことば を えらぶ</button>
+              <div class="language-menu-dropdown">
+                <ul class="language-menu-dropdown-list">
+                    <li class="language-menu-dropdown-list-item"><button type="button" class="language-menu-dropdown-list-button" onclick="return trans_start('vi');"><olang>Tiếng Việt</olang></button></li>
+                    <li class="language-menu-dropdown-list-item"><button type="button" class="language-menu-dropdown-list-button" onclick="return trans_start('ph');"><olang>Filipino</olang></button></li>
+                    <li class="language-menu-dropdown-list-item"><button type="button" class="language-menu-dropdown-list-button" onclick="return trans_start('ne');"><olang>नेपाली</olang></button></li>
+                    <li class="language-menu-dropdown-list-item"><button type="button" class="language-menu-dropdown-list-button" onclick="return trans_start('my');"><olang>မြန်မာဘာသာစကား</olang></button></li>
+                    <li class="language-menu-dropdown-list-item"><button type="button" class="language-menu-dropdown-list-button" onclick="return trans_start('hi');"><olang>हिन्दी</olang></button></li>
+                    <li class="language-menu-dropdown-list-item"><button type="button" class="language-menu-dropdown-list-button" onclick="return trans_start('id');"><olang>Indonesia</olang></button></li>
+                    <li class="language-menu-dropdown-list-item"><button type="button" class="language-menu-dropdown-list-button" onclick="return trans_start('af');"><olang>Afrikaans</olang></button></li>
+                    <li class="language-menu-dropdown-list-item"><button type="button" class="language-menu-dropdown-list-button" onclick="return trans_start('sq');"><olang>Shqip</olang></button></li>
+                    <li class="language-menu-dropdown-list-item"><button type="button" class="language-menu-dropdown-list-button" onclick="return trans_start('am');"><olang>አማርኛ</olang></button></li>
+                    <li class="language-menu-dropdown-list-item"><button type="button" class="language-menu-dropdown-list-button" onclick="return trans_start('ar');"><olang>عربي</olang></button></li>
+                    <li class="language-menu-dropdown-list-item"><button type="button" class="language-menu-dropdown-list-button" onclick="return trans_start('hy');"><olang>Հայերեն</olang></button></li>
+                    <li class="language-menu-dropdown-list-item"><button type="button" class="language-menu-dropdown-list-button" onclick="return trans_start('as');"><olang>অসমীয়া</olang></button></li>
+                    <li class="language-menu-dropdown-list-item"><button type="button" class="language-menu-dropdown-list-button" onclick="return trans_start('az');"><olang>Azərbaycan</olang></button></li>
+                    <li class="language-menu-dropdown-list-item"><button type="button" class="language-menu-dropdown-list-button" onclick="return trans_start('ba');"><olang>Bashkir</olang></button></li>
+                    <li class="language-menu-dropdown-list-item"><button type="button" class="language-menu-dropdown-list-button" onclick="return trans_start('eu');"><olang>Euskara</olang></button></li>
+                    <li class="language-menu-dropdown-list-item"><button type="button" class="language-menu-dropdown-list-button" onclick="return trans_start('be');"><olang>беларуская</olang></button></li>
+                    <li class="language-menu-dropdown-list-item"><button type="button" class="language-menu-dropdown-list-button" onclick="return trans_start('bn');"><olang>বাংলা</olang></button></li>
+                    <li class="language-menu-dropdown-list-item"><button type="button" class="language-menu-dropdown-list-button" onclick="return trans_start('bs');"><olang>Bosanski</olang></button></li>
+                    <li class="language-menu-dropdown-list-item"><button type="button" class="language-menu-dropdown-list-button" onclick="return trans_start('bg');"><olang>Български</olang></button></li>
+                    <li class="language-menu-dropdown-list-item"><button type="button" class="language-menu-dropdown-list-button" onclick="return trans_start('ca');"><olang>Català</olang></button></li>
+                    <li class="language-menu-dropdown-list-item"><button type="button" class="language-menu-dropdown-list-button" onclick="return trans_start('ce');"><olang>Cebuano</olang></button></li>
+                    <li class="language-menu-dropdown-list-item"><button type="button" class="language-menu-dropdown-list-button" onclick="return trans_start('ny');"><olang>Chewa</olang></button></li>
+                    <li class="language-menu-dropdown-list-item"><button type="button" class="language-menu-dropdown-list-button" onclick="return trans_start('co');"><olang>Corsu</olang></button></li>
+                    <li class="language-menu-dropdown-list-item"><button type="button" class="language-menu-dropdown-list-button" onclick="return trans_start('hr');"><olang>Hrvatski</olang></button></li>
+                    <li class="language-menu-dropdown-list-item"><button type="button" class="language-menu-dropdown-list-button" onclick="return trans_start('cs');"><olang>Čeština</olang></button></li>
+                    <li class="language-menu-dropdown-list-item"><button type="button" class="language-menu-dropdown-list-button" onclick="return trans_start('da');"><olang>Dansk</olang></button></li>
+                    <li class="language-menu-dropdown-list-item"><button type="button" class="language-menu-dropdown-list-button" onclick="return trans_start('pr');"><olang>دری</olang></button></li>
+                    <li class="language-menu-dropdown-list-item"><button type="button" class="language-menu-dropdown-list-button" onclick="return trans_start('dv');"><olang>ދިވެހިބަސް</olang></button></li>
+                    <li class="language-menu-dropdown-list-item"><button type="button" class="language-menu-dropdown-list-button" onclick="return trans_start('nl');"><olang>Nederlands</olang></button></li>
+                    <li class="language-menu-dropdown-list-item"><button type="button" class="language-menu-dropdown-list-button" onclick="return trans_start('eo');"><olang>Esperanto</olang></button></li>
+                    <li class="language-menu-dropdown-list-item"><button type="button" class="language-menu-dropdown-list-button" onclick="return trans_start('et');"><olang>Eesti</olang></button></li>
+                    <li class="language-menu-dropdown-list-item"><button type="button" class="language-menu-dropdown-list-button" onclick="return trans_start('fj');"><olang>Na Vosa Vakaviti</olang></button></li>
+                    <li class="language-menu-dropdown-list-item"><button type="button" class="language-menu-dropdown-list-button" onclick="return trans_start('fi');"><olang>Suomi</olang></button></li>
+                    <li class="language-menu-dropdown-list-item"><button type="button" class="language-menu-dropdown-list-button" onclick="return trans_start('fr');"><olang>Français</olang></button></li>
+                    <li class="language-menu-dropdown-list-item"><button type="button" class="language-menu-dropdown-list-button" onclick="return trans_start('fy');"><olang>Frysk</olang></button></li>
+                    <li class="language-menu-dropdown-list-item"><button type="button" class="language-menu-dropdown-list-button" onclick="return trans_start('gl');"><olang>Galego</olang></button></li>
+                    <li class="language-menu-dropdown-list-item"><button type="button" class="language-menu-dropdown-list-button" onclick="return trans_start('ka');"><olang>ქართული</olang></button></li>
+                    <li class="language-menu-dropdown-list-item"><button type="button" class="language-menu-dropdown-list-button" onclick="return trans_start('de');"><olang>Deutsch</olang></button></li>
+                    <li class="language-menu-dropdown-list-item"><button type="button" class="language-menu-dropdown-list-button" onclick="return trans_start('el');"><olang>Ελληνικά</olang></button></li>
+                    <li class="language-menu-dropdown-list-item"><button type="button" class="language-menu-dropdown-list-button" onclick="return trans_start('gu');"><olang>ગુજરાતી</olang></button></li>
+                    <li class="language-menu-dropdown-list-item"><button type="button" class="language-menu-dropdown-list-button" onclick="return trans_start('ht');"><olang>Ayisyen</olang></button></li>
+                    <li class="language-menu-dropdown-list-item"><button type="button" class="language-menu-dropdown-list-button" onclick="return trans_start('ha');"><olang>Hausa</olang></button></li>
+                    <li class="language-menu-dropdown-list-item"><button type="button" class="language-menu-dropdown-list-button" onclick="return trans_start('hw');"><olang>ʻŌlelo Hawaiʻi</olang></button></li>
+                    <li class="language-menu-dropdown-list-item"><button type="button" class="language-menu-dropdown-list-button" onclick="return trans_start('he');"><olang>עברית</olang></button></li>
+                    <li class="language-menu-dropdown-list-item"><button type="button" class="language-menu-dropdown-list-button" onclick="return trans_start('hm');"><olang>Hmong</olang></button></li>
+                    <li class="language-menu-dropdown-list-item"><button type="button" class="language-menu-dropdown-list-button" onclick="return trans_start('mw');"><olang>Hmong Daw</olang></button></li>
+                    <li class="language-menu-dropdown-list-item"><button type="button" class="language-menu-dropdown-list-button" onclick="return trans_start('hu');"><olang>Magyar</olang></button></li>
+                    <li class="language-menu-dropdown-list-item"><button type="button" class="language-menu-dropdown-list-button" onclick="return trans_start('is');"><olang>Íslenskur</olang></button></li>
+                    <li class="language-menu-dropdown-list-item"><button type="button" class="language-menu-dropdown-list-button" onclick="return trans_start('ig');"><olang>asụsụ Igbo</olang></button></li>
+                    <li class="language-menu-dropdown-list-item"><button type="button" class="language-menu-dropdown-list-button" onclick="return trans_start('iu');"><olang>ᐃᓄᒃᑎᑐᑦ</olang></button></li>
+                    <li class="language-menu-dropdown-list-item"><button type="button" class="language-menu-dropdown-list-button" onclick="return trans_start('ga');"><olang>Gaeilge</olang></button></li>
+                    <li class="language-menu-dropdown-list-item"><button type="button" class="language-menu-dropdown-list-button" onclick="return trans_start('it');"><olang>Italiano</olang></button></li>
+                    <li class="language-menu-dropdown-list-item"><button type="button" class="language-menu-dropdown-list-button" onclick="return trans_start('jv');"><olang>Basa Jawa</olang></button></li>
+                    <li class="language-menu-dropdown-list-item"><button type="button" class="language-menu-dropdown-list-button" onclick="return trans_start('kn');"><olang>ಕನ್ನಡ</olang></button></li>
+                    <li class="language-menu-dropdown-list-item"><button type="button" class="language-menu-dropdown-list-button" onclick="return trans_start('kk');"><olang>Қазақ тілі</olang></button></li>
+                    <li class="language-menu-dropdown-list-item"><button type="button" class="language-menu-dropdown-list-button" onclick="return trans_start('km');"><olang>ខ្មែរ</olang></button></li>
+                    <li class="language-menu-dropdown-list-item"><button type="button" class="language-menu-dropdown-list-button" onclick="return trans_start('rw');"><olang>Kinyarwanda</olang></button></li>
+                    <li class="language-menu-dropdown-list-item"><button type="button" class="language-menu-dropdown-list-button" onclick="return trans_start('ku');"><olang>Kurdî</olang></button></li>
+                    <li class="language-menu-dropdown-list-item"><button type="button" class="language-menu-dropdown-list-button" onclick="return trans_start('ky');"><olang>Кыргызча</olang></button></li>
+                    <li class="language-menu-dropdown-list-item"><button type="button" class="language-menu-dropdown-list-button" onclick="return trans_start('lo');"><olang>ພາສາລາວ</olang></button></li>
+                    <li class="language-menu-dropdown-list-item"><button type="button" class="language-menu-dropdown-list-button" onclick="return trans_start('lv');"><olang>Latviešu</olang></button></li>
+                    <li class="language-menu-dropdown-list-item"><button type="button" class="language-menu-dropdown-list-button" onclick="return trans_start('lt');"><olang>Lietuvių</olang></button></li>
+                    <li class="language-menu-dropdown-list-item"><button type="button" class="language-menu-dropdown-list-button" onclick="return trans_start('lb');"><olang>Lëtzebuergesch</olang></button></li>
+                    <li class="language-menu-dropdown-list-item"><button type="button" class="language-menu-dropdown-list-button" onclick="return trans_start('mk');"><olang>македонски</olang></button></li>
+                    <li class="language-menu-dropdown-list-item"><button type="button" class="language-menu-dropdown-list-button" onclick="return trans_start('mg');"><olang>Malagasy</olang></button></li>
+                    <li class="language-menu-dropdown-list-item"><button type="button" class="language-menu-dropdown-list-button" onclick="return trans_start('ms');"><olang>Melayu</olang></button></li>
+                    <li class="language-menu-dropdown-list-item"><button type="button" class="language-menu-dropdown-list-button" onclick="return trans_start('ml');"><olang>മലയാളം</olang></button></li>
+                    <li class="language-menu-dropdown-list-item"><button type="button" class="language-menu-dropdown-list-button" onclick="return trans_start('mt');"><olang>Malti</olang></button></li>
+                    <li class="language-menu-dropdown-list-item"><button type="button" class="language-menu-dropdown-list-button" onclick="return trans_start('mi');"><olang>Māori</olang></button></li>
+                    <li class="language-menu-dropdown-list-item"><button type="button" class="language-menu-dropdown-list-button" onclick="return trans_start('mr');"><olang>मराठी</olang></button></li>
+                    <li class="language-menu-dropdown-list-item"><button type="button" class="language-menu-dropdown-list-button" onclick="return trans_start('mn');"><olang>Монгол</olang></button></li>
+                    <li class="language-menu-dropdown-list-item"><button type="button" class="language-menu-dropdown-list-button" onclick="return trans_start('no');"><olang>Norsk</olang></button></li>
+                    <li class="language-menu-dropdown-list-item"><button type="button" class="language-menu-dropdown-list-button" onclick="return trans_start('or');"><olang>ଓଡିଆ</olang></button></li>
+                    <li class="language-menu-dropdown-list-item"><button type="button" class="language-menu-dropdown-list-button" onclick="return trans_start('ps');"><olang>پښتو</olang></button></li>
+                    <li class="language-menu-dropdown-list-item"><button type="button" class="language-menu-dropdown-list-button" onclick="return trans_start('fa');"><olang>فارسی</olang></button></li>
+                    <li class="language-menu-dropdown-list-item"><button type="button" class="language-menu-dropdown-list-button" onclick="return trans_start('pl');"><olang>Język polski</olang></button></li>
+                    <li class="language-menu-dropdown-list-item"><button type="button" class="language-menu-dropdown-list-button" onclick="return trans_start('pt');"><olang>Português</olang></button></li>
+                    <li class="language-menu-dropdown-list-item"><button type="button" class="language-menu-dropdown-list-button" onclick="return trans_start('pa');"><olang>ਪੰਜਾਬੀ</olang></button></li>
+                    <li class="language-menu-dropdown-list-item"><button type="button" class="language-menu-dropdown-list-button" onclick="return trans_start('ot');"><olang>Hñähñu</olang></button></li>
+                    <li class="language-menu-dropdown-list-item"><button type="button" class="language-menu-dropdown-list-button" onclick="return trans_start('ro');"><olang>Română</olang></button></li>
+                    <li class="language-menu-dropdown-list-item"><button type="button" class="language-menu-dropdown-list-button" onclick="return trans_start('ru');"><olang>Русский</olang></button></li>
+                    <li class="language-menu-dropdown-list-item"><button type="button" class="language-menu-dropdown-list-button" onclick="return trans_start('sm');"><olang>Samoa</olang></button></li>
+                    <li class="language-menu-dropdown-list-item"><button type="button" class="language-menu-dropdown-list-button" onclick="return trans_start('gd');"><olang>Gàidhlig na h-Alba</olang></button></li>
+                    <li class="language-menu-dropdown-list-item"><button type="button" class="language-menu-dropdown-list-button" onclick="return trans_start('sr');"><olang>Српски</olang></button></li>
+                    <li class="language-menu-dropdown-list-item"><button type="button" class="language-menu-dropdown-list-button" onclick="return trans_start('sn');"><olang>Shona</olang></button></li>
+                    <li class="language-menu-dropdown-list-item"><button type="button" class="language-menu-dropdown-list-button" onclick="return trans_start('sd');"><olang>سنڌي</olang></button></li>
+                    <li class="language-menu-dropdown-list-item"><button type="button" class="language-menu-dropdown-list-button" onclick="return trans_start('si');"><olang>සිංහල</olang></button></li>
+                    <li class="language-menu-dropdown-list-item"><button type="button" class="language-menu-dropdown-list-button" onclick="return trans_start('sk');"><olang>Slovenčina</olang></button></li>
+                    <li class="language-menu-dropdown-list-item"><button type="button" class="language-menu-dropdown-list-button" onclick="return trans_start('sl');"><olang>Slovenščina</olang></button></li>
+                    <li class="language-menu-dropdown-list-item"><button type="button" class="language-menu-dropdown-list-button" onclick="return trans_start('so');"><olang>Soomaali</olang></button></li>
+                    <li class="language-menu-dropdown-list-item"><button type="button" class="language-menu-dropdown-list-button" onclick="return trans_start('st');"><olang>Sotho</olang></button></li>
+                    <li class="language-menu-dropdown-list-item"><button type="button" class="language-menu-dropdown-list-button" onclick="return trans_start('es');"><olang>Español</olang></button></li>
+                    <li class="language-menu-dropdown-list-item"><button type="button" class="language-menu-dropdown-list-button" onclick="return trans_start('su');"><olang>Basa Sunda</olang></button></li>
+                    <li class="language-menu-dropdown-list-item"><button type="button" class="language-menu-dropdown-list-button" onclick="return trans_start('sw');"><olang>Kiswahili</olang></button></li>
+                    <li class="language-menu-dropdown-list-item"><button type="button" class="language-menu-dropdown-list-button" onclick="return trans_start('sv');"><olang>Svenska</olang></button></li>
+                    <li class="language-menu-dropdown-list-item"><button type="button" class="language-menu-dropdown-list-button" onclick="return trans_start('ty');"><olang>Reo Tahiti</olang></button></li>
+                    <li class="language-menu-dropdown-list-item"><button type="button" class="language-menu-dropdown-list-button" onclick="return trans_start('tg');"><olang>тоҷикӣ</olang></button></li>
+                    <li class="language-menu-dropdown-list-item"><button type="button" class="language-menu-dropdown-list-button" onclick="return trans_start('ta');"><olang>தமிழ்</olang></button></li>
+                    <li class="language-menu-dropdown-list-item"><button type="button" class="language-menu-dropdown-list-button" onclick="return trans_start('tt');"><olang>Татар</olang></button></li>
+                    <li class="language-menu-dropdown-list-item"><button type="button" class="language-menu-dropdown-list-button" onclick="return trans_start('te');"><olang>తెలుగు</olang></button></li>
+                    <li class="language-menu-dropdown-list-item"><button type="button" class="language-menu-dropdown-list-button" onclick="return trans_start('th');"><olang>ภาษาไทย</olang></button></li>
+                    <li class="language-menu-dropdown-list-item"><button type="button" class="language-menu-dropdown-list-button" onclick="return trans_start('bo');"><olang>བོད་སྐད་</olang></button></li>
+                    <li class="language-menu-dropdown-list-item"><button type="button" class="language-menu-dropdown-list-button" onclick="return trans_start('ti');"><olang>ትግር</olang></button></li>
+                    <li class="language-menu-dropdown-list-item"><button type="button" class="language-menu-dropdown-list-button" onclick="return trans_start('to');"><olang>Lea Fakatonga</olang></button></li>
+                    <li class="language-menu-dropdown-list-item"><button type="button" class="language-menu-dropdown-list-button" onclick="return trans_start('tr');"><olang>Türkçe</olang></button></li>
+                    <li class="language-menu-dropdown-list-item"><button type="button" class="language-menu-dropdown-list-button" onclick="return trans_start('tk');"><olang>Türkmençe</olang></button></li>
+                    <li class="language-menu-dropdown-list-item"><button type="button" class="language-menu-dropdown-list-button" onclick="return trans_start('ug');"><olang>ئۇيغۇرچە</olang></button></li>
+                    <li class="language-menu-dropdown-list-item"><button type="button" class="language-menu-dropdown-list-button" onclick="return trans_start('uk');"><olang>Український</olang></button></li>
+                    <li class="language-menu-dropdown-list-item"><button type="button" class="language-menu-dropdown-list-button" onclick="return trans_start('ur');"><olang>اردو</olang></button></li>
+                    <li class="language-menu-dropdown-list-item"><button type="button" class="language-menu-dropdown-list-button" onclick="return trans_start('uz');"><olang>Oʻzbek</olang></button></li>
+                    <li class="language-menu-dropdown-list-item"><button type="button" class="language-menu-dropdown-list-button" onclick="return trans_start('cy');"><olang>Cymraeg</olang></button></li>
+                    <li class="language-menu-dropdown-list-item"><button type="button" class="language-menu-dropdown-list-button" onclick="return trans_start('xh');"><olang>Xhosa</olang></button></li>
+                    <li class="language-menu-dropdown-list-item"><button type="button" class="language-menu-dropdown-list-button" onclick="return trans_start('yi');"><olang>יידיש</olang></button></li>
+                    <li class="language-menu-dropdown-list-item"><button type="button" class="language-menu-dropdown-list-button" onclick="return trans_start('yo');"><olang>Yoruba</olang></button></li>
+                    <li class="language-menu-dropdown-list-item"><button type="button" class="language-menu-dropdown-list-button" onclick="return trans_start('yu');"><olang>Yucatec Maya</olang></button></li>
+                    <li class="language-menu-dropdown-list-item"><button type="button" class="language-menu-dropdown-list-button" onclick="return trans_start('zu');"><olang>Zulu</olang></button></li>
+                     </ul>
+
+              </div>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <section id="main">
+    <div class="container">
+
+      <div class="row">
+  <div class="col-12">
+    <div class="pan">
+      <a href="/"><i class="fas fa-home"></i><ruby><rb>トップページ</rb><rt>とっぷぺーじ</rt></ruby></a> > 
+        
+            
+              
+                <a href="/jp-class/jp-ward/">
+                  &gt; <ruby><rb>日本語</rb><rt>にほんご</rt></ruby><ruby><rb>教室</rb><rt>きょうしつ</rt></ruby>-<ruby><rb>区</rb><rt>く</rt></ruby>
+                </a>
+              
+            
+            
+              <a href="/jp-class/jp-ward/108-kotoku/">
+                &gt; <ruby><rb>江東区</rb><rt>こうとうく</rt></ruby>
+              </a>
+            
+        
+    </div>
+  </div>
+</div>
+
+
+      
+        
+        <!-- タイトル -->
+        <div class="row mb-5">
+          <div class="col-12 p-0">
+            <div class="kiji-title">
+              <h1 id="_class_title">
+
+                  <ruby><rb>江東区</rb><rt>こうとうく</rt></ruby>
+
+              </h1>
+            </div>
+          </div>
+        </div>
+
+
+    
+        <!-- もう一方への教室へリンクボタン(PC用) -->
+        <div class="row d-none d-lg-flex mb-3">
+          <div class="col-12">
+            <div class="other-class-button ml-auto mb-1 display-none-class">
+
+                <a id="_jp_child_path"></a>
+
+            </div>
+          </div>
+        </div>
+    
+
+      
+      
+        
+      
+
+      <!-- 教室IDデバック用 -->
+      <!-- <h2>デバッグ：025_やさしい日本語</h2> -->
+
+
+      <!-- PC用教室情報 -->
+      <div class="d-none d-lg-block">
+        <div class="class-info-area row mb-3">
+          <div class="col-12">
+
+            <a class="class-info-a" href="/jp-class/025/">
+
+              <div class="row class-info-table">
+                <div class="col-4 class-info-left d-flex align-items-center"><ruby><rb>教室名</rb><rt>きょうしつめい</rt></ruby></div>
+                <div class="col-8 class-info-right d-flex align-items-center flex-wrap">
+                  
+                    <span class="pt-3 pb-2 class_name">やさしい<ruby><rb>日本語</rb><rt>にほんご</rt></ruby></span>
+                  
+                  
+                </div>
+              </div>
+
+
+              <div class="row class-info-table">
+                <div class="col-4 class-info-left d-flex align-items-center"><ruby><rb>日時</rb><rt>にちじ</rt></ruby></div>
+                <div class="col-8 class-info-right d-flex align-items-center">
+                  
+                    <span class="pt-3 pb-2"><ruby><rb>金曜日</rb><rt>きんようび</rt></ruby>　10：30～12：00
+</span>
+                  
+                </div>
+              </div>
+              <div class="row class-info-table">
+                <div class="col-4 class-info-left d-flex align-items-center"><ruby><rb>場所</rb><rt>ばしょ</rt></ruby></div>
+                <div class="col-8 class-info-right d-flex align-items-center">
+                  
+                    <span class="pt-3 pb-2"><ruby><rb>パルシティ</rb><rt>ぱるしてぃ</rt></ruby><ruby><rb>江東</rb><rt>こうとう</rt></ruby><br>
+<ruby><rb>新宿</rb><rt>しんじゅく</rt></ruby><ruby><rb>線</rb><rt>せん</rt></ruby>・<ruby><rb>半蔵門</rb><rt>はんぞうもん</rt></ruby><ruby><rb>線</rb><rt>せん</rt></ruby>　<ruby><rb>住吉駅</rb><rt>すみよしえき</rt></ruby>から12<ruby><rb>分</rb><rt>ふん</rt></ruby><ruby><rb>歩</rb><rt>ある</rt></ruby>きます。
+</span>
+                  
+                </div>
+              </div>
+              <div class="row class-info-table">
+                <div class="col-4 class-info-left d-flex align-items-center"><ruby><rb>会費</rb><rt>かいひ</rt></ruby></div>
+                <div class="col-8 class-info-right d-flex align-items-center">
+                  
+                    <span class="pt-3 pb-2">500<ruby><rb>円</rb><rt>えん</rt></ruby>/１<ruby><rb>回</rb><rt>かい</rt></ruby></span>
+                  
+                </div>
+              </div>
+            </a>
+          </div>
+        </div>
+      </div>
+
+
+      <!-- スマホ用教室情報 -->
+      <div class="d-lg-none">
+        <div class="class-info-area row mb-3">
+          <div class="col-12">
+            <a class="class-info-a" href="/jp-class/025/">
+
+              <div class="row class-info-table">
+                <div class="col-12 class-info-left d-flex justify-content-center font-weight-bold">
+                  <span class="pt-3 pb-2"><ruby><rb>教室名</rb><rt>きょうしつめい</rt></ruby></span>
+                </div>
+                <div class="col-12 class-info-right d-flex align-items-center flex-wrap">
+                  
+                    <span class="pt-3 pb-2 class_name">やさしい<ruby><rb>日本語</rb><rt>にほんご</rt></ruby></span>
+                  
+                  
+                </div>
+              </div>
+
+
+              <div class="row class-info-table">
+                <div class="col-12 class-info-left d-flex justify-content-center font-weight-bold">
+                  <span class="pt-3 pb-2"><ruby><rb>日時</rb><rt>にちじ</rt></ruby></span>
+                </div>
+                <div class="col-12 class-info-right d-flex align-items-center">
+                  
+                    <span class="pt-3 pb-2"><ruby><rb>金曜日</rb><rt>きんようび</rt></ruby>　10：30～12：00
+</span>
+                  
+                </div>
+              </div>
+
+
+
+
+              <div class="row class-info-table">
+                <div class="col-12 class-info-left d-flex justify-content-center font-weight-bold">
+                  <span class="pt-3 pb-2"><ruby><rb>場所</rb><rt>ばしょ</rt></ruby></span>
+                </div>
+                <div class="col-12 class-info-right d-flex align-items-center">
+                  
+                    <span class="pt-3 pb-2"><ruby><rb>パルシティ</rb><rt>ぱるしてぃ</rt></ruby><ruby><rb>江東</rb><rt>こうとう</rt></ruby><br>
+<ruby><rb>新宿</rb><rt>しんじゅく</rt></ruby><ruby><rb>線</rb><rt>せん</rt></ruby>・<ruby><rb>半蔵門</rb><rt>はんぞうもん</rt></ruby><ruby><rb>線</rb><rt>せん</rt></ruby>　<ruby><rb>住吉駅</rb><rt>すみよしえき</rt></ruby>から12<ruby><rb>分</rb><rt>ふん</rt></ruby><ruby><rb>歩</rb><rt>ある</rt></ruby>きます。
+</span>
+                  
+                </div>
+              </div>
+
+
+              <div class="row class-info-table mb-2">
+                <div class="col-12 class-info-left d-flex justify-content-center font-weight-bold">
+                  <span class="pt-3 pb-2"><ruby><rb>会費</rb><rt>かいひ</rt></ruby></span>
+                </div>
+                <div class="col-12 class-info-right d-flex align-items-center">
+                  
+                    <span class="pt-3 pb-2">500<ruby><rb>円</rb><rt>えん</rt></ruby>/１<ruby><rb>回</rb><rt>かい</rt></ruby></span>
+                  
+                </div>
+              </div>
+
+            </a>
+          </div>
+        </div>
+      </div>
+
+      <hr class="cp_hr11 my-5rem" />
+
+
+
+
+
+
+      
+    
+      
+
+      <!-- 教室IDデバック用 -->
+      <!-- <h2>デバッグ：026_生活の日本語</h2> -->
+
+
+      <!-- PC用教室情報 -->
+      <div class="d-none d-lg-block">
+        <div class="class-info-area row mb-3">
+          <div class="col-12">
+
+            <a class="class-info-a" href="/jp-class/026/">
+
+              <div class="row class-info-table">
+                <div class="col-4 class-info-left d-flex align-items-center"><ruby><rb>教室名</rb><rt>きょうしつめい</rt></ruby></div>
+                <div class="col-8 class-info-right d-flex align-items-center flex-wrap">
+                  
+                    <span class="pt-3 pb-2 class_name"><ruby><rb>生活</rb><rt>せいかつ</rt></ruby>の<ruby><rb>日本語</rb><rt>にほんご</rt></ruby>  
+</span>
+                  
+                  
+                </div>
+              </div>
+
+
+              <div class="row class-info-table">
+                <div class="col-4 class-info-left d-flex align-items-center"><ruby><rb>日時</rb><rt>にちじ</rt></ruby></div>
+                <div class="col-8 class-info-right d-flex align-items-center">
+                  
+                    <span class="pt-3 pb-2"><ruby><rb>火曜日</rb><rt>かようび</rt></ruby>　10：00～11：30</span>
+                  
+                </div>
+              </div>
+              <div class="row class-info-table">
+                <div class="col-4 class-info-left d-flex align-items-center"><ruby><rb>場所</rb><rt>ばしょ</rt></ruby></div>
+                <div class="col-8 class-info-right d-flex align-items-center">
+                  
+                    <span class="pt-3 pb-2"><ruby><rb>江東区</rb><rt>こうとうく</rt></ruby><ruby><rb>文化</rb><rt>ぶんか</rt></ruby><ruby><rb>センター</rb><rt>せんたー</rt></ruby><br>
+<ruby><rb>東西</rb><rt>とうざい</rt></ruby><ruby><rb>線</rb><rt>せん</rt></ruby>　<ruby><rb>東陽町駅</rb><rt>とうようちょうえき</rt></ruby>から5<ruby><rb>分</rb><rt>ふん</rt></ruby><ruby><rb>歩</rb><rt>ある</rt></ruby>きます。
+</span>
+                  
+                </div>
+              </div>
+              <div class="row class-info-table">
+                <div class="col-4 class-info-left d-flex align-items-center"><ruby><rb>会費</rb><rt>かいひ</rt></ruby></div>
+                <div class="col-8 class-info-right d-flex align-items-center">
+                  
+                    <span class="pt-3 pb-2">600<ruby><rb>円</rb><rt>えん</rt></ruby>/１<ruby><rb>回</rb><rt>かい</rt></ruby>　
+</span>
+                  
+                </div>
+              </div>
+            </a>
+          </div>
+        </div>
+      </div>
+
+
+      <!-- スマホ用教室情報 -->
+      <div class="d-lg-none">
+        <div class="class-info-area row mb-3">
+          <div class="col-12">
+            <a class="class-info-a" href="/jp-class/026/">
+
+              <div class="row class-info-table">
+                <div class="col-12 class-info-left d-flex justify-content-center font-weight-bold">
+                  <span class="pt-3 pb-2"><ruby><rb>教室名</rb><rt>きょうしつめい</rt></ruby></span>
+                </div>
+                <div class="col-12 class-info-right d-flex align-items-center flex-wrap">
+                  
+                    <span class="pt-3 pb-2 class_name"><ruby><rb>生活</rb><rt>せいかつ</rt></ruby>の<ruby><rb>日本語</rb><rt>にほんご</rt></ruby>  
+</span>
+                  
+                  
+                </div>
+              </div>
+
+
+              <div class="row class-info-table">
+                <div class="col-12 class-info-left d-flex justify-content-center font-weight-bold">
+                  <span class="pt-3 pb-2"><ruby><rb>日時</rb><rt>にちじ</rt></ruby></span>
+                </div>
+                <div class="col-12 class-info-right d-flex align-items-center">
+                  
+                    <span class="pt-3 pb-2"><ruby><rb>火曜日</rb><rt>かようび</rt></ruby>　10：00～11：30</span>
+                  
+                </div>
+              </div>
+
+
+
+
+              <div class="row class-info-table">
+                <div class="col-12 class-info-left d-flex justify-content-center font-weight-bold">
+                  <span class="pt-3 pb-2"><ruby><rb>場所</rb><rt>ばしょ</rt></ruby></span>
+                </div>
+                <div class="col-12 class-info-right d-flex align-items-center">
+                  
+                    <span class="pt-3 pb-2"><ruby><rb>江東区</rb><rt>こうとうく</rt></ruby><ruby><rb>文化</rb><rt>ぶんか</rt></ruby><ruby><rb>センター</rb><rt>せんたー</rt></ruby><br>
+<ruby><rb>東西</rb><rt>とうざい</rt></ruby><ruby><rb>線</rb><rt>せん</rt></ruby>　<ruby><rb>東陽町駅</rb><rt>とうようちょうえき</rt></ruby>から5<ruby><rb>分</rb><rt>ふん</rt></ruby><ruby><rb>歩</rb><rt>ある</rt></ruby>きます。
+</span>
+                  
+                </div>
+              </div>
+
+
+              <div class="row class-info-table mb-2">
+                <div class="col-12 class-info-left d-flex justify-content-center font-weight-bold">
+                  <span class="pt-3 pb-2"><ruby><rb>会費</rb><rt>かいひ</rt></ruby></span>
+                </div>
+                <div class="col-12 class-info-right d-flex align-items-center">
+                  
+                    <span class="pt-3 pb-2">600<ruby><rb>円</rb><rt>えん</rt></ruby>/１<ruby><rb>回</rb><rt>かい</rt></ruby>　
+</span>
+                  
+                </div>
+              </div>
+
+            </a>
+          </div>
+        </div>
+      </div>
+
+      <hr class="cp_hr11 my-5rem" />
+
+
+
+
+
+
+      
+    
+      
+
+      <!-- 教室IDデバック用 -->
+      <!-- <h2>デバッグ：114-1_大人の日本語教室</h2> -->
+
+
+      <!-- PC用教室情報 -->
+      <div class="d-none d-lg-block">
+        <div class="class-info-area row mb-3">
+          <div class="col-12">
+
+            <a class="class-info-a" href="/jp-class/114-1/">
+
+              <div class="row class-info-table">
+                <div class="col-4 class-info-left d-flex align-items-center"><ruby><rb>教室名</rb><rt>きょうしつめい</rt></ruby></div>
+                <div class="col-8 class-info-right d-flex align-items-center flex-wrap">
+                  
+                    <span class="pt-3 pb-2 class_name"><ruby><rb>大人</rb><rt>おとな</rt></ruby>の<ruby><rb>日本語</rb><rt>にほんご</rt></ruby><ruby><rb>教室</rb><rt>きょうしつ</rt></ruby> <br>
+<span style="font-size:65%">（<ruby><rb>江東区</rb><rt>こうとうく</rt></ruby>に <ruby><rb>住</rb><rt>す</rt></ruby>んでいる<ruby><rb>人</rb><rt>ひと</rt></ruby>が <ruby><rb>勉強</rb><rt>べんきょう</rt></ruby>できます。）</span></span>
+                  
+                  
+                </div>
+              </div>
+
+
+              <div class="row class-info-table">
+                <div class="col-4 class-info-left d-flex align-items-center"><ruby><rb>日時</rb><rt>にちじ</rt></ruby></div>
+                <div class="col-8 class-info-right d-flex align-items-center">
+                  
+                    <span class="pt-3 pb-2"><ruby><rb>オンライン</rb><rt>おんらいん</rt></ruby><ruby><rb>学習</rb><rt>がくしゅう</rt></ruby>です。<ruby><rb>相談</rb><rt>そうだん</rt></ruby>してください。
+</span>
+                  
+                </div>
+              </div>
+              <div class="row class-info-table">
+                <div class="col-4 class-info-left d-flex align-items-center"><ruby><rb>場所</rb><rt>ばしょ</rt></ruby></div>
+                <div class="col-8 class-info-right d-flex align-items-center">
+                  
+                    <span class="pt-3 pb-2">―</span>
+                  
+                </div>
+              </div>
+              <div class="row class-info-table">
+                <div class="col-4 class-info-left d-flex align-items-center"><ruby><rb>会費</rb><rt>かいひ</rt></ruby></div>
+                <div class="col-8 class-info-right d-flex align-items-center">
+                  
+                    <span class="pt-3 pb-2">1,000<ruby><rb>円</rb><rt>えん</rt></ruby>／1<ruby><rb>回</rb><rt>かい</rt></ruby>
+</span>
+                  
+                </div>
+              </div>
+            </a>
+          </div>
+        </div>
+      </div>
+
+
+      <!-- スマホ用教室情報 -->
+      <div class="d-lg-none">
+        <div class="class-info-area row mb-3">
+          <div class="col-12">
+            <a class="class-info-a" href="/jp-class/114-1/">
+
+              <div class="row class-info-table">
+                <div class="col-12 class-info-left d-flex justify-content-center font-weight-bold">
+                  <span class="pt-3 pb-2"><ruby><rb>教室名</rb><rt>きょうしつめい</rt></ruby></span>
+                </div>
+                <div class="col-12 class-info-right d-flex align-items-center flex-wrap">
+                  
+                    <span class="pt-3 pb-2 class_name"><ruby><rb>大人</rb><rt>おとな</rt></ruby>の<ruby><rb>日本語</rb><rt>にほんご</rt></ruby><ruby><rb>教室</rb><rt>きょうしつ</rt></ruby> <br>
+<span style="font-size:65%">（<ruby><rb>江東区</rb><rt>こうとうく</rt></ruby>に <ruby><rb>住</rb><rt>す</rt></ruby>んでいる<ruby><rb>人</rb><rt>ひと</rt></ruby>が <ruby><rb>勉強</rb><rt>べんきょう</rt></ruby>できます。）</span></span>
+                  
+                  
+                </div>
+              </div>
+
+
+              <div class="row class-info-table">
+                <div class="col-12 class-info-left d-flex justify-content-center font-weight-bold">
+                  <span class="pt-3 pb-2"><ruby><rb>日時</rb><rt>にちじ</rt></ruby></span>
+                </div>
+                <div class="col-12 class-info-right d-flex align-items-center">
+                  
+                    <span class="pt-3 pb-2"><ruby><rb>オンライン</rb><rt>おんらいん</rt></ruby><ruby><rb>学習</rb><rt>がくしゅう</rt></ruby>です。<ruby><rb>相談</rb><rt>そうだん</rt></ruby>してください。
+</span>
+                  
+                </div>
+              </div>
+
+
+
+
+              <div class="row class-info-table">
+                <div class="col-12 class-info-left d-flex justify-content-center font-weight-bold">
+                  <span class="pt-3 pb-2"><ruby><rb>場所</rb><rt>ばしょ</rt></ruby></span>
+                </div>
+                <div class="col-12 class-info-right d-flex align-items-center">
+                  
+                    <span class="pt-3 pb-2">―</span>
+                  
+                </div>
+              </div>
+
+
+              <div class="row class-info-table mb-2">
+                <div class="col-12 class-info-left d-flex justify-content-center font-weight-bold">
+                  <span class="pt-3 pb-2"><ruby><rb>会費</rb><rt>かいひ</rt></ruby></span>
+                </div>
+                <div class="col-12 class-info-right d-flex align-items-center">
+                  
+                    <span class="pt-3 pb-2">1,000<ruby><rb>円</rb><rt>えん</rt></ruby>／1<ruby><rb>回</rb><rt>かい</rt></ruby>
+</span>
+                  
+                </div>
+              </div>
+
+            </a>
+          </div>
+        </div>
+      </div>
+
+      <hr class="cp_hr11 my-5rem" />
+
+
+
+
+
+
+      
+    
+      
+
+      <!-- 教室IDデバック用 -->
+      <!-- <h2>デバッグ：123_グッドナイト日本語教室</h2> -->
+
+
+      <!-- PC用教室情報 -->
+      <div class="d-none d-lg-block">
+        <div class="class-info-area row mb-3">
+          <div class="col-12">
+
+            <a class="class-info-a" href="/jp-class/123/">
+
+              <div class="row class-info-table">
+                <div class="col-4 class-info-left d-flex align-items-center"><ruby><rb>教室名</rb><rt>きょうしつめい</rt></ruby></div>
+                <div class="col-8 class-info-right d-flex align-items-center flex-wrap">
+                  
+                    <span class="pt-3 pb-2 class_name"><ruby><rb>グッドナイト</rb><rt>ぐっどないと</rt></ruby><ruby><rb>日本語</rb><rt>にほんご</rt></ruby><ruby><rb>教室</rb><rt>きょうしつ</rt></ruby>
+</span>
+                  
+                  
+                </div>
+              </div>
+
+
+              <div class="row class-info-table">
+                <div class="col-4 class-info-left d-flex align-items-center"><ruby><rb>日時</rb><rt>にちじ</rt></ruby></div>
+                <div class="col-8 class-info-right d-flex align-items-center">
+                  
+                    <span class="pt-3 pb-2"><ruby><rb>水曜日</rb><rt>すいようび</rt></ruby>　19：00～20：30</span>
+                  
+                </div>
+              </div>
+              <div class="row class-info-table">
+                <div class="col-4 class-info-left d-flex align-items-center"><ruby><rb>場所</rb><rt>ばしょ</rt></ruby></div>
+                <div class="col-8 class-info-right d-flex align-items-center">
+                  
+                    <span class="pt-3 pb-2"><ruby><rb>江東区</rb><rt>こうとうく</rt></ruby><ruby><rb>文化</rb><rt>ぶんか</rt></ruby><ruby><rb>センター</rb><rt>せんたー</rt></ruby><br>
+<ruby><rb>東京</rb><rt>とうきょう</rt></ruby><ruby><rb>メトロ</rb><rt>めとろ</rt></ruby><ruby><rb>東西</rb><rt>とうざい</rt></ruby><ruby><rb>線</rb><rt>せん</rt></ruby>　<ruby><rb>東陽町駅</rb><rt>とうようちょうえき</rt></ruby>から5<ruby><rb>分</rb><rt>ふん</rt></ruby><ruby><rb>歩</rb><rt>ある</rt></ruby>きます。
+</span>
+                  
+                </div>
+              </div>
+              <div class="row class-info-table">
+                <div class="col-4 class-info-left d-flex align-items-center"><ruby><rb>会費</rb><rt>かいひ</rt></ruby></div>
+                <div class="col-8 class-info-right d-flex align-items-center">
+                  
+                    <span class="pt-3 pb-2">750<ruby><rb>円</rb><rt>えん</rt></ruby>/1<ruby><rb>回</rb><rt>かい</rt></ruby></span>
+                  
+                </div>
+              </div>
+            </a>
+          </div>
+        </div>
+      </div>
+
+
+      <!-- スマホ用教室情報 -->
+      <div class="d-lg-none">
+        <div class="class-info-area row mb-3">
+          <div class="col-12">
+            <a class="class-info-a" href="/jp-class/123/">
+
+              <div class="row class-info-table">
+                <div class="col-12 class-info-left d-flex justify-content-center font-weight-bold">
+                  <span class="pt-3 pb-2"><ruby><rb>教室名</rb><rt>きょうしつめい</rt></ruby></span>
+                </div>
+                <div class="col-12 class-info-right d-flex align-items-center flex-wrap">
+                  
+                    <span class="pt-3 pb-2 class_name"><ruby><rb>グッドナイト</rb><rt>ぐっどないと</rt></ruby><ruby><rb>日本語</rb><rt>にほんご</rt></ruby><ruby><rb>教室</rb><rt>きょうしつ</rt></ruby>
+</span>
+                  
+                  
+                </div>
+              </div>
+
+
+              <div class="row class-info-table">
+                <div class="col-12 class-info-left d-flex justify-content-center font-weight-bold">
+                  <span class="pt-3 pb-2"><ruby><rb>日時</rb><rt>にちじ</rt></ruby></span>
+                </div>
+                <div class="col-12 class-info-right d-flex align-items-center">
+                  
+                    <span class="pt-3 pb-2"><ruby><rb>水曜日</rb><rt>すいようび</rt></ruby>　19：00～20：30</span>
+                  
+                </div>
+              </div>
+
+
+
+
+              <div class="row class-info-table">
+                <div class="col-12 class-info-left d-flex justify-content-center font-weight-bold">
+                  <span class="pt-3 pb-2"><ruby><rb>場所</rb><rt>ばしょ</rt></ruby></span>
+                </div>
+                <div class="col-12 class-info-right d-flex align-items-center">
+                  
+                    <span class="pt-3 pb-2"><ruby><rb>江東区</rb><rt>こうとうく</rt></ruby><ruby><rb>文化</rb><rt>ぶんか</rt></ruby><ruby><rb>センター</rb><rt>せんたー</rt></ruby><br>
+<ruby><rb>東京</rb><rt>とうきょう</rt></ruby><ruby><rb>メトロ</rb><rt>めとろ</rt></ruby><ruby><rb>東西</rb><rt>とうざい</rt></ruby><ruby><rb>線</rb><rt>せん</rt></ruby>　<ruby><rb>東陽町駅</rb><rt>とうようちょうえき</rt></ruby>から5<ruby><rb>分</rb><rt>ふん</rt></ruby><ruby><rb>歩</rb><rt>ある</rt></ruby>きます。
+</span>
+                  
+                </div>
+              </div>
+
+
+              <div class="row class-info-table mb-2">
+                <div class="col-12 class-info-left d-flex justify-content-center font-weight-bold">
+                  <span class="pt-3 pb-2"><ruby><rb>会費</rb><rt>かいひ</rt></ruby></span>
+                </div>
+                <div class="col-12 class-info-right d-flex align-items-center">
+                  
+                    <span class="pt-3 pb-2">750<ruby><rb>円</rb><rt>えん</rt></ruby>/1<ruby><rb>回</rb><rt>かい</rt></ruby></span>
+                  
+                </div>
+              </div>
+
+            </a>
+          </div>
+        </div>
+      </div>
+
+      <hr class="cp_hr11 my-5rem" />
+
+
+
+
+
+
+      
+    
+      
+
+      <!-- 教室IDデバック用 -->
+      <!-- <h2>デバッグ：141_プランタンにほんご教室</h2> -->
+
+
+      <!-- PC用教室情報 -->
+      <div class="d-none d-lg-block">
+        <div class="class-info-area row mb-3">
+          <div class="col-12">
+
+            <a class="class-info-a" href="/jp-class/141/">
+
+              <div class="row class-info-table">
+                <div class="col-4 class-info-left d-flex align-items-center"><ruby><rb>教室名</rb><rt>きょうしつめい</rt></ruby></div>
+                <div class="col-8 class-info-right d-flex align-items-center flex-wrap">
+                  
+                    <span class="pt-3 pb-2 class_name"><ruby><rb>プランタン</rb><rt>ぷらんたん</rt></ruby>にほんご<ruby><rb>教室</rb><rt>ごきょうしつ</rt></ruby></span>
+                  
+                  
+                </div>
+              </div>
+
+
+              <div class="row class-info-table">
+                <div class="col-4 class-info-left d-flex align-items-center"><ruby><rb>日時</rb><rt>にちじ</rt></ruby></div>
+                <div class="col-8 class-info-right d-flex align-items-center">
+                  
+                    <span class="pt-3 pb-2"><ruby><rb>水曜日</rb><rt>すいようび</rt></ruby>　10：00～12：00　<span style="font-size: 80%;">（<ruby><rb>初級</rb><rt>しょきゅう</rt></ruby>・<ruby><rb>中級</rb><rt>ちゅうきゅう</rt></ruby>・<ruby><rb>上級</rb><rt>じょうきゅう</rt></ruby>）</span><br>
+<ruby><rb>金曜日</rb><rt>きんようび</rt></ruby>　10：00～12：00　<span style="font-size: 80%;">（<ruby><rb>初級</rb><rt>しょきゅう</rt></ruby>・<ruby><rb>中級</rb><rt>ちゅうきゅう</rt></ruby>）</span></span>
+                  
+                </div>
+              </div>
+              <div class="row class-info-table">
+                <div class="col-4 class-info-left d-flex align-items-center"><ruby><rb>場所</rb><rt>ばしょ</rt></ruby></div>
+                <div class="col-8 class-info-right d-flex align-items-center">
+                  
+                    <span class="pt-3 pb-2"><ruby><rb>江東区</rb><rt>こうとうく</rt></ruby><ruby><rb>文化</rb><rt>ぶんか</rt></ruby><ruby><rb>センター</rb><rt>せんたー</rt></ruby><br>
+<ruby><rb>東京</rb><rt>とうきょう</rt></ruby><ruby><rb>メトロ</rb><rt>めとろ</rt></ruby><ruby><rb>東西</rb><rt>とうざい</rt></ruby><ruby><rb>線</rb><rt>せん</rt></ruby>　<ruby><rb>東陽町駅</rb><rt>とうようちょうえき</rt></ruby>から　５<ruby><rb>分</rb><rt>ふん</rt></ruby><ruby><rb>歩</rb><rt>ある</rt></ruby>きます。</span>
+                  
+                </div>
+              </div>
+              <div class="row class-info-table">
+                <div class="col-4 class-info-left d-flex align-items-center"><ruby><rb>会費</rb><rt>かいひ</rt></ruby></div>
+                <div class="col-8 class-info-right d-flex align-items-center">
+                  
+                    <span class="pt-3 pb-2">700<ruby><rb>円</rb><rt>えん</rt></ruby>/ 1<ruby><rb>回</rb><rt>かい</rt></ruby></span>
+                  
+                </div>
+              </div>
+            </a>
+          </div>
+        </div>
+      </div>
+
+
+      <!-- スマホ用教室情報 -->
+      <div class="d-lg-none">
+        <div class="class-info-area row mb-3">
+          <div class="col-12">
+            <a class="class-info-a" href="/jp-class/141/">
+
+              <div class="row class-info-table">
+                <div class="col-12 class-info-left d-flex justify-content-center font-weight-bold">
+                  <span class="pt-3 pb-2"><ruby><rb>教室名</rb><rt>きょうしつめい</rt></ruby></span>
+                </div>
+                <div class="col-12 class-info-right d-flex align-items-center flex-wrap">
+                  
+                    <span class="pt-3 pb-2 class_name"><ruby><rb>プランタン</rb><rt>ぷらんたん</rt></ruby>にほんご<ruby><rb>教室</rb><rt>ごきょうしつ</rt></ruby></span>
+                  
+                  
+                </div>
+              </div>
+
+
+              <div class="row class-info-table">
+                <div class="col-12 class-info-left d-flex justify-content-center font-weight-bold">
+                  <span class="pt-3 pb-2"><ruby><rb>日時</rb><rt>にちじ</rt></ruby></span>
+                </div>
+                <div class="col-12 class-info-right d-flex align-items-center">
+                  
+                    <span class="pt-3 pb-2"><ruby><rb>水曜日</rb><rt>すいようび</rt></ruby>　10：00～12：00　<span style="font-size: 80%;">（<ruby><rb>初級</rb><rt>しょきゅう</rt></ruby>・<ruby><rb>中級</rb><rt>ちゅうきゅう</rt></ruby>・<ruby><rb>上級</rb><rt>じょうきゅう</rt></ruby>）</span><br>
+<ruby><rb>金曜日</rb><rt>きんようび</rt></ruby>　10：00～12：00　<span style="font-size: 80%;">（<ruby><rb>初級</rb><rt>しょきゅう</rt></ruby>・<ruby><rb>中級</rb><rt>ちゅうきゅう</rt></ruby>）</span></span>
+                  
+                </div>
+              </div>
+
+
+
+
+              <div class="row class-info-table">
+                <div class="col-12 class-info-left d-flex justify-content-center font-weight-bold">
+                  <span class="pt-3 pb-2"><ruby><rb>場所</rb><rt>ばしょ</rt></ruby></span>
+                </div>
+                <div class="col-12 class-info-right d-flex align-items-center">
+                  
+                    <span class="pt-3 pb-2"><ruby><rb>江東区</rb><rt>こうとうく</rt></ruby><ruby><rb>文化</rb><rt>ぶんか</rt></ruby><ruby><rb>センター</rb><rt>せんたー</rt></ruby><br>
+<ruby><rb>東京</rb><rt>とうきょう</rt></ruby><ruby><rb>メトロ</rb><rt>めとろ</rt></ruby><ruby><rb>東西</rb><rt>とうざい</rt></ruby><ruby><rb>線</rb><rt>せん</rt></ruby>　<ruby><rb>東陽町駅</rb><rt>とうようちょうえき</rt></ruby>から　５<ruby><rb>分</rb><rt>ふん</rt></ruby><ruby><rb>歩</rb><rt>ある</rt></ruby>きます。</span>
+                  
+                </div>
+              </div>
+
+
+              <div class="row class-info-table mb-2">
+                <div class="col-12 class-info-left d-flex justify-content-center font-weight-bold">
+                  <span class="pt-3 pb-2"><ruby><rb>会費</rb><rt>かいひ</rt></ruby></span>
+                </div>
+                <div class="col-12 class-info-right d-flex align-items-center">
+                  
+                    <span class="pt-3 pb-2">700<ruby><rb>円</rb><rt>えん</rt></ruby>/ 1<ruby><rb>回</rb><rt>かい</rt></ruby></span>
+                  
+                </div>
+              </div>
+
+            </a>
+          </div>
+        </div>
+      </div>
+
+      <hr class="cp_hr11 my-5rem" />
+
+
+
+
+
+
+      
+        
+      
+    
+
+    
+    <!-- もう一方への教室へリンクボタン (スマホ用)-->
+    <div class="row d-lg-none">
+      <div class="col-12">
+        <div class="other-class-button mb-1 display-none-class">
+
+                <a id="_jp_child_path_sp"></a>
+
+        </div>
+      </div>
+    </div>
+    
+
+
+
+    
+
+
+    </div>
+  </section>
+  <footer>
+<!-- ロゴエリア（バナーになる可能性あり？） -->
+<div class="footer-logo-area my-5">
+  <div class="container">
+    <div class="row">
+      <div class="col-3 col-xl-3"></div>
+      <div class="col-6 col-xl-6">
+        <div class="text-center"><a href="https://tokyo-tsunagari.or.jp/" target="_blank"><img style="width: 100%;" src="/images/footer_logo.jpg" alt="公益財団法人つながり創生財団"></a></div>
+      </div>
+      <div class="col-3 col-xl-3"></div>
+    </div>
+  </div>
+</div>
+
+<!-- PC用フッターエリア -->
+<div class="footer-menu-area py-4  d-none d-lg-block">
+  <div class="container">
+    <div class="row my-3">
+      <div class="col-12">
+        <div class="text-center">
+          <ul>
+            <li><a href="/sitepolicy.html" class="mx-2"><ruby>サイトポリシー<rt>さいとぽりしー</rt></ruby></a></li>
+            <li><a href="/privacy.html" class="mx-2"><ruby><rb>個人情報</rb><rt>こじんじょうほう</rt></ruby><ruby><rb>保護</rb><rt>ほご</rt></ruby><ruby><rb>方針</rb><rt>ほうしん</rt></ruby></a></li>
+            <li><a href="/sitemap.html" class="mx-2"><ruby>サイトマップ<rt>さいとまっぷ</rt></ruby></a></li>
+            <li><a href="/contact.html" class="mx-2">お<ruby><rb>問</rb><rt>と</rt></ruby>い<ruby><rb>合</rb><rt>あ</rt></ruby>わせ</a></li>
+          </ul>
+        </div>
+      </div>
+    </div>
+    <div class="row my-3">
+      <div class="col-12">
+        <div class="text-center small-font-size">
+          <span>© Tokyo Metropolitan Foundation “TSUNAGARI”. All rights reserved.</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- スマホ用フッターエリア -->
+<div class="footer-menu-area py-1 d-lg-none">
+  <div class="container">
+    <div class="row my-3">
+      <div class="col-12">
+        <div class="text-center small-font-size">
+          <span>© Tokyo Metropolitan Foundation “TSUNAGARI”. <br>All rights reserved.</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+</footer>
+
+  <script src="https://code.jquery.com/jquery-3.6.0.min.js"
+  integrity="sha256-/xUj+3OJU5yExlq6GSYGSHk7tPXikynS7ogEvDej/m4="
+  crossorigin="anonymous">
+</script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.7/umd/popper.min.js"
+  integrity="sha384-UO2eT0CpHqdSJQ6hJty5KVphtPhzWj9WO1clHTMGa3JDZwrnQq4sF86dIHNDz0W1"
+  crossorigin="anonymous">
+</script>
+<script src="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.min.js"
+  integrity="sha384-JjSmVgyd0p3pXB1rRibZUAYoIIy6OrQ6VrjIEaFf/nJGzIxFDsf4x0xIM+B07jRM"
+  crossorigin="anonymous">
+</script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery-cookie/1.4.1/jquery.cookie.min.js" integrity="sha512-3j3VU6WC5rPQB4Ld1jnLV7Kd5xr+cq9avvhwqzbH/taCRNURoeEpoPBK9pDyeukwSxwRPJ8fDgvYXd6SkaZ2TA==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+<script>
+
+
+  // ふりがなON/OFF
+  $('#hurigana_button_on').on('click', function() {
+    $("rt").css({'display':''});
+    $.cookie("hurigana", null,{path:'/'});
+    $.cookie("hurigana", "on",{path:'/'});
+  });
+  $('#hurigana_button_off').on('click', function() {
+    $("rt").css({'display':'none'});
+    $.cookie("hurigana", null,{path:'/'});
+    $.cookie("hurigana", "off",{path:'/'});
+  });
+
+
+  // ふりがなON/OFF_スマホ用
+  $('#hurigana_button_on_sp').on('click', function() {
+    $("rt").css({'display':''});
+    $.cookie("hurigana", null,{path:'/'});
+    $.cookie("hurigana", "on",{path:'/'});
+  });
+  $('#hurigana_button_off_sp').on('click', function() {
+    $("rt").css({'display':'none'});
+    $.cookie("hurigana", null,{path:'/'});
+    $.cookie("hurigana", "off",{path:'/'});
+  });
+
+
+  function getHuriganaCookie() {
+    let huriganaCookies =  $.cookie('hurigana');
+
+    if(huriganaCookies == 'off') {
+      $("rt").css({'display':'none'});
+    }
+    else if(huriganaCookies == 'on') {
+      $("rt").css({'display':''});
+    }
+  }
+
+
+
+
+  $(document).ready(function() {
+    getHuriganaCookie();
+  });
+
+  // ハンバーガーメニュー開閉
+  $('#hamburger').on('click', function(){
+    $('.icon').toggleClass('close');
+    $('.sp-nav').slideToggle();
+  });
+  /* 2024 改修
+  -------------------------------------------- */
+  // アコーディオンメニュー開閉
+  $('#accordion').on('click', function(){
+    $('.accordion-title').toggleClass('close_accordion');
+    $('.accordion-inner').toggleClass('close_accordion');
+  });
+
+  // 日本語教室・子どもの日本語教室を判定
+  $(function(){
+      if($('.pan a[href*="/jp-class"]').length){
+        $('#main').toggleClass('jp-class-main');
+      }
+    });
+    $(function(){
+      if($('.pan a[href*="/child-class"]').length){
+        $('#main').toggleClass('child-class-main');
+      }
+    });
+
+      //多言語メニュー開閉(PC)
+      $('#language-multi').on('click', function () {
+        $('#language-multi').toggleClass('show');
+      });
+
+      //多言語メニュー開閉(SP)
+      $('#language-multi-sp').on('click', function () {
+        $('#language-multi-sp').toggleClass('show');
+      });
+
+      //RTL付与・削除
+      $(function () {
+        if(document.URL.match(/english/) ) {
+          if ($.cookie('msta_lang') == "ar"){        //アラビア語
+            $("body").attr('dir', 'rtl');
+          }else if( $.cookie('msta_lang') == "fa" ){ //ペルシア語
+            $("body").attr('dir', 'rtl');
+          }else if( $.cookie('msta_lang') == "ur" ){ //ウルドゥ語
+            $("body").attr('dir', 'rtl');
+          }else if( $.cookie('msta_lang') == "he" ){ //ヘブライ語
+            $("body").attr('dir', 'rtl');
+          }else if( $.cookie('msta_lang') == "ps" ){ //パシュト語
+            $("body").attr('dir', 'rtl');
+          }else if( $.cookie('msta_lang') == "sd" ){ //シンド語
+            $("body").attr('dir', 'rtl');
+          }else if( $.cookie('msta_lang') == "ug" ){ //ウイグル語
+            $("body").attr('dir', 'rtl');
+          }else if( $.cookie('msta_lang') == "yi" ){ //イディッシュ語
+            $("body").attr('dir', 'rtl');
+          }else if( $.cookie('msta_lang') == "dv" ){ //ディベヒ語
+            $("body").attr('dir', 'rtl');
+          }else if( $.cookie('msta_lang') == "pr" ){ //ダリー語
+            $("body").attr('dir', 'rtl');
+          }else{
+            $("body").removeAttr('dir', 'rtl');
+          }
+        }else{
+          $("body").removeAttr('dir', 'rtl');
+        }
+      });
+
+//動画切り替え
+$(".video-tab-item").click(function () {
+  $(".video-tab-item").removeClass("active")
+  $(".video-frame").removeClass("active")
+
+  $(this).addClass("active")
+
+  if ($(this).attr("class").indexOf('tab-ja')>0){
+    $(".frame-ja").addClass("active")
+  }
+
+  if ($(this).attr("class").indexOf('tab-en')>0){
+    $(".frame-en").addClass("active")
+  }
+
+  if ($(this).attr("class").indexOf('tab-zh')>0){
+    $(".frame-zh").addClass("active")
+  }
+
+  if ($(this).attr("class").indexOf('tab-ko')>0){
+    $(".frame-ko").addClass("active")
+  }
+});
+
+//簡体字・ハングルは動画タブの初期位置を変更
+const cookies = document.cookie.split(';')
+if(document.URL.match('/english/$') ) {
+
+  if(cookies.lastIndexOf(' msta_lang=zh') > 0){
+    $(".tab-zh").click()
+  }
+
+  if(cookies.lastIndexOf(' msta_lang=ko') > 0){
+    $(".tab-ko").click()
+  }
+
+  if(cookies.lastIndexOf(' msta_lang=tw') > 0){
+    $(".tab-zh").click()
+  }
+}
+
+</script>
+<!-- フォント用 typesquare -->
+<script type="text/javascript" src="//typesquare.com/3/tsst/script/ja/typesquare.js?65f3da476d98403183cb0136ac1e02e5" charset="utf-8"></script>
+
+
+
+
+
+  <script>
+    $(document).ready(function () {
+      // 第3階層で、日本語教室を閲覧中、閲覧中の区市町村に子どもの日本語教室がある場合に、そのボタンを追加するメソッド
+      // その逆（子どもの日本語教室閲覧中に日本語教室への遷移）もしかり。
+      const _nowPath = $(location).attr('pathname');                             // 現在のパス
+      const _jp_class_path = '/jp-class/jp-';                               // 日本語教室のパス
+      const _child_class_path = '/child-class/child-';                      // 子どもの日本語教室のパス
+      const _jp_class_str = '<ruby><rb>江東区</rb><rt>こうとうく</rt></ruby>の<ruby><rb>日本語教室</rb><rt>にほんごきょうしつ</rt></ruby><span class="small_font">は こちら</span>';           //日本語教室の文言
+      const _child_class_str = '<ruby><rb>江東区</rb><rt>こうとうく</rt></ruby>の<ruby><rb>子</rb><rt>こ</rt></ruby>どもの<ruby><rb>日本語</rb><rt>にほんご</rt></ruby><ruby><rb>教室</rb><rt>きょうしつ</rt></ruby><span class="small_font">は こちら</span>'; //子どもの日本語教室の文言
+      let _replacePath = '';
+      let _replaceStr = '';
+
+
+      // 現在開いている区市町村別教室一覧の画面が日本語教室の場合（子どもの日本語教室一覧に遷移させたい）
+      if (_nowPath.match(_jp_class_path)) {
+        // 現在のパスにおいて日本語教室のパスを子どもの日本語教室のパスに置換する。文字列も置換する
+        _replacePath = _nowPath.replace(_jp_class_path, _child_class_path);
+        _replaceStr = _child_class_str;
+      }
+      // 現在開いている区市町村別教室一覧の画面が子どもの日本語教室の場合（日本語教室一覧に遷移させたい）
+      else if (_nowPath.match(_child_class_path)) {
+        // 現在のパスにおいて子どもの日本語教室のパスを日本語教室のパスに置換する。文字列も置換する
+        _replacePath = _nowPath.replace(_child_class_path, _jp_class_path);
+        _replaceStr = _jp_class_str;
+      }
+      else {
+        return;
+      }
+
+      $.ajax({
+        type: 'POST',
+        url: _replacePath
+      })
+        .done(function () {
+          $('#_jp_child_path').attr('href', _replacePath);
+          $('#_jp_child_path').append(_replaceStr);
+          $('#_jp_child_path').css('display', 'block');
+          $('#_jp_child_path_sp').attr('href', _replacePath);
+          $('#_jp_child_path_sp').append(_replaceStr);
+          $('#_jp_child_path_sp').css('display', 'block');
+          $('.other-class-button').css('display', 'block');
+          getHuriganaCookie();
+        })
+        .fail(function () {
+          $('.other-class-button').css('display', 'none');
+          getHuriganaCookie();
+
+        });
+    }
+    );
+
+
+
+  </script>
+</body>
+
+</html>
