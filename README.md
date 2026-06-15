@@ -14,8 +14,6 @@ A publicly available dataset of files scraped from municipal government websites
 
 A sample chatbot application built on top of the dataset above, developed to study the practical challenges of building a production-grade LLM application — covering quality, safety, and governance concerns.
 
-> **Note:** The live demo uses a significantly larger corpus than what is available in the `datasets/` folder, due to differences between usage permissions and redistribution permissions for the underlying data.
-
 ## Important Notice
 
 - The data was compiled based on information available as of **February 2026** and should be used with the understanding that it may not be up to date.
@@ -49,8 +47,6 @@ Please open each subfolder for more details.
 ### [`demo/`](./demo/)
 
 上記データセットを基に構築されたサンプルチャットボットアプリケーションです。本番レベルの LLM アプリケーション開発における品質・安全性・ガバナンスの実践的な課題を研究する目的で開発されました。
-
-> **注意：** ライブデモでは、データの利用許諾と再配布許諾の違いにより、`datasets/` フォルダで公開されているデータより多くのデータを使用しています。
 
 ## ご利用上の注意
 
